@@ -1,3 +1,8 @@
+#ifndef TRIANGLE_H
+#define TRIANGLE_H
+
+class Instance;
+
 class Triangle
 {
 public:
@@ -17,16 +22,11 @@ private:
 
 	void	OrthoNormalization(D3DXMATRIX &mat);
 
-	IDirect3DVertexBuffer9			*m_pVB;           // Buffer to hold vertices
-	IDirect3DIndexBuffer9			*m_pIB;			// Index buffer
-	IDirect3DVertexDeclaration9		*m_pVertexDecl;   // Vertex format decl
-	IDirect3DVertexShader9			*m_pVertexShader; // Vertex Shader
-	IDirect3DPixelShader9			*m_pPixelShader;  // Pixel Shader
-	IDirect3DTexture9				*m_texture;			// Texture
-
-	ID3DXEffect	*m_pEffect;
+	Instance *	m_instance;
 	INT         m_iCurrentEffect;
 	INT         m_iNumberOfTechniques;
 	INT         m_iCurrentTechnique;
 	WCHAR       m_strTechnique[512];
 };
+
+#endif // TRIANGLE_H

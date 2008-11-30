@@ -2,6 +2,7 @@
 // ****************************************************************************
 #include "stdafx.h"
 #include "RenderCore/RenderThread.h"
+#include "RenderCore/RenderMgr.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -207,6 +208,7 @@ bool WinApp::InitializeDirectX(void)
 		return false;
 	}
 
+	RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice);
 	return true;
 }
 
