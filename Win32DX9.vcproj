@@ -42,6 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="C:\Users\Matt\Documents\Visual Studio 2005\Projects\LuaPlus\work51\Src\LuaPlus"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;D3D_DEBUG_INFO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

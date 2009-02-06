@@ -4,6 +4,8 @@
 #include "Triangle.h"
 #include "TheGame.h"
 #include "Camera.h"
+#include "LuaPlus.h"
+#include "RenderCore/VertexDecl.h"
 
 #include "RenderCore/InstanceManager.h"
 
@@ -12,6 +14,10 @@
 Triangle::Triangle(void)
 {
 	Instance &instance = InstanceManager::GetInstance().NewInstance();
+
+	VertexDecl	testDecl;
+	std::string path("pos3_tex1.lua");
+	testDecl.Load(path);
 
 	instance.LoadEffectFromFile(L"Effects\\texture.fxo");
 	instance.LoadTextureFromFile(L"Effects\\Carsen.tga");
