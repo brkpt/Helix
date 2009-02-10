@@ -20,6 +20,8 @@ public:
 
 	Shader *	Load(const std::string &shaderName);
 	Shader *	GetShader(const std::string &shaderName);
+	void		LoadShared();
+	void		SetSharedParameter(const std::string &paramName, D3DXMATRIX &matrix);
 
 private:
 	ShaderManager();
@@ -28,6 +30,8 @@ private:
 
 	typedef std::map<const std::string, Shader *>	ShaderMap;
 	ShaderMap	m_shaderMap;
+
+	ID3DXEffectPool *	m_effectPool;
 };
 
 #endif // SHADERMANAGER_H

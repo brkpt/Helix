@@ -1,14 +1,17 @@
 #include "stdafx.h"
+#include "LuaPlus.h"
 #include "VertexDecl.h"
 
-#define	ADD_DECL(x)		m_declUsageMap.insert(UsagePair(#x, x))
-#define ADD_TYPE(x)		m_declTypeMap.insert(TypePair(#x, x))
-#define	ADD_METHOD(x)	m_declMethodMap.insert(MethodPair(#x,x))
+#define	ADD_DECL(x)		m_declUsageMap[#x] = x
+#define ADD_TYPE(x)		m_declTypeMap[#x] = x
+#define	ADD_METHOD(x)	m_declMethodMap[#x] = x
 
 // ****************************************************************************
 // ****************************************************************************
 VertexDecl::VertexDecl()
 : m_decl(NULL)
+, m_numElements(0)
+, m_vertexSize(0)
 {
 	ADD_DECL(D3DDECLUSAGE_POSITION);
 	ADD_DECL(D3DDECLUSAGE_BLENDWEIGHT);
@@ -58,7 +61,7 @@ VertexDecl::~VertexDecl()
 
 // ****************************************************************************
 // ****************************************************************************
-bool VertexDecl::GetUsage(D3DDECLUSAGE &usage, const std::string &str)
+bool VertexDecl::GetUsage(D3DDECLUSAGE &usage, const std::string &str) const
 {
 	UsageMap::const_iterator iter = m_declUsageMap.find(str);
 	if(iter == m_declUsageMap.end())
@@ -72,7 +75,7 @@ bool VertexDecl::GetUsage(D3DDECLUSAGE &usage, const std::string &str)
 
 // ****************************************************************************
 // ****************************************************************************
-bool VertexDecl::GetType(D3DDECLTYPE &type, const std::string &str)
+bool VertexDecl::GetType(D3DDECLTYPE &type, const std::string &str) const
 {
 	TypeMap::const_iterator iter = m_declTypeMap.find(str);
 	if(iter == m_declTypeMap.end())
@@ -86,7 +89,7 @@ bool VertexDecl::GetType(D3DDECLTYPE &type, const std::string &str)
 
 // ****************************************************************************
 // ****************************************************************************
-bool VertexDecl::GetMethod(D3DDECLMETHOD &method, const std::string &str)
+bool VertexDecl::GetMethod(D3DDECLMETHOD &method, const std::string &str) const
 {
 	MethodMap::const_iterator iter = m_declMethodMap.find(str);
 	if(iter == m_declMethodMap.end())
@@ -102,8 +105,9 @@ bool VertexDecl::GetMethod(D3DDECLMETHOD &method, const std::string &str)
 // ****************************************************************************
 bool VertexDecl::Load(const std::string &path)
 {
-	std::string fullPath = "Effects/";
+	std::string fullPath = "Shaders/";
 	fullPath += path;
+	fullPath += ".lua";
 	LuaState *state = LuaState::Create();
 
 	int retVal = state->DoFile(fullPath.c_str());
@@ -175,7 +179,43 @@ bool VertexDecl::Load(LuaObject &declObj)
 	m_decl[numElements].Usage = 0;
 	m_decl[numElements].UsageIndex = 0;
 
+	m_numElements = numElements;
+	for(int index=0;index<m_numElements;index++)
+	{
+		const D3DVERTEXELEMENT9 &element = m_decl[index];
+
+		switch(element.Type)
+		{
+		case D3DDECLTYPE_FLOAT1:
+		case D3DDECLTYPE_D3DCOLOR:
+		case D3DDECLTYPE_UBYTE4:
+		case D3DDECLTYPE_SHORT2:
+		case D3DDECLTYPE_UBYTE4N:
+		case D3DDECLTYPE_SHORT2N:
+		case D3DDECLTYPE_USHORT2N:
+		case D3DDECLTYPE_UDEC3:
+		case D3DDECLTYPE_DEC3N:
+		case D3DDECLTYPE_FLOAT16_2:
+		case D3DDECLTYPE_FLOAT16_4:
+			m_vertexSize += 4;
+			break;
+		case D3DDECLTYPE_FLOAT2:
+		case D3DDECLTYPE_SHORT4:
+		case D3DDECLTYPE_SHORT4N:
+		case D3DDECLTYPE_USHORT4N:
+			m_vertexSize += 8;
+			break;
+		case D3DDECLTYPE_FLOAT3:
+			m_vertexSize += 12;
+			break;
+		case D3DDECLTYPE_FLOAT4:
+			m_vertexSize += 16;
+			break;
+		default:
+			_ASSERT(0);
+			break;
+		}
+	}
 	return true;
 }
-
 

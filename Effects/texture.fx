@@ -1,8 +1,8 @@
 // Use:
 //  fxc [/LD] /T fx_2_0 /Vi /Zi /Fo texture.fxo texture.fx
 
-float4x3	WorldView;
-float4x4	Projection;
+#include "shared.fx"
+
 texture	textureImage;
 
 struct TextureVertex_in

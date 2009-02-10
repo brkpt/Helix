@@ -1,0 +1,37 @@
+SubDir TOP RenderCore ;
+
+RENDERCORE_SRCS = 
+	DeclManager.cpp
+	DeclManager.h
+	Instance.cpp
+	Instance.h
+	InstanceManager.cpp
+	InstanceManager.h
+	Material.cpp
+	Material.h
+	MaterialManager.cpp
+	MaterialManager.h
+	Mesh.cpp
+	Mesh.h
+	RenderMgr.h
+	RenderThread.cpp
+	RenderThread.h
+	Shader.cpp
+	Shader.h
+	ShaderManager.cpp
+	ShaderManager.h
+	stdafx.cpp
+	stdafx.h
+	Texture.cpp
+	Texture.h
+	TextureManager.cpp
+	TextureManager.h
+	VertexDecl.cpp
+	VertexDecl.h
+	;
+
+#Defines RenderCore : UNICODE _UNICODE : * ;
+
+PrecompiledHeader RenderCore : stdafx : $(RENDERCORE_SRCS) ;
+Library RenderCore : $(RENDERCORE_SRCS) ;
+

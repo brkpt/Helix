@@ -12,7 +12,6 @@ public:
 	~WinApp(void);
 
 	static WinApp *		Instance(void) { return m_instance; }
-	bool				Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow,bool fullScreen,int width,int height,LPTSTR windowName);
 	void				Cleanup(void);
 	HINSTANCE			AppInstance(void)			{ return m_appInstance; }
 	IDirect3DDevice9 *	GetDevice(void)	{ return m_pD3DDevice; }
@@ -21,6 +20,7 @@ public:
 
 	static LRESULT CALLBACK	WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+	virtual bool		Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow,bool fullScreen,int width,int height,LPTSTR windowName);
 	virtual int				Run(void);
 	virtual void			Update(void);
 	virtual void			Render(void);

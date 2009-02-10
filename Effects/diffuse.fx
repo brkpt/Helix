@@ -1,5 +1,4 @@
-float4x3 WorldView : WORLDVIEW;
-float4x4 Projection : PROJECTION;
+#include "shared.fx"
 
 struct DiffuseVertex_in
 {

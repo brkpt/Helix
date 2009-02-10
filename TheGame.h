@@ -32,6 +32,7 @@ public:
 	static TheGame *	CreateInstance(void);
 	static TheGame *	Instance(void)			{ return m_instance; }
 
+	bool		Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow,bool fullScreen,int width,int height,LPTSTR windowName);
 	void		Update(void);
 	void		Render(void);
 	void		LoadScene(void);

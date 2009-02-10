@@ -2,6 +2,10 @@
 // ****************************************************************************
 #include "stdafx.h"
 #include "TheGame.h"
+#include "RenderCore/DeclManager.h"
+#include "RenderCore/ShaderManager.h"
+#include "RenderCore/MaterialManager.h"
+#include "RenderCore/InstanceManager.h"
 #include "Camera.h"
 #include "triangle.h"
 #include "grid.h"
@@ -26,6 +30,19 @@ TheGame * TheGame::CreateInstance(void)
 	_ASSERT(m_instance == NULL);
 	m_instance = new TheGame();
 	return m_instance;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow,bool fullScreen,int width,int height,LPTSTR windowName)
+{
+	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
+
+	DeclManager::GetInstance();
+	ShaderManager::GetInstance();
+	MaterialManager::GetInstance();
+	InstanceManager::GetInstance();
+	return retVal;
 }
 
 // ****************************************************************************
@@ -166,8 +183,17 @@ void TheGame::Render(void)
 	m_pD3DDevice->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
 	m_pD3DDevice->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
 	m_pD3DDevice->BeginScene();
+
+	TheGame *game = TheGame::Instance();
+	D3DXMATRIX &viewMatrix = game->CurrentCamera()->GetViewMatrix();
+	D3DXMATRIX &projMatrix = game->CurrentCamera()->GetProjectionMatrix();
+
+	ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
+	ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
+
 	m_grid->Render();
 	m_triangle->Render();
 	m_pD3DDevice->EndScene();
 	m_pD3DDevice->Present(NULL,NULL,NULL,NULL);
 }
+

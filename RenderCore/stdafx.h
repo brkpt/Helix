@@ -11,6 +11,10 @@
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 
-
+#include <string>
+#include <map>
+#include <d3d9.h>
+#include <d3dx9.h>
+#include "LuaPlus.h"
 
 // TODO: reference additional headers your program requires here

@@ -1,6 +1,9 @@
 #ifndef DECLMANAGER_H
 #define DECLMANAGER_H
 
+#include <string>
+#include <map>
+
 class VertexDecl;
 
 class DeclManager

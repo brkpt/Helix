@@ -33,9 +33,9 @@ public:
 	void	Pan(const float & radians);
 	void	Dolly(const D3DXVECTOR3 & translation);
 	void	Tilt(const float & radians);
-	const D3DXMATRIX &	GetWorldMatrix(void) const		{ return m_worldMatrix; }
-	const D3DXMATRIX &	GetViewMatrix(void) const		{ return m_viewMatrix; }
-	const D3DXMATRIX &	GetProjectionMatrix(void) const	{ return m_projMatrix; }
+	D3DXMATRIX &	GetWorldMatrix(void) 		{ return m_worldMatrix; }
+	D3DXMATRIX &	GetViewMatrix(void)			{ return m_viewMatrix; }
+	D3DXMATRIX &	GetProjectionMatrix(void)	{ return m_projMatrix; }
 
 protected:
 	void	BuildMatrices(void);

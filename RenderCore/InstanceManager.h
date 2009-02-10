@@ -1,13 +1,10 @@
 #ifndef INSTANCE_MGR_H
 #define INSTANCE_MGR_H
 
-#include <crtdbg.h>
-#include "Instance.h"
+class Instance;
 
 class InstanceManager
 {
-	enum { MAX_INSTANCES = 1000 };
-
 public:
 	static InstanceManager & GetInstance()
 	{
@@ -15,11 +12,8 @@ public:
 		return instance;
 	}
 
-	Instance &	NewInstance()
-	{
-		_ASSERT(m_nextInstanceIndex < MAX_INSTANCES);
-		return m_instanceArray[m_nextInstanceIndex++];
-	}
+	Instance *	Get(const std::string &name);
+	Instance *	Load(const std::string &name);
 
 private:
 	InstanceManager();
@@ -27,8 +21,9 @@ private:
 	InstanceManager(const InstanceManager &other) {}
 	InstanceManager &	operator=(const InstanceManager &other) {}
 
-	Instance		m_instanceArray[MAX_INSTANCES];
-	unsigned int	m_nextInstanceIndex;
+	typedef std::map<const std::string, Instance *>	InstanceMap;
+
+	InstanceMap		m_database;
 };
 
 #endif INSTANCE_MGR_H

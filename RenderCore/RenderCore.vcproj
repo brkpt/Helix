@@ -21,7 +21,7 @@
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			UseOfMFC="0"
-			CharacterSet="1"
+			CharacterSet="0"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="C:\Users\Matt\Documents\Visual Studio 2005\Projects\LuaPlus\work51\Src\LuaPlus"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -143,6 +144,14 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\DeclManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\DeclManager.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Instance.cpp"
 			>
 		</File>
@@ -159,6 +168,30 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Material.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Material.h"
+			>
+		</File>
+		<File
+			RelativePath=".\MaterialManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\MaterialManager.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Mesh.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Mesh.h"
+			>
+		</File>
+		<File
 			RelativePath=".\RenderMgr.h"
 			>
 		</File>
@@ -168,6 +201,22 @@
 		</File>
 		<File
 			RelativePath=".\RenderThread.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Shader.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Shader.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ShaderManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ShaderManager.h"
 			>
 		</File>
 		<File
@@ -192,6 +241,30 @@
 		</File>
 		<File
 			RelativePath=".\stdafx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Texture.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Texture.h"
+			>
+		</File>
+		<File
+			RelativePath=".\TextureManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\TextureManager.h"
+			>
+		</File>
+		<File
+			RelativePath=".\VertexDecl.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\VertexDecl.h"
 			>
 		</File>
 	</Files>

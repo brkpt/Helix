@@ -27,10 +27,10 @@ void RenderThread::Initialize()
 	_ASSERT(m_initialized == false);
 	m_initialized = true;
 
-	m_mutexHandle = CreateMutex(NULL,true,L"RenderThread");
+	m_mutexHandle = CreateMutex(NULL,true,"RenderThread");
 	_ASSERT(m_mutexHandle != NULL);
 
-	m_triggerRender = CreateMutex(NULL,true,L"RenderTrigger");
+	m_triggerRender = CreateMutex(NULL,true,"RenderTrigger");
 	_ASSERT(m_triggerRender != NULL);
 
 	for(int i=0;i<NUM_SUBMISSION_BUFFERS; i++)
