@@ -1,0 +1,15 @@
+# Ingore .obj files
+*.obj
+*.exe
+*.exe.*
+*.ilk
+*.ncb
+*.suo
+*.suo.old
+*.idb
+*.pdb
+*.wwdb
+*.user
+*.old
+git.log
+
