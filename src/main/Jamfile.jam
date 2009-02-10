@@ -1,4 +1,4 @@
-SubDir TOP ;
+SubDir TOP src main ;
 
 GAME_SRCS = 
 	Camera.cpp

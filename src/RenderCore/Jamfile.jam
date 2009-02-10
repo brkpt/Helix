@@ -1,4 +1,4 @@
-SubDir TOP RenderCore ;
+SubDir TOP src RenderCore ;
 
 RENDERCORE_SRCS = 
 	DeclManager.cpp
