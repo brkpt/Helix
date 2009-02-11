@@ -1,0 +1,18 @@
+SubDir Content Effects ;
+
+rule MakeFX PARENTS : SRCS 
+{
+	local srcs = [ FGristFiles $(SRCS:S=.fx) ] ;
+	
+	for src in $(srcs)
+	{
+		echo $(src) ;
+	}
+}
+
+actions MakeFX_Helper
+{
+	fxc /T fx_2_0 /Vi /Zi Fo 
+}
+
+MakeFX ;

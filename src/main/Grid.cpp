@@ -14,8 +14,8 @@ Grid::Grid(void)
 	HRESULT hr;
 
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
-	hr = D3DXCreateEffectFromFile(pDevice,"Effects\\diffuse.fx",NULL,NULL,dwShaderFlags,NULL,&m_pLineEffect, NULL);
-//	_ASSERT(hr == D3D_OK);
+	hr = D3DXCreateEffectFromFile(pDevice,"Effects/diffuse.fx",NULL,NULL,dwShaderFlags,NULL,&m_pLineEffect, NULL);
+	_ASSERT(hr == D3D_OK);
 
 	// Retrieve technique desc
 	D3DXEFFECT_DESC desc;

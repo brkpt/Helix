@@ -1,0 +1,7 @@
+SubDir Content ;
+
+SubInclude Content Effects ;
+SubInclude Content Materials ;
+SubInclude Content Meshes ;
+SubInclude Content Shaders ;
+SubInclude Content Textures ;
