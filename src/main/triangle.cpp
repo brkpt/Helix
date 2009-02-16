@@ -21,7 +21,7 @@ Triangle::Triangle(void)
 {
 	m_instance = new Instance;
 	Mesh *mesh = new Mesh;
-	mesh->Load("Triangle");
+	mesh->Load("Cube");
 	
 	m_instance->SetMesh(mesh);
 

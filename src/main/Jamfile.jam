@@ -32,7 +32,7 @@ LinkDirectories TheGame :
 LinkLibraries TheGame : RenderCore ;
 
 LinkPrebuiltLibraries TheGame : d3d9 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib : * ;
-LinkPrebuiltLibraries TheGame : LuaPlus_1100.debug d3dx9d : debug ;
+LinkPrebuiltLibraries TheGame : LuaPlusLibD_1100 d3dx9d : debug ;
 LinkPrebuiltLibraries TheGame : LuaPlus d3dx9 : release ;
 
 PrecompiledHeader TheGame : stdafx : $(GAME_SRCS) ;
