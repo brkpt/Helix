@@ -54,7 +54,7 @@ technique SingleTexture
 		VertexShader = compile vs_3_0 TextureVertexShader();
 		PixelShader = compile ps_3_0 TexturePixelShader();
 		
-		CullMode = CCW;
+		CullMode = NONE;
 	}
 }
 
