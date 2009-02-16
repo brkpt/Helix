@@ -101,25 +101,25 @@ void Triangle::Update(float frameTime)
 // ****************************************************************************
 void Triangle::Render(void)
 {
-	ID3DXEffect *effect = m_instance->GetMesh().GetMaterial().GetShader().GetEffect();
+	m_instance->Render(0);
 
 	// Retrieve technique desc
-	D3DXEFFECT_DESC desc;
-	effect->GetDesc( &desc );
-	int numberOfTechniques = desc.Techniques;
-	int currentTechnique = 0;
+	//D3DXEFFECT_DESC desc;
+	//effect->GetDesc( &desc );
+	//int numberOfTechniques = desc.Techniques;
+	//int currentTechnique = 0;
 
-	wchar_t	strTechnique[512];
+	//wchar_t	strTechnique[512];
 
-	D3DXTECHNIQUE_DESC techdesc;
-	effect->GetTechniqueDesc( effect->GetTechnique(m_iCurrentTechnique ), &techdesc );
-	swprintf( strTechnique, 512, L"%S", techdesc.Name );
+	//D3DXTECHNIQUE_DESC techdesc;
+	//effect->GetTechniqueDesc( effect->GetTechnique(m_iCurrentTechnique ), &techdesc );
+	//swprintf( strTechnique, 512, L"%S", techdesc.Name );
 
 	//D3DXHANDLE hTechnique = m_pEffect->GetTechnique( m_iCurrentTechnique );
 	//D3DXHANDLE hPass      = m_pEffect->GetPass( hTechnique, 0 );
 	//D3DXHANDLE hWorldView	= m_pEffect->GetParameterByName(NULL, "WorldView");
 	//D3DXHANDLE hProjection = m_pEffect->GetParameterByName(NULL, "Projection");
-	//D3DXHANDLE hTexture = m_pEffect->GetParameterByName(NULL,"textureImage");
+	//D3DXHANDLE hTexture = effect->GetParameterByName(NULL,"textureImage");
 
 	//// Set effect parameters
 	//m_pEffect->SetMatrix( hWorldView, &viewMatrix );

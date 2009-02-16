@@ -3,6 +3,7 @@
 #include "InstanceManager.h"
 #include "RenderMgr.h"
 #include "MaterialManager.h"
+#include "Mesh.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -24,4 +25,11 @@ void Instance::SetMesh(Mesh *newMesh)
 	_ASSERT(m_mesh == NULL);
 
 	m_mesh = newMesh;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void Instance::Render(int pass)
+{
+	m_mesh->Render(pass);
 }

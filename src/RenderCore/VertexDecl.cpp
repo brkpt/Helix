@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LuaPlus.h"
 #include "VertexDecl.h"
+#include "RenderMgr.h"
 
 #define	ADD_DECL(x)		m_declUsageMap[#x] = x
 #define ADD_TYPE(x)		m_declTypeMap[#x] = x
@@ -125,7 +126,7 @@ bool VertexDecl::Load(LuaObject &declObj)
 	int numElements	= declObj.GetTableCount();
 	_ASSERT(numElements > 0);
 
-	m_decl = new D3DVERTEXELEMENT9[numElements+1];
+	D3DVERTEXELEMENT9 *decl = new D3DVERTEXELEMENT9[numElements+1];
 
 	for(int i=0;i<numElements;i++)
 	{
@@ -134,12 +135,12 @@ bool VertexDecl::Load(LuaObject &declObj)
 		LuaObject obj = elem[1];
 		_ASSERT(obj.IsInteger());
 		int streamNum = obj.GetInteger();
-		m_decl[i].Stream = streamNum; 
+		decl[i].Stream = streamNum; 
 
 		obj = elem[2];
 		_ASSERT(obj.IsInteger());
 		int offset = obj.GetInteger();
-		m_decl[i].Offset = offset;
+		decl[i].Offset = offset;
 
 		obj = elem[3];
 		_ASSERT(obj.IsString());
@@ -147,7 +148,7 @@ bool VertexDecl::Load(LuaObject &declObj)
 		D3DDECLTYPE declType;
 		bool retVal = GetType(declType,typeStr);
 		_ASSERT(retVal);
-		m_decl[i].Type = declType;
+		decl[i].Type = declType;
 
 		obj = elem[4];
 		_ASSERT(obj.IsString());
@@ -155,7 +156,7 @@ bool VertexDecl::Load(LuaObject &declObj)
 		D3DDECLMETHOD methodType;
 		retVal = GetMethod(methodType,methodStr);
 		_ASSERT(retVal);
-		m_decl[i].Method = methodType;
+		decl[i].Method = methodType;
 
 		obj = elem[5];
 		_ASSERT(obj.IsString());
@@ -163,26 +164,26 @@ bool VertexDecl::Load(LuaObject &declObj)
 		D3DDECLUSAGE usageType;
 		retVal = GetUsage(usageType,usageStr);
 		_ASSERT(retVal);
-		m_decl[i].Usage = usageType;
+		decl[i].Usage = usageType;
 
 		obj = elem[6];
 		_ASSERT(obj.IsInteger());
 		int usageIndex = obj.GetInteger();
-		m_decl[i].UsageIndex = usageIndex;
+		decl[i].UsageIndex = usageIndex;
 	}
 
 	// Close off the struct
-	m_decl[numElements].Stream = 0xFF;
-	m_decl[numElements].Offset = 0;
-	m_decl[numElements].Type = D3DDECLTYPE_UNUSED;
-	m_decl[numElements].Method = 0;
-	m_decl[numElements].Usage = 0;
-	m_decl[numElements].UsageIndex = 0;
+	decl[numElements].Stream = 0xFF;
+	decl[numElements].Offset = 0;
+	decl[numElements].Type = D3DDECLTYPE_UNUSED;
+	decl[numElements].Method = 0;
+	decl[numElements].Usage = 0;
+	decl[numElements].UsageIndex = 0;
 
 	m_numElements = numElements;
 	for(int index=0;index<m_numElements;index++)
 	{
-		const D3DVERTEXELEMENT9 &element = m_decl[index];
+		const D3DVERTEXELEMENT9 &element = decl[index];
 
 		switch(element.Type)
 		{
@@ -216,6 +217,10 @@ bool VertexDecl::Load(LuaObject &declObj)
 			break;
 		}
 	}
+
+	HRESULT hr = RenderMgr::GetInstance().GetDevice()->CreateVertexDeclaration(decl,&m_decl);
+	_ASSERT(SUCCEEDED(hr));
+
 	return true;
 }
 

@@ -34,3 +34,4 @@ bool Texture::Load(const std::string &filename)
 
 	return SUCCEEDED(hr);
 }
+

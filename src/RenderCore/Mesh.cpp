@@ -182,14 +182,12 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 
 // ****************************************************************************
 // ****************************************************************************
-void Mesh::Render()
+void Mesh::Render(int pass)
 {
-
-	//TheGame *game = TheGame::Instance();
-
-	//IDirect3DDevice9 *pDevice = game->GetDevice();
-	//D3DXMATRIX viewMatrix = game->CurrentCamera()->GetViewMatrix();
-	//D3DXMATRIX projMatrix = game->CurrentCamera()->GetProjectionMatrix();
+	// Set the parameters
+	m_material->SetParameters();
+	ID3DXEffect *effect = m_material->GetShader().GetEffect();
+	VertexDecl &decl = m_material->GetShader().GetDecl();
 
 	//D3DXHANDLE hTechnique = m_pEffect->GetTechnique( m_iCurrentTechnique );
 	//D3DXHANDLE hPass      = m_pEffect->GetPass( hTechnique, 0 );
@@ -202,19 +200,22 @@ void Mesh::Render()
 	//m_pEffect->SetMatrix( hProjection, &projMatrix);
 	//m_pEffect->SetTexture( hTexture, m_texture);
 
-	//UINT numPasses;
-	//m_pEffect->Begin( &numPasses, D3DXFX_DONOTSAVESTATE );
-	//m_pEffect->BeginPass( 0 );
+	UINT numPasses;
+	effect->Begin( &numPasses, D3DXFX_DONOTSAVESTATE );
+	effect->BeginPass( 0 );
 
-	//m_pEffect->CommitChanges();
+	effect->CommitChanges();
 
-	//// Render triangle here
-	//pDevice->SetStreamSource(0,m_pVB,0,sizeof(TriangleVertex));
-	//pDevice->SetIndices(m_pIB);
-	//pDevice->SetVertexDeclaration(m_pVertexDecl);
-	//pDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,3,0,1);
+	// Render triangle here
+	IDirect3DDevice9 *dev = RenderMgr::GetInstance().GetDevice();
+	_ASSERT(dev);
 
-	//m_pEffect->EndPass();
-	//m_pEffect->End();
+	dev->SetStreamSource(0,m_vertexBuffer,0,decl.VertexSize());
+	dev->SetIndices(m_indexBuffer);
+	dev->SetVertexDeclaration(decl.GetDecl());
+	dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,24,0,1);
+
+	effect->EndPass();
+	effect->End();
 
 }

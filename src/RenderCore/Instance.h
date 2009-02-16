@@ -16,6 +16,7 @@ public:
 	bool	Load(const std::string &name, LuaObject &obj);
 	Mesh &	GetMesh() { return *m_mesh; }
 	void	SetMesh(Mesh *newMesh);
+	void	Render(int pass);
 
 private:
 	std::string		m_name;

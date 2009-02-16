@@ -3,6 +3,8 @@
 #include "LuaPlus.h"
 #include "ShaderManager.h"
 #include "TextureManager.h"
+#include "Shader.h"
+#include "Texture.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -26,4 +28,16 @@ Material::Material(const std::string &name, LuaObject &object)
 
 	m_texture = TextureManager::GetInstance().LoadTexture(itemName);
 	_ASSERT(m_texture != NULL);
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void Material::SetParameters()
+{
+	ID3DXEffect *effect = m_shader->GetEffect();
+
+	D3DXHANDLE hTexture = effect->GetParameterByName(NULL,"textureImage");
+	HRESULT hr = effect->SetTexture( hTexture, m_texture->TexData());
+	_ASSERT(SUCCEEDED(hr));
+
 }

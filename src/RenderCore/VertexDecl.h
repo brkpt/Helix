@@ -13,8 +13,8 @@ public:
 	bool	Load(const std::string &path);
 	bool	Load(LuaObject &object);
 
-	D3DVERTEXELEMENT9 *	GetDecl() { return m_decl; }
-	int					VertexSize() { return m_vertexSize; }
+	IDirect3DVertexDeclaration9 *	GetDecl() { return m_decl; }
+	int								VertexSize() { return m_vertexSize; }
 
 private:
 
@@ -28,9 +28,9 @@ private:
 	UsageMap			m_declUsageMap;
 	TypeMap				m_declTypeMap;
 	MethodMap			m_declMethodMap;
-	D3DVERTEXELEMENT9 *	m_decl;
 	int					m_numElements;
 	int					m_vertexSize;
+	IDirect3DVertexDeclaration9 *	m_decl;
 };
 
 #endif // VERTEXDECL_H

@@ -10,6 +10,7 @@ public:
 	~Texture();
 
 	bool	Load(const std::string &path);
+	IDirect3DTexture9 *	TexData() { return m_texture; }
 
 private:
 	IDirect3DTexture9	*m_texture;
