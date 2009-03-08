@@ -24,6 +24,8 @@ sampler_state
 	MinFilter = Linear;
 	MagFilter = Linear;
 	MipFilter = Linear;
+	AddressU = Wrap;
+	AddressV = Wrap;
 };
 	
 TextureVertex_out TextureVertexShader(TextureVertex_in In)
@@ -54,7 +56,7 @@ technique SingleTexture
 		VertexShader = compile vs_3_0 TextureVertexShader();
 		PixelShader = compile ps_3_0 TexturePixelShader();
 		
-		CullMode = NONE;
+		CullMode = CCW;
 	}
 }
 

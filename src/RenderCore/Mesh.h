@@ -20,6 +20,9 @@ public:
 private:
 	IDirect3DVertexBuffer9 *	m_vertexBuffer;
 	IDirect3DIndexBuffer9 *		m_indexBuffer;
+	unsigned int				m_numVertices;
+	unsigned int				m_numIndices;
+	unsigned int				m_numTriangles;
 	Material *					m_material;	
 };
 #endif // MESH_H

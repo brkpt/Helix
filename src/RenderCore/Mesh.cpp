@@ -14,6 +14,9 @@ Mesh::Mesh()
 : m_vertexBuffer(NULL)
 , m_indexBuffer(NULL)
 , m_material(NULL)
+, m_numVertices(0)
+, m_numIndices(0)
+, m_numTriangles(0)
 {
 }
 
@@ -76,15 +79,14 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 	// Fill in the vertex buffer
 	VertexDecl &decl = m_material->GetShader().GetDecl();
 	int vertexSize = decl.VertexSize();
-	int numVertices = 0;
-	int numFaces = faceListObj.GetTableCount();
-	for(int faceIndex=1;faceIndex <= numFaces; faceIndex++)
+	m_numTriangles = faceListObj.GetTableCount();
+	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
 	{
 		LuaObject &faceObj = faceListObj[faceIndex];
 
 		// Triangles only
 		_ASSERT(faceObj.GetTableCount() == 3);
-		numVertices += 3;
+		m_numVertices += 3;
 	}
 
 	_ASSERT(m_vertexBuffer == NULL);
@@ -96,21 +98,22 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 	// Create the vertex buffer. Here we are allocating enough memory
 	// (from the default pool) to hold all our 3 custom vertices. 
 	HRESULT hr;
-	hr = pDevice->CreateVertexBuffer( numVertices*vertexSize,D3DUSAGE_WRITEONLY, NULL,D3DPOOL_MANAGED, &m_vertexBuffer, NULL );
-	_ASSERT(SUCCEEDED(hr));
-
-	// Create our index buffer
-	_ASSERT(numVertices < 0xffff);
-	hr = pDevice->CreateIndexBuffer(numFaces*3*2,0,D3DFMT_INDEX16,D3DPOOL_DEFAULT,&m_indexBuffer,NULL);
+	hr = pDevice->CreateVertexBuffer( m_numVertices*vertexSize,D3DUSAGE_WRITEONLY, NULL,D3DPOOL_MANAGED, &m_vertexBuffer, NULL );
 	_ASSERT(SUCCEEDED(hr));
 
 	// Fill in VB
+	struct TestVert
+	{
+		float	pos[3];
+		float	uv[2];
+	};
+
 	void *vb = NULL;
 	hr = m_vertexBuffer->Lock(0,0,&vb, 0);
 	_ASSERT(SUCCEEDED(hr));
 
 	char *vertPos = static_cast<char *>(vb);
-	for(int faceIndex=1;faceIndex <= numFaces; faceIndex++)
+	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
 	{
 		LuaObject faceObj = faceListObj[faceIndex];
 		
@@ -165,17 +168,31 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 
 	m_vertexBuffer->Unlock();
 
+	// Create our index buffer
+	_ASSERT(m_numVertices < 0xffff);
+	m_numIndices = m_numTriangles * 3;
+	hr = pDevice->CreateIndexBuffer(m_numIndices * 2,0,D3DFMT_INDEX16,D3DPOOL_DEFAULT,&m_indexBuffer,NULL);
+	_ASSERT(SUCCEEDED(hr));
+
 	void *ib = NULL;
 	hr = m_indexBuffer->Lock(0,0,&ib,0);
 	_ASSERT(SUCCEEDED(hr));
 	unsigned short *idxPos = static_cast<unsigned short*>(ib);
 
-	idxPos[0] = 0;
-	idxPos[1] = 1;
-	idxPos[2] = 2;
+	int indexIndex=0;
+	int vertexIndex=0;
+	for(unsigned int i=0; i<m_numTriangles; i++)
+	{
+		idxPos[indexIndex + 0] = vertexIndex;
+		idxPos[indexIndex + 1] = vertexIndex + 1;
+		idxPos[indexIndex + 2] = vertexIndex + 2;
+
+		vertexIndex += 3;
+		indexIndex += 3;
+	}
 
 	m_indexBuffer->Unlock();
-
+	_ASSERT(indexIndex == m_numIndices);
 
 	return true;
 }
@@ -213,7 +230,7 @@ void Mesh::Render(int pass)
 	dev->SetStreamSource(0,m_vertexBuffer,0,decl.VertexSize());
 	dev->SetIndices(m_indexBuffer);
 	dev->SetVertexDeclaration(decl.GetDecl());
-	dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,24,0,1);
+	dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,m_numVertices,0,m_numTriangles);
 
 	effect->EndPass();
 	effect->End();
