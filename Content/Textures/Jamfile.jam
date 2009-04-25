@@ -1,1 +1,20 @@
 SubDir Content Textures ;
+
+IncludeModule CopyFile ;
+
+{
+	local TEXTURE_FILES =
+		Carsen_crop.tga
+		;
+		
+	local sources = [ FGristFiles $(TEXTURE_FILES) ] ;
+	local targetDir = $(AppRoot)Build/Textures ;
+	Depends content : textures ;
+	
+	for src in $(sources)
+	{
+		local srcFile = $(src:BS) ;
+		local targetFile = $(src:BS) ;
+		CopyFile textures : $(targetDir)/$(src) : $(src) ;
+	}
+}

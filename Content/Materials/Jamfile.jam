@@ -1,1 +1,22 @@
 SubDir Content Materials ;
+
+IncludeModule CopyFile ;
+
+{
+	local MATERIAL_FILES =
+		Carsen.lua
+		Triangle.lua
+		FunnyFace.lua
+		;
+		
+	local sources = [ FGristFiles $(MATERIAL_FILES) ] ;
+	local targetDir = $(AppRoot)Build/Materials ;
+	Depends content : materials ;
+	
+	for src in $(sources)
+	{
+		local srcFile = $(src:BS) ;
+		local targetFile = $(src:BS) ;
+		CopyFile materials : $(targetDir)/$(src) : $(src) ;
+	}
+}

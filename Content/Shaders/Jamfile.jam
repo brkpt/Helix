@@ -1,1 +1,24 @@
 SubDir Content Shaders ;
+
+IncludeModule CopyFile ;
+
+{
+	local SHADER_FILES =
+		diffuse.lua
+		pos3.lua
+		pos3_tex1.lua
+		shared.lua
+		texture.lua
+		;
+		
+	local sources = [ FGristFiles $(SHADER_FILES) ] ;
+	local targetDir = $(AppRoot)Build/Shaders ;
+	Depends content : shaders ;
+	
+	for src in $(sources)
+	{
+		local srcFile = $(src:BS) ;
+		local targetFile = $(src:BS) ;
+		CopyFile shaders : $(targetDir)/$(src) : $(src) ;
+	}
+}

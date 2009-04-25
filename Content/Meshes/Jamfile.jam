@@ -1,1 +1,21 @@
 SubDir Content Meshes ;
+
+IncludeModule CopyFile ;
+
+{
+	local MESH_FILES =
+		cube.lua
+		Triangle.lua
+		;
+		
+	local sources = [ FGristFiles $(MESH_FILES) ] ;
+	local targetDir = $(AppRoot)Build/Meshes ;
+	Depends content : meshes ;
+	
+	for src in $(sources)
+	{
+		local srcFile = $(src:BS) ;
+		local targetFile = $(src:BS) ;
+		CopyFile meshes : $(targetDir)/$(src) : $(src) ;
+	}
+}

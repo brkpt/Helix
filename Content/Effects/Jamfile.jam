@@ -1,18 +1,55 @@
 SubDir Content Effects ;
 
-rule MakeFX PARENTS : SRCS 
+#IncludeModule CopyFile ;
+#  fxc [/LD] /T fx_2_0 /Vi /Zi /Fo texture.fxo texture.fx
+
+FXC = C:/program files/Microsoft DirectX SDK (August 2008)/Utilities/bin/x86/fxc ;
+
+rule MakeFX PARENTS : SRCS : OPTIONS
 {
 	local srcs = [ FGristFiles $(SRCS:S=.fx) ] ;
+	local targetDir = $(AppRoot)Build/Effects ;
 	
-	for src in $(srcs)
+	for src in $(SRCS)
 	{
-		echo $(src) ;
+#		local srcFile = $(src:BS) ;
+#		local targetFile = $(src:BS) ;
+#		CopyFile $(PARENTS) : $(targetDir)/$(src) : $(src) ;
+
+		SEARCH on $(src) = $(SEARCH_SOURCE) ;
+		local targetFile = $(src:BS=.fxo) ;
+		MakeLocate $(targetFile) : $(targetDir) ;
+		
+		Depends $(PARENTS) : Assets-fx:$(targetFile:S=) ;
+		Depends Assets-fx:$(targetFile:S=) : $(targetFile) ;
+		Depends $(targetFile) : $(src) ;
+
+		OPTIONS on $(targetFile) = $(OPTIONS) ;
+		Fxc $(targetFile) : $(src) ;
 	}
 }
 
-actions MakeFX_Helper
+actions Fxc
 {
-	fxc /T fx_2_0 /Vi /Zi Fo 
+	fxc /T fx_2_0 /nologo /Zi $(OPTIONS) /Fo $(1) $(2)
 }
 
-MakeFX ;
+{
+	Depends content : fx ;
+
+		
+	# Standard shaders to build
+	STANDARD_FX = 
+		diffuse.fx
+		texture.fx 
+		;
+		
+	local FX_FILES = [ FGristFiles $(STANDARD_FX) ] ;
+	MakeFX fx : $(FX_FILES) ;
+	
+	# Shared shaders to build
+	SHARED_FX = shared.fx ;
+	
+	local SHARED_FX = [ FGristFiles $(SHARED_FX) ] ;
+	MakeFX fx : $(SHARED_FX) : "/DDUMMY_SHADER=1" ;
+}
