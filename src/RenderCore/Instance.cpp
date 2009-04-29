@@ -2,8 +2,6 @@
 #include "Instance.h"
 #include "InstanceManager.h"
 #include "RenderMgr.h"
-#include "MaterialManager.h"
-#include "Mesh.h"
 
 // ****************************************************************************
 // ****************************************************************************

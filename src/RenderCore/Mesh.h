@@ -10,7 +10,6 @@ public:
 	~Mesh();
 
 	bool	Load(const std::string &path);
-	bool	Load(const std::string &path, LuaObject &obj);
 
 	void						Render(int pass);
 	std::string &				GetMaterialName() { return m_materialName; }
@@ -18,6 +17,8 @@ public:
 	IDirect3DIndexBuffer9 *		GetIndexBuffer()  { return m_indexBuffer; }
 
 private:
+	bool	CreatePlatformData(const std::string &path, LuaObject &obj);
+
 	IDirect3DVertexBuffer9 *	m_vertexBuffer;
 	IDirect3DIndexBuffer9 *		m_indexBuffer;
 	unsigned int				m_numVertices;

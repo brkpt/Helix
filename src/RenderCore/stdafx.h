@@ -18,3 +18,13 @@
 #include "LuaPlus.h"
 
 // TODO: reference additional headers your program requires here
+#include "ShaderManager.h"
+#include "Shader.h"
+#include "MaterialManager.h"
+#include "Material.h"
+#include "MeshManager.h"
+#include "Mesh.h"
+#include "TextureManager.h"
+#include "Texture.h"
+#include "InstanceManager.h"
+#include "Instance.h"

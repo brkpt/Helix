@@ -1,10 +1,4 @@
 #include "stdafx.h"
-#include "Mesh.h"
-#include "LuaPlus.h"
-#include "MaterialManager.h"
-#include "Material.h"
-#include "Shader.h"
-#include "Texture.h"
 #include "VertexDecl.h"
 #include "RenderMgr.h"
 
@@ -46,11 +40,17 @@ bool Mesh::Load(const std::string &path)
 	LuaObject meshList = state->GetGlobals()["MeshList"];
 	_ASSERT(meshList.IsTable());
 
-	return Load(path,meshList[1]);
+	LuaObject meshObj = meshList[1];
+
+	LuaObject matObj = meshObj["Material"];
+	_ASSERT(matObj.IsString());
+	m_materialName = matObj.GetString();
+
+	return CreatePlatformData(path,meshObj);
 }
 // ****************************************************************************
 // ****************************************************************************
-bool Mesh::Load(const std::string &name, LuaObject &meshObj)
+bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 {
 	_ASSERT(meshObj.IsTable());
 
@@ -69,12 +69,14 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 	LuaObject nameObj = meshObj["Name"];
 	_ASSERT(nameObj.IsString());
 
-	LuaObject matObj = meshObj["Material"];
-	_ASSERT(matObj.IsString());
-	m_materialName = matObj.GetString();
-
 	// Fill in the vertex buffer
-	VertexDecl &decl = MaterialManager::GetInstance().Load(m_materialName)->GetShader().GetDecl();
+	Material *mat = MaterialManager::GetInstance().Load(m_materialName);
+	_ASSERT(mat != NULL);
+
+	Shader *shader = ShaderManager::GetInstance().Load(mat->GetShaderName());
+	_ASSERT(shader != NULL);
+
+	VertexDecl &decl = shader->GetDecl();
 	int vertexSize = decl.VertexSize();
 	m_numTriangles = faceListObj.GetTableCount();
 	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
@@ -201,8 +203,9 @@ void Mesh::Render(int pass)
 	// Set the parameters
 	Material *mat = MaterialManager::GetInstance().GetMaterial(m_materialName);
 	mat->SetParameters();
-	ID3DXEffect *effect = mat->GetShader().GetEffect();
-	VertexDecl &decl = mat->GetShader().GetDecl();
+	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+	ID3DXEffect *effect = shader->GetEffect();
+	VertexDecl &decl = shader->GetDecl();
 
 	//D3DXHANDLE hTechnique = m_pEffect->GetTechnique( m_iCurrentTechnique );
 	//D3DXHANDLE hPass      = m_pEffect->GetPass( hTechnique, 0 );

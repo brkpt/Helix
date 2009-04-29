@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Shader.h"
 #include "RenderMgr.h"
 #include "DeclManager.h"
 

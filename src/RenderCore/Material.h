@@ -9,8 +9,8 @@ class Material
 public:
 	Material(const std::string &matName, LuaObject &object);
 
-	Shader &	GetShader() { return *m_shader; }
-	Texture &	GetTexture() { return *m_texture; }
+	const std::string &	GetShaderName()		{ return m_shaderName; }
+	const std::string &	GetTextureName()	{ return m_textureName; }
 
 	void		SetViewMatrix(D3DXMATRIX *viewMatrix);
 	void		SetProjMatrix(D3DXMATRIX *projMatrix);
@@ -18,8 +18,8 @@ public:
 
 private:
 	std::string		m_name;
-	Shader *		m_shader;
-	Texture *		m_texture;
+	std::string		m_shaderName;
+	std::string		m_textureName;
 };
 
 #endif // MATERIAL_H
