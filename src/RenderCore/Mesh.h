@@ -12,8 +12,8 @@ public:
 	bool	Load(const std::string &path);
 	bool	Load(const std::string &path, LuaObject &obj);
 
-	void		Render(int pass);
-	Material &	GetMaterial() { return *m_material; }
+	void						Render(int pass);
+	std::string &				GetMaterialName() { return m_materialName; }
 	IDirect3DVertexBuffer9 *	GetVertexBuffer() { return m_vertexBuffer; }
 	IDirect3DIndexBuffer9 *		GetIndexBuffer()  { return m_indexBuffer; }
 
@@ -23,6 +23,6 @@ private:
 	unsigned int				m_numVertices;
 	unsigned int				m_numIndices;
 	unsigned int				m_numTriangles;
-	Material *					m_material;	
+	std::string					m_materialName;
 };
 #endif // MESH_H

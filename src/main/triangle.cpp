@@ -10,6 +10,7 @@
 #include "RenderCore/ShaderManager.h"
 #include "RenderCore/TextureManager.h"
 #include "RenderCore/MaterialManager.h"
+#include "RenderCore/MeshManager.h"
 #include "RenderCore/Instance.h"
 #include "RenderCore/Mesh.h"
 #include "RenderCore/Material.h"
@@ -20,8 +21,8 @@
 Triangle::Triangle(void)
 {
 	m_instance = new Instance;
-	Mesh *mesh = new Mesh;
-	mesh->Load("Cube");
+
+	Mesh *mesh = MeshManager::GetInstance().Load("Cube");
 	
 	m_instance->SetMesh(mesh);
 

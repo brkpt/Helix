@@ -21,5 +21,8 @@ Mesh * MeshManager::Load(const std::string &meshName)
 	if(mesh != NULL)
 		return mesh;
 
-
+	mesh = new Mesh;
+	mesh->Load(meshName);
+	m_database[meshName] = mesh;
+	return mesh;
 }

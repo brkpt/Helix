@@ -14,8 +14,8 @@ HANDLE		m_hThread	=				NULL;
 HANDLE		m_startRenderEvent	=		NULL;
 
 
-int			m_submissionIndex = 0;
-Instance *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
+//int			m_submissionIndex = 0;
+//Instance *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 
 // ****************************************************************************
 // Thread function
@@ -32,10 +32,10 @@ void InitializeRenderThread()
 	m_startRenderEvent = CreateEvent(NULL,true,false,"RenderEvent");
 	_ASSERT(m_startRenderEvent != NULL);
 
-	for(int i=0;i<NUM_SUBMISSION_BUFFERS; i++)
-	{
-		m_submissionBuffers[i] = NULL;
-	}
+	//for(int i=0;i<NUM_SUBMISSION_BUFFERS; i++)
+	//{
+	//	m_submissionBuffers[i] = NULL;
+	//}
 
 	// Now create the thread
 	m_hThread = (HANDLE)_beginthread( Render::RenderThreadFunc, STACK_SIZE, NULL );

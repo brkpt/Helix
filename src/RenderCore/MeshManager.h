@@ -15,7 +15,7 @@ public:
 		return instance;
 	}
 
-	~MeshManager();
+	~MeshManager() {};
 
 	Mesh *	GetMesh(const std::string &meshName);
 	Mesh *	Load(const std::string &meshName);

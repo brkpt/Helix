@@ -13,7 +13,6 @@
 Mesh::Mesh()
 : m_vertexBuffer(NULL)
 , m_indexBuffer(NULL)
-, m_material(NULL)
 , m_numVertices(0)
 , m_numIndices(0)
 , m_numTriangles(0)
@@ -72,12 +71,10 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 
 	LuaObject matObj = meshObj["Material"];
 	_ASSERT(matObj.IsString());
-	std::string materialName = matObj.GetString();
-	m_material = MaterialManager::GetInstance().Load(materialName);
-	_ASSERT(m_material != NULL);
+	m_materialName = matObj.GetString();
 
 	// Fill in the vertex buffer
-	VertexDecl &decl = m_material->GetShader().GetDecl();
+	VertexDecl &decl = MaterialManager::GetInstance().Load(m_materialName)->GetShader().GetDecl();
 	int vertexSize = decl.VertexSize();
 	m_numTriangles = faceListObj.GetTableCount();
 	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
@@ -202,9 +199,10 @@ bool Mesh::Load(const std::string &name, LuaObject &meshObj)
 void Mesh::Render(int pass)
 {
 	// Set the parameters
-	m_material->SetParameters();
-	ID3DXEffect *effect = m_material->GetShader().GetEffect();
-	VertexDecl &decl = m_material->GetShader().GetDecl();
+	Material *mat = MaterialManager::GetInstance().GetMaterial(m_materialName);
+	mat->SetParameters();
+	ID3DXEffect *effect = mat->GetShader().GetEffect();
+	VertexDecl &decl = mat->GetShader().GetDecl();
 
 	//D3DXHANDLE hTechnique = m_pEffect->GetTechnique( m_iCurrentTechnique );
 	//D3DXHANDLE hPass      = m_pEffect->GetPass( hTechnique, 0 );

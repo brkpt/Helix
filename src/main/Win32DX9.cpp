@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"
+#include "Helix/ThreadLoad/ThreadLoad.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -20,6 +21,7 @@ m_appInstance(NULL)
 	m_instance = this;
 
 	Render::InitializeRenderThread();
+	Helix::InitializeThreadLoader();
 }
 
 WinApp::~WinApp(void)

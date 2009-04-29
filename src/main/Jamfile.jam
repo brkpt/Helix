@@ -29,7 +29,10 @@ LinkDirectories TheGame :
 	"C:/program files/Microsoft DirectX SDK (August 2008)/lib/x86"
 	;
 
-LinkLibraries TheGame : RenderCore ;
+LinkLibraries TheGame : 
+	RenderCore 
+	ThreadLoad
+	;
 
 LinkPrebuiltLibraries TheGame : d3d9 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib : * ;
 LinkPrebuiltLibraries TheGame : LuaPlusLibD_1100 d3dx9d : debug ;

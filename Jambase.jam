@@ -1,0 +1,3 @@
+# Generated file
+COMPILER = vs2005 ;
+include c:/jamplus/bin/Jambase.jam ;
