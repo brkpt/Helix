@@ -13,6 +13,7 @@ bool		m_inRender =				false;
 HANDLE		m_hThread	=				NULL;
 HANDLE		m_startRenderEvent	=		NULL;
 
+
 int			m_submissionIndex = 0;
 Instance *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 

@@ -10,7 +10,6 @@ namespace Render
 	bool	GetShutdown();
 	void	SetShutdown();
 	void	RenderScene();
-
 }
 
 

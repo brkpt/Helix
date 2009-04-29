@@ -13,6 +13,8 @@ RENDERCORE_SRCS =
 	MaterialManager.h
 	Mesh.cpp
 	Mesh.h
+	MeshManager.cpp
+	MeshManager.h
 	RenderMgr.h
 	RenderThread.cpp
 	RenderThread.h
