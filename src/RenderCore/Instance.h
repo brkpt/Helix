@@ -13,14 +13,14 @@ public:
 	Instance();
 	~Instance();
 
-	bool	Load(const std::string &name, LuaObject &obj);
-	Mesh &	GetMesh() { return *m_mesh; }
-	void	SetMesh(Mesh *newMesh);
-	void	Render(int pass);
+	bool				Load(const std::string &name, LuaObject &obj);
+	void				SetMeshName(const std::string &name) { m_meshName = name; }
+	const std::string &	GetMeshName() const { return m_meshName; }
+	void				Render(int pass);
 
 private:
 	std::string		m_name;
-	Mesh *			m_mesh;	
+	std::string		m_meshName;
 };
 
 #endif INSTANCE_H

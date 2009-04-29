@@ -21,10 +21,10 @@
 Triangle::Triangle(void)
 {
 	m_instance = new Instance;
+	m_instance->SetMeshName("Cube");
 
-	Mesh *mesh = MeshManager::GetInstance().Load("Cube");
-	
-	m_instance->SetMesh(mesh);
+	MeshManager::GetInstance().Load("Cube");
+	Mesh *mesh = MeshManager::GetInstance().GetMesh("Cube");
 
 	//instance.CreateVertexBuffer(3,sizeof(TriangleVertex));
 	//instance.CreateIndexBuffer(3*2);

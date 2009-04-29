@@ -1,12 +1,9 @@
 #include "stdafx.h"
-#include "Instance.h"
-#include "InstanceManager.h"
 #include "RenderMgr.h"
 
 // ****************************************************************************
 // ****************************************************************************
 Instance::Instance()
-: m_mesh(NULL)
 {
 }
 
@@ -18,16 +15,8 @@ Instance::~Instance()
 
 // ****************************************************************************
 // ****************************************************************************
-void Instance::SetMesh(Mesh *newMesh)
-{
-	_ASSERT(m_mesh == NULL);
-
-	m_mesh = newMesh;
-}
-
-// ****************************************************************************
-// ****************************************************************************
 void Instance::Render(int pass)
 {
-	m_mesh->Render(pass);
+	Mesh *mesh = MeshManager::GetInstance().GetMesh(m_meshName);
+	mesh->Render(pass);
 }

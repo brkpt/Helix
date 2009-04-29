@@ -25,5 +25,6 @@ private:
 	unsigned int				m_numIndices;
 	unsigned int				m_numTriangles;
 	std::string					m_materialName;
+	std::string					m_meshName;
 };
 #endif // MESH_H

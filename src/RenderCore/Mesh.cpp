@@ -24,11 +24,11 @@ Mesh::~Mesh()
 
 // ****************************************************************************
 // ****************************************************************************
-bool Mesh::Load(const std::string &path)
+bool Mesh::Load(const std::string &name)
 {
 	std::string fullPath;
 	fullPath = "Meshes/";
-	fullPath += path;
+	fullPath += name;
 	fullPath += ".lua";
 
 	LuaState *state = LuaState::Create();
@@ -46,7 +46,8 @@ bool Mesh::Load(const std::string &path)
 	_ASSERT(matObj.IsString());
 	m_materialName = matObj.GetString();
 
-	return CreatePlatformData(path,meshObj);
+	m_meshName = name;
+	return CreatePlatformData(name,meshObj);
 }
 // ****************************************************************************
 // ****************************************************************************
