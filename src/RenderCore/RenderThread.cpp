@@ -3,50 +3,76 @@
 #include <crtdbg.h>
 #include "RenderThread.h"
 
-const int	RenderThread::STACK_SIZE =				16*1024;	// 16k
-
-// ****************************************************************************
-// ****************************************************************************
-RenderThread::RenderThread()
-: m_initialized(false)
-, m_shutdown(false)
+namespace Render
 {
-	m_threadHandle = (HANDLE)_beginthread( RenderThreadFunc, STACK_SIZE, NULL );
-}
+const int	STACK_SIZE =				16*1024;	// 16k
+const int	NUM_SUBMISSION_BUFFERS	=	2;
+bool		m_initialized =				false;
+bool		m_shutdown =				false;
+bool		m_inRender =				false;
+HANDLE		m_hThread	=				NULL;
+HANDLE		m_startRenderEvent	=		NULL;
+
+int			m_submissionIndex = 0;
+Instance *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
+
+// ****************************************************************************
+// Thread function
+// ****************************************************************************
+void RenderThreadFunc(void *data);
 
 // ****************************************************************************
 // ****************************************************************************
-RenderThread::~RenderThread()
-{
-}
-
-// ****************************************************************************
-// ****************************************************************************
-void RenderThread::Initialize()
+void InitializeRenderThread()
 {
 	_ASSERT(m_initialized == false);
 	m_initialized = true;
 
-	m_mutexHandle = CreateMutex(NULL,true,"RenderThread");
-	_ASSERT(m_mutexHandle != NULL);
-
-	m_triggerRender = CreateMutex(NULL,true,"RenderTrigger");
-	_ASSERT(m_triggerRender != NULL);
+	m_startRenderEvent = CreateEvent(NULL,true,false,"RenderEvent");
+	_ASSERT(m_startRenderEvent != NULL);
 
 	for(int i=0;i<NUM_SUBMISSION_BUFFERS; i++)
 	{
 		m_submissionBuffers[i] = NULL;
 	}
+
+	// Now create the thread
+	m_hThread = (HANDLE)_beginthread( Render::RenderThreadFunc, STACK_SIZE, NULL );
 }
 
 // ****************************************************************************
 // ****************************************************************************
-void RenderThread::RenderThreadFunc(void *data)
+bool GetShutdown()
 {
-	RenderThread::GetInstance().Initialize();
+	return m_shutdown;
+}
 
-	RenderThread &instance = RenderThread::GetInstance();
-	while(!instance.GetShutdown())
+// ****************************************************************************
+// ****************************************************************************
+void SetShutdown(bool shutdown)
+{
+	m_shutdown = shutdown;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void RenderScene()
+{
+	DWORD result = SetEvent(m_startRenderEvent);
+	_ASSERT(result != 0);
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void RenderThreadFunc(void *data)
+{
+	while(!GetShutdown())
 	{
+		DWORD result = WaitForSingleObject(m_startRenderEvent,INFINITE);
+		_ASSERT(result == WAIT_OBJECT_0);
+
+		int a = 1;
 	}
+}
+
 }

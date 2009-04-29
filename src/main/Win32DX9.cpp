@@ -19,7 +19,7 @@ m_appInstance(NULL)
 	_ASSERT(m_instance == NULL);
 	m_instance = this;
 
-	RenderThread::GetInstance();
+	Render::InitializeRenderThread();
 }
 
 WinApp::~WinApp(void)

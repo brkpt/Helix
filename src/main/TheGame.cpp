@@ -6,6 +6,7 @@
 #include "RenderCore/ShaderManager.h"
 #include "RenderCore/MaterialManager.h"
 #include "RenderCore/InstanceManager.h"
+#include "RenderCore/RenderThread.h"
 #include "Camera.h"
 #include "triangle.h"
 #include "grid.h"
@@ -190,6 +191,8 @@ void TheGame::Render(void)
 
 	ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
 	ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
+
+	Render::RenderScene();
 
 	m_grid->Render();
 	m_triangle->Render();
