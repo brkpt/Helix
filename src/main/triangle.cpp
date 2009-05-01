@@ -5,16 +5,6 @@
 #include "TheGame.h"
 #include "Camera.h"
 #include "LuaPlus.h"
-#include "RenderCore/VertexDecl.h"
-#include "RenderCore/InstanceManager.h"
-#include "RenderCore/ShaderManager.h"
-#include "RenderCore/TextureManager.h"
-#include "RenderCore/MaterialManager.h"
-#include "RenderCore/MeshManager.h"
-#include "RenderCore/Instance.h"
-#include "RenderCore/Mesh.h"
-#include "RenderCore/Material.h"
-#include "RenderCore/Shader.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -102,6 +92,7 @@ void Triangle::Update(float frameTime)
 // ****************************************************************************
 void Triangle::Render(void)
 {
+	Helix::SubmitInstance(m_instance);
 	m_instance->Render(0);
 
 	// Retrieve technique desc

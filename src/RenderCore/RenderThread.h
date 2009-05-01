@@ -1,7 +1,7 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-namespace Helix{
+namespace Helix {
 
 class Instance;
 

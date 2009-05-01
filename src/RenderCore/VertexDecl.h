@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include "LuaPlus.h"
+
 namespace Helix {
 class VertexDecl
 {

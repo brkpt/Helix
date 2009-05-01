@@ -19,6 +19,7 @@ public:
 	bool				Load(const std::string &name, LuaObject &obj);
 	void				SetMeshName(const std::string &name) { m_meshName = name; }
 	const std::string &	GetMeshName() const { return m_meshName; }
+	const std::string &	GetName() const { return m_name; }
 	void				Render(int pass);
 
 private:

@@ -25,6 +25,18 @@
 #include <d3dx9.h>
 #include <d3dx9effect.h>
 #include "Win32DX9.h"
+#include "LuaPlus.h"
+#include "RenderCore/RenderThread.h"
+#include "RenderCore/VertexDecl.h"
+#include "RenderCore/InstanceManager.h"
+#include "RenderCore/ShaderManager.h"
+#include "RenderCore/TextureManager.h"
+#include "RenderCore/MaterialManager.h"
+#include "RenderCore/MeshManager.h"
+#include "RenderCore/Instance.h"
+#include "RenderCore/Mesh.h"
+#include "RenderCore/Material.h"
+#include "RenderCore/Shader.h"
 
 // TODO: reference additional headers your program requires here
 

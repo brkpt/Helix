@@ -192,10 +192,12 @@ void TheGame::Render(void)
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
 	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
 
-	Helix::RenderScene();
 
 	m_grid->Render();
 	m_triangle->Render();
+
+	Helix::RenderScene();
+
 	m_pD3DDevice->EndScene();
 	m_pD3DDevice->Present(NULL,NULL,NULL,NULL);
 }
