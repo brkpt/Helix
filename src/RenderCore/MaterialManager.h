@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+namespace Helix {
+
 class Material;
 
 class MaterialManager
@@ -28,5 +30,7 @@ private:
 	typedef std::map<const std::string, Material *>	MaterialMap;
 	MaterialMap		m_database;
 };
+
+} // namespace Helix
 
 #endif // MATERIALMANAGER_H

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 MaterialManager::MaterialManager()
@@ -48,3 +49,5 @@ Material * MaterialManager::Load(const std::string &name)
 	m_database[name] = mat;
 	return mat;
 }
+
+} // namespace Helix

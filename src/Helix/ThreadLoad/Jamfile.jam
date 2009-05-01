@@ -1,6 +1,7 @@
 SubDir TOP src Helix ThreadLoad ;
 
 THREADLOAD_SRCS = 
+	stdafx.cpp
 	stdafx.h
 	ThreadLoad.cpp
 	ThreadLoad.h

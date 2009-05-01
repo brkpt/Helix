@@ -5,8 +5,8 @@
 
 namespace Helix { 
 	void	InitializeThreadLoader();
-	bool	GetShutdown();
-	void	Shutdown();
+	bool	GetLoadThreadShutdown();
+	void	ShutdownLoadThread();
 
 	bool	LoadFileAsync(const std::string &file);
 }

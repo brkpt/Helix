@@ -2,6 +2,7 @@
 #include "RenderMgr.h"
 #include "DeclManager.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Shader::Shader(const std::string &shaderName, LuaObject &shader, ID3DXEffectPool *effectPool)
@@ -54,3 +55,4 @@ void Shader::SetShaderParameter(const std::string &paramName, float value)
 	_ASSERT(SUCCEEDED(hr));
 }
 
+} // namespace Helix

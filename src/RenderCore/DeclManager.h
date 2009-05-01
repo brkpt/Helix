@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+namespace Helix
+{
 class VertexDecl;
 
 class DeclManager
@@ -28,5 +30,7 @@ private:
 	typedef std::map<const std::string, VertexDecl *>	DeclMap;
 	DeclMap		m_database;
 };
+
+} // namespace Helix
 
 #endif

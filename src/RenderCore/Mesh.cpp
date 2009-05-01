@@ -2,6 +2,7 @@
 #include "VertexDecl.h"
 #include "RenderMgr.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Mesh::Mesh()
@@ -238,3 +239,5 @@ void Mesh::Render(int pass)
 	effect->End();
 
 }
+
+} // namespace Helix

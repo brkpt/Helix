@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 
+namespace Helix {
 class Shader;
 
 class ShaderManager
@@ -34,4 +35,5 @@ private:
 	ID3DXEffectPool *	m_effectPool;
 };
 
+} // namespace Helix
 #endif // SHADERMANAGER_H

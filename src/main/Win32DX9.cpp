@@ -20,7 +20,7 @@ m_appInstance(NULL)
 	_ASSERT(m_instance == NULL);
 	m_instance = this;
 
-	Render::InitializeRenderThread();
+	Helix::InitializeRenderThread();
 	Helix::InitializeThreadLoader();
 }
 
@@ -210,7 +210,7 @@ bool WinApp::InitializeDirectX(void)
 		return false;
 	}
 
-	RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice);
+	Helix::RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice);
 	return true;
 }
 

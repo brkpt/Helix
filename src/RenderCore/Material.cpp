@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Material::Material(const std::string &name, LuaObject &object)
@@ -38,3 +39,5 @@ void Material::SetParameters()
 	_ASSERT(SUCCEEDED(hr));
 
 }
+
+} // namespace Helix

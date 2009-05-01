@@ -3,6 +3,7 @@
 
 #include <d3d9.h>
 
+namespace Helix {
 class Texture
 {
 public:
@@ -15,4 +16,6 @@ public:
 private:
 	IDirect3DTexture9	*m_texture;
 };
+
+} // namespace Helix
 #endif //TEXTURE_H

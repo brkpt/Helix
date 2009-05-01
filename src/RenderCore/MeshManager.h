@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+namespace Helix {
+
 class Mesh;
 
 class MeshManager
@@ -28,4 +30,7 @@ private:
 	typedef std::map<const std::string, Mesh *> MeshMap;
 	MeshMap		m_database;
 };
+
+} // namespace Helix
+
 #endif

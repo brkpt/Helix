@@ -3,11 +3,14 @@
 
 #include <string>
 #include "LuaPlus.h"
+#include "Kernel/RefCount.h"
 
+namespace Helix
+{
 class Material;
 class Mesh;
 
-class Instance 
+class Instance : public ReferenceCountable
 {
 public:
 	Instance();
@@ -22,5 +25,6 @@ private:
 	std::string		m_name;
 	std::string		m_meshName;
 };
+} // namespace
 
 #endif INSTANCE_H

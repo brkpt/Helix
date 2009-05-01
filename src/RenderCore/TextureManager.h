@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+namespace Helix {
 class Texture;
 class TextureManager
 {
@@ -26,5 +27,7 @@ private:
 	typedef std::map<const std::string, Texture *>	TextureMap;
 	TextureMap		m_database;
 };
+
+} // namespace Helix
 
 #endif // TEXTUREMGR_H

@@ -1,13 +1,18 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-namespace Render
-{
+namespace Helix{
+
+class Instance;
+
 	void	InitializeRenderThread();
-	bool	GetShutdown();
-	void	SetShutdown();
+	bool	GetRenderThreadShutdown();
+	void	ShutDownRenderThread();
 	void	RenderScene();
-}
+
+	void	SubmitInstance(Instance *inst);
+
+} // namespace Helix
 
 
 

@@ -1,6 +1,8 @@
 #ifndef INSTANCE_MGR_H
 #define INSTANCE_MGR_H
 
+namespace Helix {
+
 class Instance;
 
 class InstanceManager
@@ -26,4 +28,5 @@ private:
 	InstanceMap		m_database;
 };
 
+} // namespace Helix
 #endif INSTANCE_MGR_H

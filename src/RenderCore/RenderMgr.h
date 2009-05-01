@@ -1,6 +1,8 @@
 #ifndef RENDERMGR_H
 #define RENDERMGR_H
 
+namespace Helix {
+
 class RenderMgr
 {
 public:
@@ -34,4 +36,6 @@ private:
 
 	IDirect3DDevice9 *	m_device;
 };
+
+} // namespace Helix
 #endif // RENDERMGR_H

@@ -1,6 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
+namespace Helix {
+
 class Material;
 
 class Mesh
@@ -27,4 +29,7 @@ private:
 	std::string					m_materialName;
 	std::string					m_meshName;
 };
+
+} // namespace Helix
+
 #endif // MESH_H

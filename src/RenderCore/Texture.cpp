@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "RenderMgr.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Texture::Texture()
@@ -34,3 +35,4 @@ bool Texture::Load(const std::string &filename)
 	return SUCCEEDED(hr);
 }
 
+} // namespace Helix

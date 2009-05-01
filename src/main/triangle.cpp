@@ -20,11 +20,11 @@
 // ****************************************************************************
 Triangle::Triangle(void)
 {
-	m_instance = new Instance;
+	m_instance = new Helix::Instance;
 	m_instance->SetMeshName("Cube");
 
-	MeshManager::GetInstance().Load("Cube");
-	Mesh *mesh = MeshManager::GetInstance().GetMesh("Cube");
+	Helix::MeshManager::GetInstance().Load("Cube");
+	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().GetMesh("Cube");
 
 	//instance.CreateVertexBuffer(3,sizeof(TriangleVertex));
 	//instance.CreateIndexBuffer(3*2);

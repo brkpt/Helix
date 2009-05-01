@@ -39,10 +39,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 {
 	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
 
-	DeclManager::GetInstance();
-	ShaderManager::GetInstance();
-	MaterialManager::GetInstance();
-	InstanceManager::GetInstance();
+	Helix::DeclManager::GetInstance();
+	Helix::ShaderManager::GetInstance();
+	Helix::MaterialManager::GetInstance();
+	Helix::InstanceManager::GetInstance();
 	return retVal;
 }
 
@@ -189,10 +189,10 @@ void TheGame::Render(void)
 	D3DXMATRIX &viewMatrix = game->CurrentCamera()->GetViewMatrix();
 	D3DXMATRIX &projMatrix = game->CurrentCamera()->GetProjectionMatrix();
 
-	ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
-	ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
 
-	Render::RenderScene();
+	Helix::RenderScene();
 
 	m_grid->Render();
 	m_triangle->Render();

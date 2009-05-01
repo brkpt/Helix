@@ -1,7 +1,9 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-class Instance;
+namespace Helix {
+	class Instance;
+}
 
 class Triangle
 {
@@ -22,11 +24,11 @@ private:
 
 	void	OrthoNormalization(D3DXMATRIX &mat);
 
-	Instance *	m_instance;
-	INT         m_iCurrentEffect;
-	INT         m_iNumberOfTechniques;
-	INT         m_iCurrentTechnique;
-	WCHAR       m_strTechnique[512];
+	Helix::Instance *	m_instance;
+	INT					m_iCurrentEffect;
+	INT					m_iNumberOfTechniques;
+	INT					m_iCurrentTechnique;
+	WCHAR				m_strTechnique[512];
 };
 
 #endif // TRIANGLE_H

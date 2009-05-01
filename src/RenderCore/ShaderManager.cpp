@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 ShaderManager::ShaderManager()
@@ -72,3 +73,5 @@ void ShaderManager::SetSharedParameter(const std::string &paramName, D3DXMATRIX 
 
 	shader->SetShaderParameter(paramName, matrix);
 }
+
+} // namespace Helix

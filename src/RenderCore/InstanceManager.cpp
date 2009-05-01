@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 InstanceManager::InstanceManager()
@@ -45,3 +46,5 @@ Instance * InstanceManager::Load(const std::string &name)
 	return inst;
 
 }
+
+} // namespace Helix

@@ -3,6 +3,7 @@
 #include "VertexDecl.h"
 #include "RenderMgr.h"
 
+namespace Helix {
 #define	ADD_DECL(x)		m_declUsageMap[#x] = x
 #define ADD_TYPE(x)		m_declTypeMap[#x] = x
 #define	ADD_METHOD(x)	m_declMethodMap[#x] = x
@@ -224,3 +225,4 @@ bool VertexDecl::Load(LuaObject &declObj)
 	return true;
 }
 
+} // namespace Helix

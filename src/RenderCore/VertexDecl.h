@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+namespace Helix {
 class VertexDecl
 {
 public:
@@ -33,4 +34,5 @@ private:
 	IDirect3DVertexDeclaration9 *	m_decl;
 };
 
+} // namespace Helix
 #endif // VERTEXDECL_H

@@ -2,6 +2,8 @@
 #include "DeclManager.h"
 #include "VertexDecl.h"
 
+namespace Helix
+{
 // ****************************************************************************
 // ****************************************************************************
 DeclManager::DeclManager()
@@ -39,3 +41,5 @@ VertexDecl * DeclManager::Load(const std::string &name)
 
 	return decl;
 }
+
+} // namespace Helix

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Mesh * MeshManager::GetMesh(const std::string &meshName)
@@ -24,3 +25,5 @@ Mesh * MeshManager::Load(const std::string &meshName)
 	m_database[meshName] = mesh;
 	return mesh;
 }
+
+} // namespace Helix

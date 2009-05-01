@@ -2,6 +2,8 @@
 #define SHADER_H
 
 #include <string>
+
+namespace Helix {
 class VertexDecl;
 
 class Shader
@@ -22,4 +24,5 @@ private:
 	ID3DXEffect *	m_pEffect;
 };
 
+} // namespace Helix
 #endif // SHADER_H

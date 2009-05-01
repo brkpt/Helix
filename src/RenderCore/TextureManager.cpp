@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 TextureManager::TextureManager()
@@ -39,3 +40,5 @@ Texture * TextureManager::LoadTexture(const std::string &textureName)
 	return tex;
 
 }
+
+} //  namespace Helix

@@ -1,0 +1,13 @@
+SubDir TOP src Helix Kernel ;
+
+KERNEL_SRCS = 
+	stdafx.cpp
+	stdafx.h
+	RefCount.h
+	;
+
+#Defines RenderCore : UNICODE _UNICODE : * ;
+
+PrecompiledHeader Kernel: stdafx : $(KERNEL_SRCS) ;
+Library Kernel : $(KERNEL_SRCS) ;
+

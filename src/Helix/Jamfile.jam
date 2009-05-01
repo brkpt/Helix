@@ -1,3 +1,5 @@
 SubDir TOP src Helix ;
 
 SubInclude TOP src Helix ThreadLoad ;
+SubInclude TOP src Helix Kernel ;
+

@@ -6,8 +6,8 @@
 // ****************************************************************************
 namespace Helix {
 const int	STACK_SIZE	=	16*1024;
-bool		m_initialized = false;
-bool		m_shutdown = false;
+bool		m_threadLoaderInitialized = false;
+bool		m_loadThreadShutdown = false;
 HANDLE		m_hLoadThread = NULL;
 HANDLE		m_hStartLoading = NULL;
 
@@ -20,8 +20,8 @@ void LoadThreadFunc(void *data);
 // ****************************************************************************
 void InitializeThreadLoader()
 {
-	_ASSERT(m_initialized == false);
-	m_initialized = true;
+	_ASSERT(m_threadLoaderInitialized == false);
+	m_threadLoaderInitialized = true;
 
 	m_hStartLoading = CreateEvent(NULL,true,false,"StartLoading");
 	_ASSERT(m_hStartLoading != NULL);
@@ -32,23 +32,23 @@ void InitializeThreadLoader()
 
 // ****************************************************************************
 // ****************************************************************************
-bool GetShutdown()
+bool GetLoadThreadShutdown()
 {
-	return m_shutdown;
+	return m_loadThreadShutdown;
 }
 
 // ****************************************************************************
 // ****************************************************************************
-void Shutdown()
+void ShutdownLoadThread()
 {
-	m_shutdown = true;
+	m_loadThreadShutdown = true;
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void LoadThreadFunc(void *data)
 {
-	while(!GetShutdown())
+	while(!GetLoadThreadShutdown())
 	{
 		DWORD result = WaitForSingleObject(m_hStartLoading,INFINITE);
 		_ASSERT(result == WAIT_OBJECT_0);
