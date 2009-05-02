@@ -18,6 +18,9 @@ public:
 	IDirect3DVertexBuffer9 *	GetVertexBuffer() { return m_vertexBuffer; }
 	IDirect3DIndexBuffer9 *		GetIndexBuffer()  { return m_indexBuffer; }
 
+	int	NumVertices() { return m_numVertices; }
+	int NumTriangles() { return m_numTriangles; }
+
 private:
 	bool	CreatePlatformData(const std::string &path, LuaObject &obj);
 

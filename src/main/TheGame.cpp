@@ -39,6 +39,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 {
 	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
 
+	Helix::SetDevice(m_pD3DDevice);
 	Helix::DeclManager::GetInstance();
 	Helix::ShaderManager::GetInstance();
 	Helix::MaterialManager::GetInstance();
@@ -170,6 +171,8 @@ void TheGame::Update(void)
 // ****************************************************************************
 void TheGame::Render(void)
 {
+	Helix::RenderThreadReady();
+
 	WinApp::Render();
 
 	// Build our view matrix from our camera matrix
@@ -178,27 +181,12 @@ void TheGame::Render(void)
 		return;
 	}
 
-	m_pD3DDevice->Clear( 0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0xff000000, 1.0f, 0L );
-	m_pD3DDevice->SetRenderState(D3DRS_ZENABLE,D3DZB_TRUE);
-	m_pD3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE,TRUE);
-	m_pD3DDevice->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
-	m_pD3DDevice->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
-	m_pD3DDevice->BeginScene();
-
+	// Set our camera information
 	TheGame *game = TheGame::Instance();
-	D3DXMATRIX &viewMatrix = game->CurrentCamera()->GetViewMatrix();
-	D3DXMATRIX &projMatrix = game->CurrentCamera()->GetProjectionMatrix();
+	Helix::SubmitViewMatrix(game->CurrentCamera()->GetViewMatrix());
+	Helix::SubmitProjMatrix(game->CurrentCamera()->GetProjectionMatrix());
 
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",viewMatrix);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",projMatrix);
-
-
-	m_grid->Render();
 	m_triangle->Render();
-
 	Helix::RenderScene();
-
-	m_pD3DDevice->EndScene();
-	m_pD3DDevice->Present(NULL,NULL,NULL,NULL);
 }
 

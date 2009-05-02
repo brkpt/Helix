@@ -92,8 +92,8 @@ void Triangle::Update(float frameTime)
 // ****************************************************************************
 void Triangle::Render(void)
 {
-	Helix::SubmitInstance(m_instance);
-	m_instance->Render(0);
+	Helix::SubmitInstance(*m_instance);
+//	m_instance->Render(0);
 
 	// Retrieve technique desc
 	//D3DXEFFECT_DESC desc;
