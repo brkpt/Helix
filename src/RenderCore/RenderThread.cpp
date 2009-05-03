@@ -192,7 +192,7 @@ void SubmitViewMatrix(D3DXMATRIX &mat)
 void SubmitProjMatrix(D3DXMATRIX &mat)
 {
 	AcquireMutex();
-	m_viewMatrix[m_submissionIndex] = mat;
+	m_projMatrix[m_submissionIndex] = mat;
 	ReleaseMutex();
 }
 
