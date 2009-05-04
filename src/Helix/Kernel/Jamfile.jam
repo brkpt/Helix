@@ -1,6 +1,7 @@
 SubDir TOP src Helix Kernel ;
 
 KERNEL_SRCS = 
+	Callback.h
 	stdafx.cpp
 	stdafx.h
 	RefCount.h
