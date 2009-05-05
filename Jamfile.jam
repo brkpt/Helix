@@ -1,4 +1,3 @@
 SubDir TOP ;
 
-SubInclude TOP src ;
 SubInclude TOP Content ;
