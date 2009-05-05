@@ -1,5 +1,10 @@
 # Ignore files in the Build and Temp folders
 Build/
 Temp/
-
+*.sln
+*.ncb
+*.suo
+*.user
+[Dd]ebug/
+[Rr]elease/
 
