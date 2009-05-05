@@ -5,6 +5,7 @@ Temp/
 *.ncb
 *.suo
 *.user
+*.wwdb
 [Dd]ebug/
 [Rr]elease/
 
