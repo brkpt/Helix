@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="c:\projects\Win32DX9\Build"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -62,6 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="d3d9.lib d3dx9d.lib LuaPlusLibD_1100.lib"
+				OutputFile="$(OutDir)\$(ProjectName).$(ConfigurationName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:/Projects/LuaPlus/work51/Lib/win32;C:/program files/Microsoft DirectX SDK (August 2008)/lib/x86"
 				GenerateDebugInformation="true"
@@ -95,7 +96,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			OutputDirectory="c:\projects\Win32Dx9\Build"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="0"
@@ -138,6 +139,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="d3d9.lib d3dx9.lib LuaPlus.lib"
+				OutputFile="$(OutDir)\$(ProjectName).$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:/Projects/LuaPlus/work51/Lib/win32;C:/program files/Microsoft DirectX SDK (August 2008)/lib/x86"
 				GenerateDebugInformation="true"
