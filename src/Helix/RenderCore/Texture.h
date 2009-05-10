@@ -4,7 +4,7 @@
 #include <d3d9.h>
 
 namespace Helix {
-class Texture
+class Texture : public ReferenceCountable
 {
 public:
 	Texture();

@@ -13,8 +13,7 @@ Triangle::Triangle(void)
 	m_instance = new Helix::Instance;
 	m_instance->SetMeshName("Cube");
 
-	Helix::MeshManager::GetInstance().Load("Cube");
-	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().GetMesh("Cube");
+	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load("Cube");
 
 	//instance.CreateVertexBuffer(3,sizeof(TriangleVertex));
 	//instance.CreateIndexBuffer(3*2);

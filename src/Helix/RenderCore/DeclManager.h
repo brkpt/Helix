@@ -11,6 +11,11 @@ class VertexDecl;
 class DeclManager
 {
 public:
+	static void Create()
+	{
+		GetInstance();
+	}
+
 	static DeclManager &GetInstance()
 	{
 		static DeclManager	instance;

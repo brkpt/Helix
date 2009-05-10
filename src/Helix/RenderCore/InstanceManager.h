@@ -8,6 +8,11 @@ class Instance;
 class InstanceManager
 {
 public:
+	static void Create()
+	{
+		GetInstance();
+	}
+
 	static InstanceManager & GetInstance()
 	{
 		static InstanceManager	instance;

@@ -75,7 +75,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	Material *mat = MaterialManager::GetInstance().Load(m_materialName);
 	_ASSERT(mat != NULL);
 
-	Shader *shader = ShaderManager::GetInstance().Load(mat->GetShaderName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
 	_ASSERT(shader != NULL);
 
 	VertexDecl &decl = shader->GetDecl();

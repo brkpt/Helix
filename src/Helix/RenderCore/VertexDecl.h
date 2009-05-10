@@ -5,9 +5,10 @@
 #include <map>
 
 #include "LuaPlus.h"
+#include "Kernel/RefCount.h"
 
 namespace Helix {
-class VertexDecl
+class VertexDecl : public ReferenceCountable
 {
 public:
 	VertexDecl();

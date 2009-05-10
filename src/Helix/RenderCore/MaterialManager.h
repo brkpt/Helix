@@ -11,6 +11,11 @@ class Material;
 class MaterialManager
 {
 public:
+	static void Create()
+	{
+		GetInstance();
+	}
+
 	static MaterialManager & GetInstance()
 	{
 		static MaterialManager	instance;

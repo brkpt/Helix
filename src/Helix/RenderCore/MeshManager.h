@@ -11,6 +11,11 @@ class Mesh;
 class MeshManager
 {
 public:
+	static void Create()
+	{
+		GetInstance();
+	}
+
 	static MeshManager & MeshManager::GetInstance()
 	{
 		static MeshManager	instance;

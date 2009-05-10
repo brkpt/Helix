@@ -16,6 +16,9 @@ Material::Material(const std::string &name, LuaObject &object)
 	_ASSERT(obj.IsString());
 	m_textureName = obj.GetString();
 
+	// Load the shader
+	Shader *shader = ShaderManager::GetInstance().Load(m_shaderName);
+	
 	// Load the texture
 	Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
 	_ASSERT(tex != NULL);

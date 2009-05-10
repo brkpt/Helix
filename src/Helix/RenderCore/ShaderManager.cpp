@@ -8,9 +8,6 @@ ShaderManager::ShaderManager()
 {
 	// Create a shared effects parameter pool
 	HRESULT hr = D3DXCreateEffectPool(&m_effectPool);
-
-	// Load our shared properties shader
-	Load("shared");
 }
 
 ShaderManager::~ShaderManager()
@@ -34,7 +31,9 @@ Shader * ShaderManager::Load(const std::string &shaderName)
 {
 	Shader *shader = GetShader(shaderName);
 	if(shader != NULL)
+	{
 		return shader;
+	}
 
 	std::string fullPath = "Shaders/";
 	fullPath += shaderName;
@@ -53,6 +52,7 @@ Shader * ShaderManager::Load(const std::string &shaderName)
 	_ASSERT(shader != NULL);
 
 	m_shaderMap[shaderName] = shader;
+
 	return shader;
 }
 

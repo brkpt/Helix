@@ -10,14 +10,19 @@ namespace Helix
 		: m_refCount(0)
 		{}
 
-		LONG Increment()
+		LONG AddReference()
 		{
-			InterlockedIncrement(&m_refCount);
+			return InterlockedIncrement(&m_refCount);
 		}
 
-		LONG Decrement()
+		LONG RemoveReference()
 		{
-			InterlockedDecrement(&m_refCount);
+			return InterlockedDecrement(&m_refCount);
+		}
+
+		LONG ReferenceCount()
+		{
+			return m_refCount;
 		}
 
 	private:

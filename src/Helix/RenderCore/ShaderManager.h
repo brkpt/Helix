@@ -10,6 +10,11 @@ class Shader;
 class ShaderManager
 {
 public:
+	static void Create()
+	{
+		GetInstance();
+	}
+
 	static ShaderManager &GetInstance()
 	{
 		static ShaderManager	instance;

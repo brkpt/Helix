@@ -5,7 +5,7 @@ namespace Helix {
 
 class Material;
 
-class Mesh
+class Mesh : public ReferenceCountable
 {
 public:
 	Mesh();

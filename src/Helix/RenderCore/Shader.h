@@ -2,11 +2,12 @@
 #define SHADER_H
 
 #include <string>
+#include "Kernel/RefCount.h"
 
 namespace Helix {
 class VertexDecl;
 
-class Shader
+class Shader : public ReferenceCountable
 {
 public:
 	Shader(const std::string &shaderName, LuaObject &shader, ID3DXEffectPool *effectPool);

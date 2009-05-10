@@ -7,6 +7,7 @@
 #include "RenderCore/MaterialManager.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
+#include "Kernel/Callback.h"
 #include "Camera.h"
 #include "triangle.h"
 #include "grid.h"
@@ -40,17 +41,72 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
 
 	Helix::SetDevice(m_pD3DDevice);
-	Helix::DeclManager::GetInstance();
-	Helix::ShaderManager::GetInstance();
-	Helix::MaterialManager::GetInstance();
+	Helix::DeclManager::Create();
+	Helix::ShaderManager::Create();
+	Helix::MaterialManager::Create();
+	Helix::MeshManager::Create();
 	Helix::InstanceManager::GetInstance();
+
 	return retVal;
 }
+
+//class Foo
+//{
+//public:
+//	void MyCallback()
+//	{
+//		int a = 1;
+//	}
+//
+//	void MyCallback1(int foo)
+//	{
+//		int a = 1;
+//	}
+//
+//	void MyCallback2(int foo1, int foo2)
+//	{
+//		int a = 1;
+//	}
+//
+//	static void MyCallbackS0()
+//	{
+//		int a = 1;
+//	}
+//
+//	static void MyCallbackS1(int foo)
+//	{
+//		int a = 1;
+//	}
+//
+//	static void MyCallbackS2(int foo, char *whee)
+//	{
+//		int a = foo;
+//		char *test = whee;
+//	}
+//};
 
 // ****************************************************************************
 // ****************************************************************************
 void TheGame::LoadScene(void)
 {
+	//Foo test;
+
+	//Helix::Callback *cb0 = new Helix::MemberCallback0<Foo>(test, &Foo::MyCallback);
+	//Helix::Callback *cb1 = new Helix::MemberCallback1<Foo,int>(test,&Foo::MyCallback1,5);
+	//Helix::Callback *cb2 = new Helix::MemberCallback2<Foo,int,int>(test,&Foo::MyCallback2,10,20);
+	//Helix::Callback *scb0 = new Helix::StaticCallback0(&Foo::MyCallbackS0);
+	//Helix::Callback *scb1 = new Helix::StaticCallback1<int>(&Foo::MyCallbackS1,10);
+	//Helix::Callback *scb2 = new Helix::StaticCallback2<int, char *>(&Foo::MyCallbackS2,10,"Hello");
+
+	//cb0->Call();
+	//cb1->Call();
+	//cb2->Call();
+
+	//scb0->Call();
+	//scb1->Call();
+	//scb2->Call();
+
+	Helix::ShaderManager::GetInstance().LoadShared();
 	m_camera = new Camera;
 
 	m_camera->SetPosition(D3DXVECTOR3(0.0f, 1.0f, -4.0f));
