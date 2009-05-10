@@ -34,6 +34,8 @@ private:
 	ShaderManager(const ShaderManager &other);
 	ShaderManager &	operator=(const ShaderManager &other);
 
+	void	LuaLoadCallback(LuaState *state);
+
 	typedef std::map<const std::string, Shader *>	ShaderMap;
 	ShaderMap	m_shaderMap;
 

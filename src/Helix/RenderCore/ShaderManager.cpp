@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "ThreadLoad/ThreadLoad.h"
 
 namespace Helix {
 // ****************************************************************************
@@ -42,6 +43,8 @@ Shader * ShaderManager::Load(const std::string &shaderName)
 	LuaState *state = LuaState::Create();
 	_ASSERT(state != NULL);
 	
+	LoadLuaFileAsync<ShaderManager>(fullPath, *this, &ShaderManager::LuaLoadCallback);
+
 	int retVal = state->DoFile(fullPath.c_str());
 	_ASSERT(retVal == 0);
 
@@ -72,6 +75,13 @@ void ShaderManager::SetSharedParameter(const std::string &paramName, D3DXMATRIX 
 	_ASSERT(shader != NULL);
 
 	shader->SetShaderParameter(paramName, matrix);
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void ShaderManager::LuaLoadCallback(LuaState *state)
+{
+	LuaState::Destroy(state);
 }
 
 } // namespace Helix
