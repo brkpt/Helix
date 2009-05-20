@@ -8,6 +8,9 @@
 #include "Kernel/RefCount.h"
 
 namespace Helix {
+
+class Shader;
+
 class VertexDecl : public ReferenceCountable
 {
 public:
@@ -17,24 +20,26 @@ public:
 	bool	Load(const std::string &path);
 	bool	Load(LuaObject &object);
 
-	IDirect3DVertexDeclaration9 *	GetDecl() { return m_decl; }
-	int								VertexSize() { return m_vertexSize; }
+	ID3D10InputLayout *			BuildLayout(Shader *shader);
+	ID3D10InputLayout *			GetLayout() { return m_layout; }
+	D3D10_INPUT_ELEMENT_DESC *	GetDecl() { return m_desc; }
+	int							VertexSize() { return m_vertexSize; }
 
 private:
 
-	bool	GetUsage(D3DDECLUSAGE &usage, const std::string &str) const;
-	bool	GetType(D3DDECLTYPE &type, const std::string &str) const;
-	bool	GetMethod(D3DDECLMETHOD &method, const std::string &str) const;
+	bool	GetFormat(DXGI_FORMAT &format, const std::string &str) const;
+	bool	GetClassification(D3D10_INPUT_CLASSIFICATION &classification, const std::string &str) const;
 
-	typedef std::map<const std::string,D3DDECLUSAGE>	UsageMap;
-	typedef std::map<const std::string, D3DDECLTYPE>	TypeMap;
-	typedef std::map<const std::string, D3DDECLMETHOD>	MethodMap;
-	UsageMap			m_declUsageMap;
-	TypeMap				m_declTypeMap;
-	MethodMap			m_declMethodMap;
-	int					m_numElements;
-	int					m_vertexSize;
-	IDirect3DVertexDeclaration9 *	m_decl;
+	typedef std::map<const std::string, DXGI_FORMAT>	FormatMap;
+	typedef std::map<const std::string, int>			ClassificationMap;
+
+	FormatMap			m_inputLayoutFormatMap;
+	ClassificationMap	m_inputLayoutClassificationMap;
+
+	int							m_numElements;
+	int							m_vertexSize;
+	D3D10_INPUT_ELEMENT_DESC *	m_desc;
+	ID3D10InputLayout *			m_layout;
 };
 
 } // namespace Helix

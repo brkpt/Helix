@@ -13,16 +13,21 @@ public:
 		return instance;
 	}
 
-	void SetDXDevice(IDirect3DDevice9 *device)
+	void SetDXDevice(ID3D10Device *device, IDXGISwapChain *swapChain)
 	{
 		_ASSERT(device != NULL);
 		_ASSERT(m_device == NULL);
 		m_device = device; 
 	}
 
-	IDirect3DDevice9 * GetDevice()
+	ID3D10Device * GetDevice()
 	{
 		return m_device;
+	}
+
+	IDXGISwapChain *GetSwapChain()
+	{
+		return m_swapChain;
 	}
 
 private:
@@ -30,11 +35,16 @@ private:
 	: m_device(NULL)
 	{}
 
-	RenderMgr(const RenderMgr &other) {}
+	RenderMgr(const RenderMgr &other)
+	: m_device(NULL)
+	, m_swapChain(NULL)
+	{}
+
 	~RenderMgr() {}
 	RenderMgr & operator =(const RenderMgr &other) {}
 
-	IDirect3DDevice9 *	m_device;
+	ID3D10Device *	m_device;
+	IDXGISwapChain *	m_swapChain;
 };
 
 } // namespace Helix

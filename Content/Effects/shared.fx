@@ -1,5 +1,14 @@
+#ifdef D3D10
+shared cbuffer shaderCBuffer
+{
+float4x3 WorldView : WORLDVIEW;
+float4x4 Projection : PROJECTION;
+};
+
+#else
 shared float4x3 WorldView : WORLDVIEW;
 shared float4x4 Projection : PROJECTION;
+#endif
 
 #ifdef DUMMY_SHADER
 

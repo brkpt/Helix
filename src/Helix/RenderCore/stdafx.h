@@ -13,8 +13,8 @@
 
 #include <string>
 #include <map>
-#include <d3d9.h>
-#include <d3dx9.h>
+#include <d3d10.h>
+#include <d3dx10.h>
 #include "LuaPlus.h"
 
 // TODO: reference additional headers your program requires here

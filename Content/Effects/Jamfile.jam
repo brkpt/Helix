@@ -31,7 +31,7 @@ rule MakeFX PARENTS : SRCS : OPTIONS
 
 actions Fxc
 {
-	fxc /T fx_2_0 /nologo /Zi $(OPTIONS) /Fo $(1) $(2)
+	fxc /T fx_4_0 /DD3D10=1 /nologo /Zi $(OPTIONS) /Fo $(1) $(2)
 }
 
 {

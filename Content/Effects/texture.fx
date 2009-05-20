@@ -1,9 +1,9 @@
 // Use:
-//  fxc [/LD] /T fx_2_0 /Vi /Zi /Fo texture.fxo texture.fx
+//  fxc [/LD] /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 
 #include "shared.fx"
 
-texture	textureImage;
+Texture2D	textureImage;
 
 struct TextureVertex_in
 {

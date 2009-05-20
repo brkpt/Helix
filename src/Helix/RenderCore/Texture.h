@@ -11,10 +11,10 @@ public:
 	~Texture();
 
 	bool	Load(const std::string &path);
-	IDirect3DTexture9 *	TexData() { return m_texture; }
+	ID3D10ShaderResourceView *	GetResourceView() { return m_textureRV; }
 
 private:
-	IDirect3DTexture9	*m_texture;
+	ID3D10ShaderResourceView *	m_textureRV;
 };
 
 } // namespace Helix

@@ -16,8 +16,9 @@ HANDLE				m_hThread	=				NULL;
 HANDLE				m_startRenderEvent	=		NULL;
 HANDLE				m_rendererReady =			NULL;
 HANDLE				m_hSubmitMutex =			NULL;
-IDirect3DDevice9 *	m_D3DDevice =				NULL;
-
+ID3D10Device *		m_D3DDevice =				NULL;
+IDXGISwapChain *	m_swapChain =				NULL;
+ID3D10RenderTargetView *	m_renderTargetView = NULL;
 struct RenderData
 {
 	D3DXMATRIX		worldMatrix;
@@ -68,10 +69,24 @@ bool RenderThreadReady()
 
 // ****************************************************************************
 // ****************************************************************************
-void SetDevice(IDirect3DDevice9* dev)
+void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 {
 	_ASSERT(dev != NULL);
+	_ASSERT( swapChain != NULL) ;
 	m_D3DDevice = dev;
+	m_swapChain = swapChain;
+
+    // Create a render target view
+    ID3D10Texture2D* pBuffer;
+    HRESULT hr = m_swapChain->GetBuffer( 0, __uuidof( ID3D10Texture2D ), ( LPVOID* )&pBuffer );
+	_ASSERT( SUCCEEDED(hr) );
+
+    hr = m_D3DDevice->CreateRenderTargetView( pBuffer, NULL, &m_renderTargetView );
+	_ASSERT( SUCCEEDED(hr) );
+
+    pBuffer->Release();
+    m_D3DDevice->OMSetRenderTargets( 1, &m_renderTargetView, NULL );
+
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -216,18 +231,14 @@ void RenderThreadFunc(void *data)
 
 		ReleaseMutex();
 
-		IDirect3DDevice9 *device = m_D3DDevice;
+		ID3D10Device *device = m_D3DDevice;
 		_ASSERT(device);
 
-		// Initialize our render
-		device->Clear( 0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0xff000000, 1.0f, 0L );
-		device->SetRenderState(D3DRS_ZENABLE,D3DZB_TRUE);
-		device->SetRenderState(D3DRS_ALPHABLENDENABLE,TRUE);
-		device->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_SRCALPHA);
-		device->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_INVSRCALPHA);
-
-		// Start rendering
-		device->BeginScene();
+		//
+		// Clear the back buffer
+		//
+		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
+		device->ClearRenderTargetView( m_renderTargetView, ClearColor );
 
 		// Setup camera parameters
 		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",m_viewMatrix[renderSubmissionIndex]);
@@ -237,39 +248,37 @@ void RenderThreadFunc(void *data)
 		RenderData *obj = m_submissionBuffers[renderSubmissionIndex];
 		while(obj)
 		{
-			// Set the material parameters
+			// Set the parameters
 			Material *mat = MaterialManager::GetInstance().GetMaterial(obj->materialName);
 			mat->SetParameters();
 
-			// Get the effect
-			Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
-			ID3DXEffect *effect = shader->GetEffect();
+			// Set our input assembly buffers
+			Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);			Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+			unsigned int stride = shader->GetDecl().VertexSize();
+			unsigned int offset = 0;
+			ID3D10Buffer *vb = mesh->GetVertexBuffer();
 
-			// Set the vertex format
-			VertexDecl &decl = shader->GetDecl();
+			device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+			device->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
 
-			UINT numPasses;
-			effect->Begin( &numPasses, D3DXFX_DONOTSAVESTATE );
-			effect->BeginPass( 0 );
+			// Set our prim type
+			device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-			effect->CommitChanges();
-
-			// Set the vb/ib
-			Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
-			device->SetStreamSource(0,mesh->GetVertexBuffer(),0,decl.VertexSize());
-			device->SetIndices(mesh->GetIndexBuffer());
-			device->SetVertexDeclaration(decl.GetDecl());
-			device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,mesh->NumVertices(),0,mesh->NumTriangles());
-
-			effect->EndPass();
-			effect->End();
+			ID3D10Effect *effect = shader->GetEffect();
+			D3D10_TECHNIQUE_DESC techDesc;
+			ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+			technique->GetDesc(&techDesc);
+			for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+			{
+				technique->GetPassByIndex( passIndex )->Apply( 0 );
+				device->DrawIndexed( mesh->NumIndices(), 0, 0 );
+			}
 
 			// Next
 			obj=obj->next;
 		}
 
-		device->EndScene();
-		device->Present(NULL,NULL,NULL,NULL);
+		m_swapChain->Present(0,0);
 
 		// Delete all our render objects
 		obj = m_submissionBuffers[renderSubmissionIndex];

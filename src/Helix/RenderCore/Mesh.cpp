@@ -93,27 +93,11 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	_ASSERT(m_vertexBuffer == NULL);
 	_ASSERT(m_indexBuffer == NULL);
 
-	// Create our vertex buffer
-	IDirect3DDevice9 *pDevice = RenderMgr::GetInstance().GetDevice();
+	// Create a system memory buffer for our vertices
+	char *vb = new char[ m_numVertices * vertexSize ];
 
-	// Create the vertex buffer. Here we are allocating enough memory
-	// (from the default pool) to hold all our 3 custom vertices. 
-	HRESULT hr;
-	hr = pDevice->CreateVertexBuffer( m_numVertices*vertexSize,D3DUSAGE_WRITEONLY, NULL,D3DPOOL_MANAGED, &m_vertexBuffer, NULL );
-	_ASSERT(SUCCEEDED(hr));
-
-	// Fill in VB
-	struct TestVert
-	{
-		float	pos[3];
-		float	uv[2];
-	};
-
-	void *vb = NULL;
-	hr = m_vertexBuffer->Lock(0,0,&vb, 0);
-	_ASSERT(SUCCEEDED(hr));
-
-	char *vertPos = static_cast<char *>(vb);
+	// Fill it in
+	char *vertPos = vb;
 	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
 	{
 		LuaObject faceObj = faceListObj[faceIndex];
@@ -167,19 +151,39 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 		}
 	}
 
-	m_vertexBuffer->Unlock();
+	// Create our vertex buffer
+	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
+
+	// Vertex buffer descriptor
+	D3D10_BUFFER_DESC desc = {0};
+	desc.Usage = D3D10_USAGE_DEFAULT;
+	desc.ByteWidth = m_numVertices*vertexSize;
+	desc.BindFlags = D3D10_BIND_VERTEX_BUFFER;
+	desc.CPUAccessFlags = 0;
+	desc.MiscFlags = 0;
+
+	// Data initialization descriptor
+	D3D10_SUBRESOURCE_DATA initData = {0};
+	initData.pSysMem = vb;
+	initData.SysMemPitch = 0;
+	initData.SysMemSlicePitch = 0;
+
+	// Create the buffer
+	HRESULT hr = pDevice->CreateBuffer(&desc,&initData,&m_vertexBuffer);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Destroy the system buffer
+	delete vb;
 
 	// Create our index buffer
 	_ASSERT(m_numVertices < 0xffff);
 	m_numIndices = m_numTriangles * 3;
-	hr = pDevice->CreateIndexBuffer(m_numIndices * 2,0,D3DFMT_INDEX16,D3DPOOL_DEFAULT,&m_indexBuffer,NULL);
-	_ASSERT(SUCCEEDED(hr));
 
-	void *ib = NULL;
-	hr = m_indexBuffer->Lock(0,0,&ib,0);
-	_ASSERT(SUCCEEDED(hr));
-	unsigned short *idxPos = static_cast<unsigned short*>(ib);
+	// Create a system buffer to hold the data
+	unsigned short *ib = new unsigned short[ m_numIndices ] ;
+	unsigned short *idxPos = ib;
 
+	// Now fill it in
 	int indexIndex=0;
 	int vertexIndex=0;
 	for(unsigned int i=0; i<m_numTriangles; i++)
@@ -192,8 +196,27 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 		indexIndex += 3;
 	}
 
-	m_indexBuffer->Unlock();
 	_ASSERT(indexIndex == m_numIndices);
+
+	// Create the index buffer
+	memset(&desc,0,sizeof(desc));
+	desc.Usage = D3D10_USAGE_DEFAULT;
+	desc.ByteWidth = m_numIndices * 3;
+	desc.BindFlags = D3D10_BIND_INDEX_BUFFER;
+	desc.CPUAccessFlags = 0;
+	desc.MiscFlags = 0;
+	
+	// Data initialization descriptor
+	memset(&initData,0,sizeof(initData));
+	initData.pSysMem = ib;
+	initData.SysMemPitch = 0;
+	initData.SysMemSlicePitch = 0;
+
+	hr = pDevice->CreateBuffer(&desc,&initData,&m_indexBuffer);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Destroy the system memory copy
+	delete ib;
 
 	return true;
 }
@@ -205,39 +228,28 @@ void Mesh::Render(int pass)
 	// Set the parameters
 	Material *mat = MaterialManager::GetInstance().GetMaterial(m_materialName);
 	mat->SetParameters();
+
+	ID3D10Device *dev = RenderMgr::GetInstance().GetDevice();
+
+	// Set our input assembly buffers
 	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
-	ID3DXEffect *effect = shader->GetEffect();
-	VertexDecl &decl = shader->GetDecl();
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	dev->IASetVertexBuffers(0,1,&m_vertexBuffer,&stride,&offset);
+	dev->IASetIndexBuffer(m_indexBuffer,DXGI_FORMAT_R16_UINT,0);
 
-	//D3DXHANDLE hTechnique = m_pEffect->GetTechnique( m_iCurrentTechnique );
-	//D3DXHANDLE hPass      = m_pEffect->GetPass( hTechnique, 0 );
-	//D3DXHANDLE hWorldView	= m_pEffect->GetParameterByName(NULL, "WorldView");
-	//D3DXHANDLE hProjection = m_pEffect->GetParameterByName(NULL, "Projection");
-	//D3DXHANDLE hTexture = m_pEffect->GetParameterByName(NULL,"textureImage");
+	// Set our prim type
+	dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-	//// Set effect parameters
-	//m_pEffect->SetMatrix( hWorldView, &viewMatrix );
-	//m_pEffect->SetMatrix( hProjection, &projMatrix);
-	//m_pEffect->SetTexture( hTexture, m_texture);
-
-	UINT numPasses;
-	effect->Begin( &numPasses, D3DXFX_DONOTSAVESTATE );
-	effect->BeginPass( 0 );
-
-	effect->CommitChanges();
-
-	// Render triangle here
-	IDirect3DDevice9 *dev = RenderMgr::GetInstance().GetDevice();
-	_ASSERT(dev);
-
-	dev->SetStreamSource(0,m_vertexBuffer,0,decl.VertexSize());
-	dev->SetIndices(m_indexBuffer);
-	dev->SetVertexDeclaration(decl.GetDecl());
-	dev->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,0,0,m_numVertices,0,m_numTriangles);
-
-	effect->EndPass();
-	effect->End();
-
+	ID3D10Effect *effect = shader->GetEffect();
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		dev->DrawIndexed( m_numIndices, 0, 0 );
+	}
 }
 
 } // namespace Helix

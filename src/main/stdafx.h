@@ -21,9 +21,8 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <d3dx9effect.h>
+#include <d3d10.h>
+#include <d3dx10.h>
 #include "Win32DX9.h"
 #include "LuaPlus.h"
 #include "RenderCore/RenderThread.h"

@@ -12,7 +12,7 @@ class Instance;
 	void	ShutDownRenderThread();
 	void	RenderScene();
 	bool	RenderThreadReady();
-	void	SetDevice(IDirect3DDevice9 *dev);
+	void	SetDevice(ID3D10Device *dev, IDXGISwapChain *swapChain);
 
 	void	SubmitProjMatrix(D3DXMATRIX &mat);
 	void	SubmitViewMatrix(D3DXMATRIX &mat);

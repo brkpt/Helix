@@ -31,14 +31,13 @@ void Material::SetParameters()
 	Shader *shader = ShaderManager::GetInstance().GetShader(m_shaderName);
 	_ASSERT(shader != NULL);
 
-	ID3DXEffect *effect = shader->GetEffect();
+	ID3D10Effect *effect = shader->GetEffect();
 
-	D3DXHANDLE hTexture = effect->GetParameterByName(NULL,"textureImage");
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
 
 	Texture *tex = TextureManager::GetInstance().GetTexture(m_textureName);
-	_ASSERT(tex != NULL);
-
-	HRESULT hr = effect->SetTexture( hTexture, tex->TexData());
+	ID3D10ShaderResourceView *textureRV = tex->GetResourceView();
+	HRESULT hr = shaderResource->SetResource(textureRV);
 	_ASSERT(SUCCEEDED(hr));
 
 }

@@ -39,7 +39,7 @@ private:
 	typedef std::map<const std::string, Shader *>	ShaderMap;
 	ShaderMap	m_shaderMap;
 
-	ID3DXEffectPool *	m_effectPool;
+	ID3D10EffectPool *	m_effectPool;
 };
 
 } // namespace Helix

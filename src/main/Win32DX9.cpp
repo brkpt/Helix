@@ -57,160 +57,31 @@ void WinApp::Cleanup(void)
 // ****************************************************************************
 bool WinApp::InitializeDirectX(void)
 {
-	HRESULT hr;
-	DWORD deviceFlags = 0;
-	D3DFORMAT backbufferFormat = D3DFMT_UNKNOWN;
+	DXGI_SWAP_CHAIN_DESC swapChainDesc;
+	memset(&swapChainDesc,0,sizeof(swapChainDesc));
+    swapChainDesc.BufferCount = 1;
+    swapChainDesc.BufferDesc.Width = m_windowWidth;
+    swapChainDesc.BufferDesc.Height = m_windowHeight;
+    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+    swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.OutputWindow = m_hWnd;
+    swapChainDesc.SampleDesc.Count = 1;
+    swapChainDesc.SampleDesc.Quality = 0;
+    swapChainDesc.Windowed = TRUE;
+	
+    UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+    createDeviceFlags |= D3D10_CREATE_DEVICE_DEBUG;
+#endif
+	IDXGISwapChain *swapChain;
+	HRESULT hr = D3D10CreateDeviceAndSwapChain( NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,
+                                            D3D10_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice );
 
-	m_pD3D = Direct3DCreate9( D3D_SDK_VERSION );
-	if(m_pD3D == NULL)
-	{
-		Cleanup();
-		MessageBox(NULL,"Could not find D3D version 9","D3D Window",MB_OK);
-		return false;
-	}
+	_ASSERT( SUCCEEDED(hr) );
 
-	hr = m_pD3D->GetDeviceCaps(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&m_deviceCaps);
-	if(FAILED(hr))
-	{
-		Cleanup();
-		return false;
-	}
-
-	if( m_deviceCaps.VertexProcessingCaps != 0 )
-	{
-		deviceFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING;
-	}
-	else
-	{
-		deviceFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-	}
-
-	hr = m_pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT,&m_displayMode);
-	if(FAILED(hr))
-	{
-		Cleanup();
-		return false;
-	}
-
-	if(m_fullScreen)
-	{
-		int nMode = 0;
-		D3DDISPLAYMODE d3ddm;
-		bool bDesiredAdapterModeFound = false;
-
-		// Find the number of modes which suppoert X8R8G8B8
-		backbufferFormat = D3DFMT_X8R8G8B8;
-		int nMaxAdapterModes = m_pD3D->GetAdapterModeCount( D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8 );
-
-		for( nMode = 0; nMode < nMaxAdapterModes; ++nMode )
-		{
-			if( FAILED( m_pD3D->EnumAdapterModes( D3DADAPTER_DEFAULT, D3DFMT_X8R8G8B8, nMode, &d3ddm ) ) )
-			{
-				Cleanup();
-				MessageBox(NULL,"Failure enumerating modes","D3D Window",MB_OK);
-				return false;
-			}
-
-			// Does this adapter mode support a mode of our specified widthxheight?
-			if( d3ddm.Width != m_windowWidth || d3ddm.Height != m_windowHeight )
-				continue;
-
-			// Does this adapter mode support a 32-bit RGB pixel format?
-			if( d3ddm.Format != D3DFMT_X8R8G8B8 )
-				continue;
-
-			// Does this adapter mode support a refresh rate of 60 MHz?
-			if( d3ddm.RefreshRate < 60 )
-				continue;
-
-			// We found a match!
-			bDesiredAdapterModeFound = true;
-			break;
-		}
-
-		if( bDesiredAdapterModeFound == false )
-		{
-			Cleanup();
-			MessageBox(NULL,"Couldn't find desired adapter mode","D3D Window",MB_OK);
-			return false;
-		}
-
-		//
-		// Here's the manual way of verifying hardware support.
-		//
-
-		// Can we get a 32-bit back buffer?
-		hr = m_pD3D->CheckDeviceType( D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,D3DFMT_X8R8G8B8,D3DFMT_X8R8G8B8,FALSE );
-		if( FAILED( hr ) )
-		{
-			Cleanup();
-			MessageBox(NULL,"Couldn't find mode with specified backbuffer format","D3D Window",MB_OK);
-			return false;
-		}
-
-		// Can we get a z-buffer that's at least 16 bits?
-		hr = m_pD3D->CheckDeviceFormat( D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,D3DFMT_X8R8G8B8,D3DUSAGE_DEPTHSTENCIL,D3DRTYPE_SURFACE,D3DFMT_D16 );
-		if( FAILED( hr ))
-		{
-			Cleanup();
-			MessageBox(NULL,"Can't find mode with specified depth format","D3D Window",MB_OK);
-			return false;
-		}
-
-		//
-		// Do we support hardware vertex processing? if so, use it. 
-		// If not, downgrade to software.
-		//
-
-		D3DCAPS9 d3dCaps;
-		hr = m_pD3D->GetDeviceCaps( D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL, &d3dCaps );
-		if( FAILED( hr ) )
-		{
-			Cleanup();
-			MessageBox(NULL,"Couldn't get device caps","D3D Window",MB_OK);
-			return false;
-		}
-
-
-
-		//
-		// Everything checks out - create a simple, full-screen device.
-		//
-	}
-
-	hr = m_pD3D->GetAdapterDisplayMode(D3DADAPTER_DEFAULT,&m_displayMode);
-	hr = m_pD3D->CheckDeviceFormat(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,m_displayMode.Format,D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_SURFACE,D3DFMT_D24X8);
-	hr = m_pD3D->CheckDepthStencilMatch(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,m_displayMode.Format,m_displayMode.Format,D3DFMT_D24X8);
-
-	D3DPRESENT_PARAMETERS d3dpp = {0};
-	d3dpp.BackBufferWidth = 0;									// Use window width
-	d3dpp.BackBufferHeight = 0;									// Use window height
-    d3dpp.BackBufferFormat = backbufferFormat;					// Use current device format
-	d3dpp.BackBufferCount = 1;									// Single back buffer
-	d3dpp.MultiSampleType = D3DMULTISAMPLE_NONE;				// No multisampling
-	d3dpp.MultiSampleQuality = 0;
-    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;		
-	d3dpp.hDeviceWindow = m_hWnd;
-    d3dpp.Windowed = !m_fullScreen;
-	d3dpp.EnableAutoDepthStencil = TRUE;
-	d3dpp.AutoDepthStencilFormat = D3DFMT_D24X8;					// 16 bit Z-biffer
-	d3dpp.Flags = 0;											// No extra presentation flags
-	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;	// Default interval
-    //d3dpp.Windowed = TRUE;
-    //d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    //d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
-
-    // Create the D3DDevice
-	hr = m_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &m_pD3DDevice);
-	if(FAILED(hr))
-	{
-		Cleanup();
-		MessageBox(NULL,"Could not initialize D3D device","D3D Window",MB_OK);
-		return false;
-	}
-
-	Helix::RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice);
+	Helix::RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice, swapChain);
 	return true;
 }
 
@@ -223,13 +94,6 @@ void WinApp::CleanupDirectX(void)
 	{
 		m_pD3DDevice->Release();
 		m_pD3DDevice = NULL;
-	}
-
-	// Destroy D3D handle
-	if(m_pD3D != NULL)
-	{
-		m_pD3D->Release();
-		m_pD3D = NULL;
 	}
 }
 

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RenderMgr.h"
 #include "ThreadLoad/ThreadLoad.h"
 
 namespace Helix {
@@ -8,7 +9,11 @@ ShaderManager::ShaderManager()
 : m_effectPool(NULL)
 {
 	// Create a shared effects parameter pool
-	HRESULT hr = D3DXCreateEffectPool(&m_effectPool);
+	//HRESULT hr = D3DXCreateEffectPool(&m_effectPool);
+	std::string fullPath = "Effects/shared.fxo";
+	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
+	HRESULT hr = D3DX10CreateEffectPoolFromFile(fullPath.c_str(), NULL, NULL, "fx_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, pDevice, NULL, &m_effectPool, NULL, NULL);
+	_ASSERT(hr == S_OK);
 }
 
 ShaderManager::~ShaderManager()
