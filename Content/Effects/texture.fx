@@ -17,13 +17,10 @@ struct TextureVertex_out
 	float2 texuv : TEXCOORD0;
 };
 
-sampler texSampler = 
-sampler_state
+sampler2D texSampler  = sampler_state
 {
-	Texture = <textureImage>;
-	MinFilter = Linear;
-	MagFilter = Linear;
-	MipFilter = Linear;
+	Texture = (textureImage);
+	Filter = MIN_MAG_MIP_LINEAR;
 	AddressU = Wrap;
 	AddressV = Wrap;
 };
@@ -44,19 +41,18 @@ struct TexturePixelShader_in
 	float2	texuv	 : TEXCOORD0;
 };
 
-float4 TexturePixelShader(TexturePixelShader_in In) : COLOR
+float4 TexturePixelShader(TexturePixelShader_in In) : COLOR0
 {
 	return tex2D(texSampler,In.texuv);
 }
 
-technique SingleTexture
+technique10 SingleTexture
 {
 	pass P0
 	{
-		VertexShader = compile vs_3_0 TextureVertexShader();
-		PixelShader = compile ps_3_0 TexturePixelShader();
-		
-		CullMode = CCW;
+		SetVertexShader( compile vs_4_0 TextureVertexShader() );
+		SetGeometryShader( NULL );
+		SetPixelShader( compile ps_4_0 TexturePixelShader() );
 	}
 }
 

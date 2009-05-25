@@ -18,6 +18,7 @@ public:
 		_ASSERT(device != NULL);
 		_ASSERT(m_device == NULL);
 		m_device = device; 
+		m_swapChain = swapChain;
 	}
 
 	ID3D10Device * GetDevice()
@@ -43,7 +44,7 @@ private:
 	~RenderMgr() {}
 	RenderMgr & operator =(const RenderMgr &other) {}
 
-	ID3D10Device *	m_device;
+	ID3D10Device *		m_device;
 	IDXGISwapChain *	m_swapChain;
 };
 

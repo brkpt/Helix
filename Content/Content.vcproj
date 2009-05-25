@@ -59,23 +59,113 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="Effects"
 			>
+			<File
+				RelativePath=".\Effects\diffuse.fx"
+				>
+			</File>
+			<File
+				RelativePath=".\Effects\Jamfile.jam"
+				>
+			</File>
+			<File
+				RelativePath=".\Effects\shared.fx"
+				>
+			</File>
+			<File
+				RelativePath=".\Effects\texture.fx"
+				>
+			</File>
 		</Filter>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="Materials"
 			>
+			<File
+				RelativePath=".\Materials\Carsen.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Materials\FunnyFace.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Materials\Jamfile.jam"
+				>
+			</File>
+			<File
+				RelativePath=".\Materials\Triangle.lua"
+				>
+			</File>
 		</Filter>
 		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			Name="Textures"
 			>
+			<File
+				RelativePath=".\Textures\Carsen.tga"
+				>
+			</File>
+			<File
+				RelativePath=".\Textures\Carsen_crop.png"
+				>
+			</File>
+			<File
+				RelativePath=".\Textures\Carsen_crop.tga"
+				>
+			</File>
+			<File
+				RelativePath=".\Textures\Jamfile.jam"
+				>
+			</File>
 		</Filter>
+		<Filter
+			Name="Meshes"
+			>
+			<File
+				RelativePath=".\Meshes\cube.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Meshes\Jamfile.jam"
+				>
+			</File>
+			<File
+				RelativePath=".\Meshes\Triangle.lua"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Shaders"
+			>
+			<File
+				RelativePath=".\Shaders\diffuse.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\Jamfile.jam"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\pos3.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\pos3_tex1.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\shared.lua"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\texture.lua"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\Jamfile.jam"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

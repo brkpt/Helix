@@ -253,17 +253,33 @@ void RenderThreadFunc(void *data)
 			mat->SetParameters();
 
 			// Set our input assembly buffers
-			Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);			Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+			Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
+			Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+
+			// Set the input layout 
+			device->IASetInputLayout(shader->GetDecl().GetLayout());
+
+			// Set our vertex/index buffers
 			unsigned int stride = shader->GetDecl().VertexSize();
 			unsigned int offset = 0;
 			ID3D10Buffer *vb = mesh->GetVertexBuffer();
-
 			device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
 			device->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
 
 			// Set our prim type
 			device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
+			// Set our viewport
+			D3D10_VIEWPORT vp;
+			vp.TopLeftX = 0;
+			vp.TopLeftY = 0;
+			vp.Width = 1024;
+			vp.Height = 768;
+			vp.MinDepth = 0;
+			vp.MaxDepth = 1;
+			device->RSSetViewports(1, &vp);
+
+			// Start rendering
 			ID3D10Effect *effect = shader->GetEffect();
 			D3D10_TECHNIQUE_DESC techDesc;
 			ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);

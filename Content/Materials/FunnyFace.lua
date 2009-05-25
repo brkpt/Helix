@@ -1,6 +1,6 @@
 Material =
 {
 	Shader = "texture",
-	Texture = "Carsen_crop.tga"
+	Texture = "Carsen_crop.png"
 }
 

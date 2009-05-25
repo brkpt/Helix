@@ -4,7 +4,7 @@ IncludeModule CopyFile ;
 
 {
 	local TEXTURE_FILES =
-		Carsen_crop.tga
+		Carsen_crop.png
 		;
 		
 	local sources = [ FGristFiles $(TEXTURE_FILES) ] ;

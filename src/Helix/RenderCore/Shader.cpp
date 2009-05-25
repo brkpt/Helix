@@ -25,14 +25,17 @@ Shader::Shader(const std::string &shaderName, LuaObject &shader, ID3D10EffectPoo
 	std::string fxName = obj.GetString();
 	std::string fxPath = "Effects/";
 	fxPath += fxName;
-	fxPath += ".fxo";
+	fxPath += ".fx";
 
-	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG;
+	DWORD dwShaderFlags = D3D10_SHADER_DEBUG | D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
 
 	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
 	HRESULT hr;
-	hr = D3DX10CreateEffectFromFile(fxPath.c_str(), NULL,NULL,"fx_4_0",dwShaderFlags,0, pDevice, effectPool, NULL, &m_pEffect, NULL, NULL);
+	hr = D3DX10CreateEffectFromFile(fxPath.c_str(), NULL,NULL,"fx_4_0",dwShaderFlags,D3D10_EFFECT_COMPILE_CHILD_EFFECT, pDevice, effectPool, NULL, &m_pEffect, NULL, NULL);
 	_ASSERT(hr == D3D_OK);
+
+	// Now create the layout if it hasn't been created already
+	m_decl->BuildLayout(this);
 }
 
 Shader::~Shader()

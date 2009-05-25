@@ -10,7 +10,7 @@ ShaderManager::ShaderManager()
 {
 	// Create a shared effects parameter pool
 	//HRESULT hr = D3DXCreateEffectPool(&m_effectPool);
-	std::string fullPath = "Effects/shared.fxo";
+	std::string fullPath = "Effects/shared.fx";
 	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
 	HRESULT hr = D3DX10CreateEffectPoolFromFile(fullPath.c_str(), NULL, NULL, "fx_4_0", D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, pDevice, NULL, &m_effectPool, NULL, NULL);
 	_ASSERT(hr == S_OK);
@@ -68,18 +68,19 @@ Shader * ShaderManager::Load(const std::string &shaderName)
 // ****************************************************************************
 void ShaderManager::LoadShared()
 {
-	Load("shared");
+	//Load("shared");
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void ShaderManager::SetSharedParameter(const std::string &paramName, D3DXMATRIX &matrix)
 {
-	// Get our shared shader
-	Shader *shader = GetShader("shared");
-	_ASSERT(shader != NULL);
-
-	shader->SetShaderParameter(paramName, matrix);
+	// Get the shared parameter
+	ID3D10Effect* pPoolEffect = m_effectPool->AsEffect();
+	ID3D10EffectMatrixVariable *param = pPoolEffect->GetVariableByName( paramName.c_str() )->AsMatrix()	;
+	_ASSERT(param != NULL);
+	float *fArray = (float *)&matrix;
+	param->SetMatrix( (float *)&matrix );
 }
 
 // ****************************************************************************

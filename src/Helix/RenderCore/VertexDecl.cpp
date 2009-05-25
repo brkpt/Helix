@@ -183,7 +183,7 @@ bool VertexDecl::Load(LuaObject &declObj)
 
 		// Semantic index
 		obj = elem[2];
-		_ASSERT(obj.IsString());
+		_ASSERT(obj.IsInteger());
 		m_desc[i].SemanticIndex = obj.GetInteger();
 
 		// Format

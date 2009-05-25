@@ -7,6 +7,7 @@
 #include "RenderCore/MaterialManager.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
+#include "RenderCore/RenderMgr.h"
 #include "Kernel/Callback.h"
 #include "Camera.h"
 #include "triangle.h"
@@ -40,7 +41,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 {
 	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
 
-	Helix::SetDevice(m_pD3DDevice);
+	ID3D10Device *dev = Helix::RenderMgr::GetInstance().GetDevice();
+	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
+
+	Helix::SetDevice(dev,sc);
 	Helix::DeclManager::Create();
 	Helix::ShaderManager::Create();
 	Helix::MaterialManager::Create();
@@ -213,7 +217,7 @@ void TheGame::Update(void)
 
 	POINT ptCursor;
 	GetCursorPos( &ptCursor );
-	m_pD3DDevice->SetCursorPosition(ptCursor.x,ptCursor.y,0);
+//	m_pD3DDevice->SetCursorPosition(ptCursor.x,ptCursor.y,0);
 
 	m_camera->Update();
 	m_triangle->Update(0.0f);
