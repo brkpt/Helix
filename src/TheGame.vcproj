@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="Helix"
+				AdditionalIncludeDirectories="Helix; .;C:/Projects/LuaPlus/work51/Src/LuaPlus"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3d9.lib d3dx9.lib LuaPlus.lib"
+				AdditionalDependencies="d3d10.lib d3dx10d.lib LuaPlusLibD_1100.lib"
 				OutputFile="$(OutDir)\$(ProjectName).$(ConfigurationName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:/Projects/LuaPlus/work51/Lib/win32;C:/program files/Microsoft DirectX SDK (August 2008)/lib/x86"

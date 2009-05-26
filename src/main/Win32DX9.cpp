@@ -76,7 +76,7 @@ bool WinApp::InitializeDirectX(void)
     createDeviceFlags |= D3D10_CREATE_DEVICE_DEBUG;
 #endif
 	IDXGISwapChain *swapChain;
-	HRESULT hr = D3D10CreateDeviceAndSwapChain( NULL, D3D10_DRIVER_TYPE_REFERENCE, NULL, createDeviceFlags,
+	HRESULT hr = D3D10CreateDeviceAndSwapChain( NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,
                                             D3D10_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice );
 
 	_ASSERT( SUCCEEDED(hr) );
