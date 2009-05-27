@@ -17,9 +17,8 @@ struct TextureVertex_out
 	float2 texuv : TEXCOORD0;
 };
 
-sampler2D texSampler  = sampler_state
+SamplerState texSampler
 {
-	Texture = (textureImage);
 	Filter = MIN_MAG_MIP_LINEAR;
 	AddressU = Wrap;
 	AddressV = Wrap;
@@ -37,13 +36,13 @@ TextureVertex_out TextureVertexShader(TextureVertex_in In)
 
 struct TexturePixelShader_in
 {
-	float4	pos : POSITION;
-	float2	texuv	 : TEXCOORD0;
+	float4	pos		: SV_POSITION;
+	float2	texuv	: TEXCOORD0;
 };
 
-float4 TexturePixelShader(TexturePixelShader_in In) : COLOR0
+float4 TexturePixelShader(TexturePixelShader_in In) : SV_TARGET
 {
-	return tex2D(texSampler,In.texuv);
+	return textureImage.Sample(texSampler, In.texuv);
 }
 
 technique10 SingleTexture
