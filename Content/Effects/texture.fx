@@ -5,13 +5,13 @@
 
 Texture2D	textureImage;
 
-struct TextureVertex_in
+struct TextureVS_in
 {
-	float4 pos : POSITION;
+	float3 pos : POSITION;
 	float2 texuv : TEXCOORD0;
 };
 
-struct TextureVertex_out
+struct TexturePS_in
 {
 	float4 pos : POSITION;
 	float2 texuv : TEXCOORD0;
@@ -24,23 +24,17 @@ SamplerState texSampler
 	AddressV = Wrap;
 };
 	
-TextureVertex_out TextureVertexShader(TextureVertex_in In)
+TexturePS_in TextureVertexShader(TextureVS_in In)
 {
-	TextureVertex_out Out;
+	TexturePS_in Out;
 
-	float3 P = mul( In.pos ,WorldView );
+	float3 P = mul( float4(In.pos,1), WorldView );
 	Out.pos = mul( float4(P,1), Projection );
 	Out.texuv = In.texuv;
 	return Out;
 }
 
-struct TexturePixelShader_in
-{
-	float4	pos		: SV_POSITION;
-	float2	texuv	: TEXCOORD0;
-};
-
-float4 TexturePixelShader(TexturePixelShader_in In) : SV_TARGET
+float4 TexturePixelShader(TexturePS_in In) : SV_TARGET
 {
 	return textureImage.Sample(texSampler, In.texuv);
 }

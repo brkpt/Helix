@@ -19,9 +19,12 @@ Material::Material(const std::string &name, LuaObject &object)
 	// Load the shader
 	Shader *shader = ShaderManager::GetInstance().Load(m_shaderName);
 	
-	// Load the texture
-	Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
-	_ASSERT(tex != NULL);
+	// Make sure we can load the associated texture
+	if(m_textureName.compare("albedo"))
+	{
+		Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
+		_ASSERT(tex != NULL);
+	}
 }
 
 // ****************************************************************************
@@ -36,9 +39,15 @@ void Material::SetParameters()
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
 
 	Texture *tex = TextureManager::GetInstance().GetTexture(m_textureName);
-	ID3D10ShaderResourceView *textureRV = tex->GetResourceView();
-	HRESULT hr = shaderResource->SetResource(textureRV);
-	_ASSERT(SUCCEEDED(hr));
+
+	if( tex != NULL)
+	{
+		// Mesh that only uses render targets as input textures 
+		// may not have a texture 
+		ID3D10ShaderResourceView *textureRV = tex->GetResourceView();
+		HRESULT hr = shaderResource->SetResource(textureRV);
+		_ASSERT(SUCCEEDED(hr));
+	}
 
 }
 

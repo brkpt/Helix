@@ -10,7 +10,8 @@ IncludeModule CopyFile ;
 	# Standard shaders to build
 	STANDARD_FX = 
 		diffuse.fx
-		texture.fx 
+		texture.fx
+		quad.fx
 		;
 	EFFECT_POOL_FX =
 		shared.fx 
