@@ -78,6 +78,42 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
 	_ASSERT(shader != NULL);
 
+	// TODO: Setup vertex format based off of annotation
+	ID3D10Effect *shaderEffect = shader->GetEffect();
+	_ASSERT(shaderEffect != NULL);
+
+	D3D10_EFFECT_DESC effectDesc;
+	HRESULT hr = shaderEffect->GetDesc(&effectDesc);
+	_ASSERT( SUCCEEDED(hr) );
+
+	ID3D10EffectTechnique *technique = shaderEffect->GetTechniqueByIndex(0);
+	technique = shaderEffect->GetTechniqueByName("ForwardRender");
+	_ASSERT( technique!=NULL );
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	hr = technique->GetDesc(&techDesc);
+	_ASSERT( SUCCEEDED(hr) );
+
+	for(unsigned int annIndex=0;annIndex < techDesc.Annotations; annIndex++)
+	{
+		ID3D10EffectVariable *annData = technique->GetAnnotationByIndex(annIndex);
+		_ASSERT(annData != NULL);
+		_ASSERT(annData->IsValid());
+
+		D3D10_EFFECT_VARIABLE_DESC varDesc;
+		hr = annData->GetDesc(&varDesc);
+		_ASSERT( SUCCEEDED(hr) );
+
+		ID3D10EffectStringVariable *var = annData->AsString();
+		LPCSTR varData = NULL;
+		hr = var->GetString(&varData);
+		_ASSERT( SUCCEEDED(hr) );
+	}
+
+	bool havePosData = true;
+	bool haveNormData = true;
+	bool haveTex1Data = true;
+
 	VertexDecl &decl = shader->GetDecl();
 	int vertexSize = decl.VertexSize();
 	m_numTriangles = faceListObj.GetTableCount();
@@ -109,10 +145,11 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 
 			// Get face vertex information
 			LuaObject faceVertObj = faceObj[faceVertIdx];
+			if(havePosData)
 			{
+				// Get position information
 				float *posData = reinterpret_cast<float *>(dataPos);
 
-				// Get position information
 				LuaObject posIdxObj = faceVertObj["VertexIndex"];
 				_ASSERT(posIdxObj.IsInteger());
 
@@ -126,6 +163,24 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 				dataPos += 3 * sizeof(float);
 			}
 
+			if(haveNormData)
+			{
+				// Get normal information
+				float *normData = reinterpret_cast<float *>(dataPos);
+
+				LuaObject normIdxObj = faceVertObj["NormalIndex"];
+				_ASSERT(normIdxObj.IsInteger());
+
+				int normIndex = normIdxObj.GetInteger();
+				LuaObject normObj = normalsObj[normIndex+1];
+				normData[0] = normObj[1].GetFloat();
+				normData[1] = normObj[2].GetFloat();
+				normData[2] = normObj[3].GetFloat();
+
+				dataPos += 3 * sizeof(float);
+			}
+			
+			if(haveTex1Data)
 			{
 				// Get UV information
 				LuaObject uvIndicesObj = faceVertObj["UVIndices"];
@@ -169,7 +224,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	initData.SysMemSlicePitch = 0;
 
 	// Create the buffer
-	HRESULT hr = pDevice->CreateBuffer(&desc,&initData,&m_vertexBuffer);
+	hr = pDevice->CreateBuffer(&desc,&initData,&m_vertexBuffer);
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Destroy the system buffer

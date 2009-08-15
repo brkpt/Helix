@@ -9,6 +9,8 @@ namespace Helix {
 
 const int					STACK_SIZE =				16*1024;	// 16k
 const int					NUM_SUBMISSION_BUFFERS	=	2;
+int							m_backbufferWidth = 0;
+int							m_backbufferHeight = 0;
 bool						m_renderThreadInitialized =	false;
 bool						m_renderThreadShutdown =	false;
 bool						m_inRender =				false;
@@ -21,9 +23,12 @@ IDXGISwapChain *			m_swapChain =				NULL;
 ID3D10RenderTargetView *	m_backBufferView = NULL;
 ID3D10Texture2D *			m_backDepthStencil = NULL;
 ID3D10DepthStencilView *	m_backDepthStencilView = NULL;
-ID3D10Texture2D *			m_albedoTexture = NULL;		// Albedo texture
-ID3D10RenderTargetView *	m_albedoRTView = NULL;		// Albedo view - used when texture is render target
-ID3D10ShaderResourceView *	m_albedoSRView = NULL;		// Albedo shader resource view - used when texture is input to shaders
+
+enum { ALBEDO = 0, NORMAL, MAX_TARGETS };
+ID3D10Texture2D *			m_Texture[MAX_TARGETS];
+ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
+ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
+
 Material *					m_albedoMaterial = NULL;
 ID3D10Texture2D *			m_depthStencilTexture = NULL;
 ID3D10DepthStencilView *	m_depthStencilDSView = NULL;
@@ -44,12 +49,18 @@ RenderData *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_viewMatrix[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_projMatrix[NUM_SUBMISSION_BUFFERS];
 
-//#pragma pack push(1)
 struct QuadVert {
 	float	pos[3];
 	float	uv[2];
 };
-//#pragma pack pop
+
+void	CreateViews();
+void	CreateBackbufferViews();
+void	CreateColorTarget();
+void	CreateDepthStencilTarget();
+void	CreateNormalTarget();
+void	CreateQuad();
+void	CreateRasterizerState();
 
 // ****************************************************************************
 // Thread function
@@ -87,16 +98,12 @@ bool RenderThreadReady()
 }
 
 // ****************************************************************************
+// - Creates a render target view of the backbuffer device data
+// - Creates a depth/stencil texture for the hardware (DXGI_FORMAT_D32_FLOAT)
+// - Creates a depth/stencil view 
 // ****************************************************************************
-void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
+void CreateBackbufferViews()
 {
-	_ASSERT(dev != NULL);
-	_ASSERT( swapChain != NULL) ;
-	m_D3DDevice = dev;
-	m_swapChain = swapChain;
-
-    // Create a render target view
-
 	// Get the back buffer and desc
     ID3D10Texture2D* pBuffer;
     HRESULT hr = m_swapChain->GetBuffer( 0, __uuidof( ID3D10Texture2D ), ( LPVOID* )&pBuffer );
@@ -105,15 +112,9 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
     D3D10_TEXTURE2D_DESC backBufferSurfaceDesc;
     pBuffer->GetDesc( &backBufferSurfaceDesc );
 
-	// Set our viewport
-	D3D10_VIEWPORT vp;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	vp.Width = backBufferSurfaceDesc.Width;
-	vp.Height = backBufferSurfaceDesc.Height;
-	vp.MinDepth = 0;
-	vp.MaxDepth = 1;
-	m_D3DDevice->RSSetViewports(1, &vp);
+	// Save off our width/height
+	m_backbufferWidth = backBufferSurfaceDesc.Width;
+	m_backbufferHeight = backBufferSurfaceDesc.Height;
 
     hr = m_D3DDevice->CreateRenderTargetView( pBuffer, NULL, &m_backBufferView );
     pBuffer->Release();
@@ -121,8 +122,8 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 
 	// Create depth stencil texture
     D3D10_TEXTURE2D_DESC descDepth;
-    descDepth.Width = backBufferSurfaceDesc.Width;
-    descDepth.Height = backBufferSurfaceDesc.Height;
+    descDepth.Width = m_backbufferWidth;
+    descDepth.Height = m_backbufferHeight;
     descDepth.MipLevels = 1;
     descDepth.ArraySize = 1;
     descDepth.Format = DXGI_FORMAT_D32_FLOAT;
@@ -145,12 +146,20 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
     descDSV.Texture2D.MipSlice = 0;
     hr = m_D3DDevice->CreateDepthStencilView( m_backDepthStencil, &descDSV, &m_backDepthStencilView );
 	_ASSERT( SUCCEEDED(hr) );
-  
+}
+
+// ****************************************************************************
+// - Create a color render target texture (DXGI_FORMAT_R8G8B8A8_UNORM)
+// - Create a render target view for the color render target
+// - Create a shader view for the color render target
+// ****************************************************************************
+void CreateColorTarget()
+{
 	// Create some empty render targets
 	D3D10_TEXTURE2D_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.Width = backBufferSurfaceDesc.Width;
-	desc.Height = backBufferSurfaceDesc.Height;
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R10G10B10A2_UNORM ;
@@ -159,7 +168,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
 
 	// Create the texture
-	hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_albedoTexture );
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Create the render target view
@@ -168,7 +177,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2D;
 	rtDesc.Texture2D.MipSlice = 0;
 
-	hr = m_D3DDevice->CreateRenderTargetView( m_albedoTexture, &rtDesc, &m_albedoRTView );
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[ALBEDO], &rtDesc, &m_RTView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Create the shader input view
@@ -178,13 +187,22 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	srDesc.Texture2D.MostDetailedMip = 0;
 	srDesc.Texture2D.MipLevels = 1;
 
-	hr = m_D3DDevice->CreateShaderResourceView( m_albedoTexture, &srDesc, &m_albedoSRView );
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[ALBEDO], &srDesc, &m_SRView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
+}
 
+// ****************************************************************************
+// - Create a depth/stencil target texture (DXGI_FORMAT_R16_TYPELESS)
+// - Create a depth/stencil view
+// - Create a shader resource view for our depth/stencil 
+// ****************************************************************************
+void CreateDepthStencilTarget()
+{
 	// Create a depth/stencil texture
+	D3D10_TEXTURE2D_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.Width = 1024;
-	desc.Height = 768;
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R16_TYPELESS ;
@@ -192,7 +210,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	desc.Usage = D3D10_USAGE_DEFAULT;
 	desc.BindFlags = D3D10_BIND_DEPTH_STENCIL | D3D10_BIND_SHADER_RESOURCE;
 
-	hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_depthStencilTexture );
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_depthStencilTexture );
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Create the depth/stencil view
@@ -206,6 +224,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Create our shader resource view
+	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
 	ZeroMemory(&srDesc, sizeof(srDesc));
 	srDesc.Format = DXGI_FORMAT_R16_UNORM;
 	srDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
@@ -214,16 +233,70 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 
 	hr = m_D3DDevice->CreateShaderResourceView(m_depthStencilTexture,&srDesc,&m_depthStencilSRView );
 	_ASSERT( SUCCEEDED(hr) );
+}
 
+// ****************************************************************************
+// ****************************************************************************
+void CreateNormalTarget()
+{
+	// Create some empty render targets
+	D3D10_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D10_USAGE_DEFAULT;
+	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+
+	// Create the texture
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Create the render target view
+	D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+	rtDesc.Format = desc.Format;
+	rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2D;
+	rtDesc.Texture2D.MipSlice = 0;
+
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[NORMAL], &rtDesc, &m_RTView[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Create the shader input view
+	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
+	srDesc.Format = desc.Format;
+	srDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
+
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[NORMAL], &srDesc, &m_SRView[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
+}
+
+// ****************************************************************************
+// Creates our backbuffer views (color/depth/stencil) as well as our various
+// render targets
+// ****************************************************************************
+void CreateViews()
+{
+	CreateBackbufferViews();
+	CreateColorTarget();
+	CreateDepthStencilTarget();
+	CreateNormalTarget();
+}
+// ****************************************************************************
+// ****************************************************************************
+void CreateQuad()
+{
 	// Load our quad shader
 	m_albedoMaterial = MaterialManager::GetInstance().Load("Quad");
 	_ASSERT( m_albedoMaterial != NULL);
 
 	// Vertex buffer descriptor
 	int vertexSize = 3*sizeof(float) + 2*sizeof(float);
-	int foo = sizeof(QuadVert);
 	QuadVert quadVerts[4];
-	foo = sizeof(quadVerts);
 
 	quadVerts[0].pos[0] = -1.0f;
 	quadVerts[0].pos[1] = -1.0f;
@@ -263,7 +336,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	initData.SysMemSlicePitch = 0;
 
 	// Create the buffer
-	hr = m_D3DDevice->CreateBuffer(&bufferDesc,&initData,&m_quadVB);
+	HRESULT hr = m_D3DDevice->CreateBuffer(&bufferDesc,&initData,&m_quadVB);
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Create our index buffer
@@ -286,6 +359,12 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	hr = m_D3DDevice->CreateBuffer(&bufferDesc,&initData,&m_quadIB);
 	_ASSERT( SUCCEEDED(hr) );
 
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void CreateRasterizerState()
+{
 	// Setup our rasterizer state
 	D3D10_RASTERIZER_DESC rDesc;
 	memset(&rDesc,0,sizeof(rDesc));
@@ -299,8 +378,32 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	rDesc.ScissorEnable = false;
 	rDesc.MultisampleEnable = false;
 	rDesc.AntialiasedLineEnable = false;
-	hr = m_D3DDevice->CreateRasterizerState(&rDesc, &m_RState);
+	HRESULT hr = m_D3DDevice->CreateRasterizerState(&rDesc, &m_RState);
 	_ASSERT( SUCCEEDED(hr) );
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
+{
+	_ASSERT(dev != NULL);
+	_ASSERT( swapChain != NULL) ;
+	m_D3DDevice = dev;
+	m_swapChain = swapChain;
+
+	CreateViews();
+	CreateQuad();
+	CreateRasterizerState();
+
+	// Set our viewport
+	D3D10_VIEWPORT vp;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	vp.Width = m_backbufferWidth;
+	vp.Height = m_backbufferHeight;
+	vp.MinDepth = 0;
+	vp.MaxDepth = 1;
+	m_D3DDevice->RSSetViewports(1, &vp);
 
 }
 // ****************************************************************************
@@ -457,12 +560,14 @@ void RenderThreadFunc(void *data)
 		// Clear the render targets
 		//
 		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-		device->ClearRenderTargetView( m_albedoRTView, ClearColor );
+		float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
+		device->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
+		device->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
 		device->ClearDepthStencilView( m_depthStencilDSView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 		//device->ClearRenderTargetView( m_backBufferView, ClearColor );
 
 		// Set our render targets
-		device->OMSetRenderTargets(1, &m_albedoRTView, m_depthStencilDSView);
+		device->OMSetRenderTargets(2, m_RTView, m_depthStencilDSView);
 		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
 		// Setup camera parameters
@@ -526,7 +631,7 @@ void RenderThreadFunc(void *data)
 		Shader *shader = ShaderManager::GetInstance().GetShader(m_albedoMaterial->GetShaderName());
 		ID3D10Effect *effect = shader->GetEffect();
 		ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
-		HRESULT hr = shaderResource->SetResource(m_albedoSRView);
+		HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
 		_ASSERT(SUCCEEDED(hr));
 
 		// Set our IB/VB

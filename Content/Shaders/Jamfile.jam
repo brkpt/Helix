@@ -7,6 +7,7 @@ IncludeModule CopyFile ;
 		diffuse.lua
 		pos3.lua
 		pos3_tex1.lua
+		pos3_norm3_tex1.lua
 		pos4_tex1.lua
 		shared.lua
 		texture.lua
