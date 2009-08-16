@@ -574,6 +574,15 @@ void RenderThreadFunc(void *data)
 		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",m_viewMatrix[renderSubmissionIndex]);
 		Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[renderSubmissionIndex]);
 
+		// Get the view matrix
+		D3DXMATRIX worldViewIT = m_viewMatrix[renderSubmissionIndex];
+		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
+		worldViewIT._44 = 1;
+		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
+		float det = 0;
+		D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
+		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
+
 		// Go through all of our render objects
 		RenderData *obj = m_submissionBuffers[renderSubmissionIndex];
 		while(obj)
@@ -631,7 +640,7 @@ void RenderThreadFunc(void *data)
 		Shader *shader = ShaderManager::GetInstance().GetShader(m_albedoMaterial->GetShaderName());
 		ID3D10Effect *effect = shader->GetEffect();
 		ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
-		HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+		HRESULT hr = shaderResource->SetResource(m_SRView[NORMAL]);
 		_ASSERT(SUCCEEDED(hr));
 
 		// Set our IB/VB

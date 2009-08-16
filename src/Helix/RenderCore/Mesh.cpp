@@ -87,7 +87,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	_ASSERT( SUCCEEDED(hr) );
 
 	ID3D10EffectTechnique *technique = shaderEffect->GetTechniqueByIndex(0);
-	technique = shaderEffect->GetTechniqueByName("ForwardRender");
+	technique = shaderEffect->GetTechniqueByName("DeferredRender");
 	_ASSERT( technique!=NULL );
 
 	D3D10_TECHNIQUE_DESC techDesc;

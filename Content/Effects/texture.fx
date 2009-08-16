@@ -37,7 +37,7 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 	TexturePS_in Out;
 
 	float3 P = mul( float4(In.pos,1), WorldView );
-	float3 N = mul( float4(In.normal,1), WorldView );
+	float3 N = mul( float4(In.normal,1), WorldViewIT );
 	Out.pos = mul( float4(P,1), Projection );
 	Out.normal = N;
 	Out.texuv = In.texuv;
@@ -52,10 +52,11 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 	return outValue;
 }
 
-technique10 ForwardRender 
+technique10 DeferredRender 
 <
-	string vertexDesc="pos3_tex1";
-	string position="float3"; 
+	string vertexDesc="pos3_norm3_tex1";
+	string position="float3";
+	string normal="float3"; 
 	string texcoord0="float2";
 >
 {
