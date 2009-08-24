@@ -41,14 +41,14 @@ void Camera::Update(void)
 	{
 		if(mouseState.mouseDeltaY != 0)
 		{
-			D3DXVECTOR3 t = D3DXVECTOR3(0.0f, -1.0f, 0.0f);
+			D3DXVECTOR3 t(0.0f, -1.0f, 0.0f);
 			t.y = mouseState.mouseDeltaY * PIXELS_TO_DISTANCE;
 			Dolly(t);
 		}
 		if(mouseState.mouseDeltaX != 0)
 		{
-			D3DXVECTOR3 t = D3DXVECTOR3(1.0f, 0.0f, 0.0f);
-			t.x = mouseState.mouseDeltaX * PIXELS_TO_DISTANCE;
+			D3DXVECTOR3 t(m_worldMatrix.m[0][0], m_worldMatrix.m[0][1], m_worldMatrix.m[0][2]);
+			t = t * mouseState.mouseDeltaX * PIXELS_TO_DISTANCE;
 			Dolly(t);
 		}
 	}
@@ -85,6 +85,10 @@ void Camera::Update(void)
 		Dolly(D3DXVECTOR3(0.0f, -0.03f, 0.0f));
 	}
 
+	if(game->KeyDown('r') || game->KeyDown('R'))
+	{
+		Reset();
+	}
 	BuildMatrices();
 }
 
@@ -163,4 +167,19 @@ void Camera::BuildMatrices(void)
 void Camera::BuildProjectionMatrix(float fovY, float fAspect, float fNear, float fFar)
 {
 	D3DXMatrixPerspectiveFovLH(&m_projMatrix,fovY,fAspect,fNear,fFar);
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void Camera::SetDir(const D3DXVECTOR3 &forw)
+{
+	m_worldMatrix.m[2][0] = forw.x;
+	m_worldMatrix.m[2][1] = forw.y;
+	m_worldMatrix.m[2][2] = forw.z;
+	m_worldMatrix.m[2][3] = 0;
+
+	m_worldMatrix.m[1][0] = m_up.x;
+	m_worldMatrix.m[1][1] = m_up.y;
+	m_worldMatrix.m[1][2] = m_up.z;
+	m_worldMatrix.m[1][3] = 0;
 }

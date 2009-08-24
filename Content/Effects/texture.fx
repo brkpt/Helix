@@ -36,11 +36,10 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 {
 	TexturePS_in Out;
 
-	float3 P = mul( float4(In.pos,1), WorldView );
-	float3 N = mul( float4(In.normal,1), WorldViewIT );
-	Out.pos = mul( float4(P,1), Projection );
-	Out.normal = N;
+	Out.normal = mul( float4(In.normal,1), WorldViewIT );
 	Out.texuv = In.texuv;
+	float3 P = mul( float4(In.pos,1), WorldView );
+	Out.pos = mul( float4(P,1), Projection );
 	return Out;
 }
 
@@ -48,7 +47,7 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 {
 	TexturePS_out outValue;
 	outValue.color = textureImage.Sample(texSampler, In.texuv);
-	outValue.normal.xyz = In.normal.xyz;
+	outValue.normal.xyz = float4(In.normal.xyz,1);
 	return outValue;
 }
 

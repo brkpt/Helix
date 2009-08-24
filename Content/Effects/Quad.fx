@@ -1,7 +1,10 @@
 // Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 
-Texture2D	textureImage;
+#include "shared.fx"
+
+Texture2D	albedoTexture;
+Texture2D	normalTexture;
 
 struct QuadVS_in
 {
@@ -33,7 +36,29 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 
 float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 {
-	return textureImage.Sample(texSampler,inVert.texuv);
+	float4 ambient = { 0.1, 0.1, 0.1, 1 };
+	float4 color = albedoTexture.Sample(texSampler,inVert.texuv);
+	
+	float3 normal = normalTexture.Sample(texSampler,inVert.texuv);
+	float normLen = length(normal);
+	
+	float3 sunVec = mul( float4(sunlight,1), View3x3);
+	float4 outColor = color*ambient;
+	
+	if(normLen > 0)
+	{
+		float dotProd = dot(normal,sunVec);
+		
+		if(dotProd < 0)
+		{
+			dotProd = 0;
+		}
+
+		outColor = outColor + color*dotProd;
+		//outColor = float4(sunVec,1);
+	}
+	
+	return outColor;	
 }
 
 technique10 FullScreenQuad

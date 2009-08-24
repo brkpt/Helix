@@ -4,7 +4,7 @@
 #include <d3dx9.h>
 
 #define	PIXELS_TO_RADIANS	(D3DX_PI/384.0f)
-#define	PIXELS_TO_DISTANCE	(1.0f/10.0f)			// 1m per 5 pixels
+#define	PIXELS_TO_DISTANCE	(1.0f/50.0f)			// 1m per 50 pixels
 
 class Camera
 {
@@ -18,13 +18,21 @@ public:
 		m_worldMatrix.m[3][1] = pos.y;
 		m_worldMatrix.m[3][2] = pos.z;
 	}
+
 	void	SetUp(const D3DXVECTOR3 &up)
 	{
 		m_up = up;
 	}
+
+	void	SetDir(const D3DXVECTOR3 &forw);
 	void	SetFocalPoint(const D3DXVECTOR3 &focal)
 	{
 		m_focalPoint = focal;
+	}
+
+	void	Reset()
+	{
+		D3DXMatrixIdentity(&m_worldMatrix);
 	}
 
 	void	BuildProjectionMatrix(float fovY, float aspect, float near, float far);

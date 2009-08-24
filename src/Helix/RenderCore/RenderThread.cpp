@@ -246,7 +246,7 @@ void CreateNormalTarget()
 	desc.Height = m_backbufferHeight;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM ;
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D10_USAGE_DEFAULT;
 	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
@@ -553,8 +553,8 @@ void RenderThreadFunc(void *data)
 		_ASSERT(device);
 
 		// Reset our view
-		ID3D10ShaderResourceView*const pSRV[1] = { NULL };
-		device->PSSetShaderResources( 0, 1, pSRV );
+		ID3D10ShaderResourceView*const pSRV[2] = { NULL,NULL };
+		device->PSSetShaderResources( 0, 2, pSRV );
 
 		//
 		// Clear the render targets
@@ -571,17 +571,44 @@ void RenderThreadFunc(void *data)
 		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
 		// Setup camera parameters
-		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",m_viewMatrix[renderSubmissionIndex]);
 		Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[renderSubmissionIndex]);
 
 		// Get the view matrix
-		D3DXMATRIX worldViewIT = m_viewMatrix[renderSubmissionIndex];
+		D3DXMATRIX viewMat = m_viewMatrix[renderSubmissionIndex];
+		Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
+
+		// TODO: Get the world matrix from the object.  
+		// Use I for now
+		D3DXMATRIX worldMat;
+		D3DXMatrixIdentity(&worldMat);
+
+		//static float rot = 0.0f;
+		//rot += (1.0f/60.0f);
+		//D3DXMatrixRotationY(&worldMat,rot);
+
+		// Calculate the WorldView matrix
+		D3DXMATRIX worldView;
+		D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+
+		// Generate the inverse transpose of the WorldView matrix
+		// We don't use any non uniform scaling, so we can just send down the 
+		// upper 3x3 of the world view matrix
+		D3DXMATRIX worldViewIT;
+		worldViewIT = worldView;
 		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
 		worldViewIT._44 = 1;
 		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
 		float det = 0;
 		D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
 		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
+
+		// The upper 3x3 of the view matrx
+		// Used to transform directional lights
+		D3DXMATRIX view3x3 = viewMat;
+		view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
+		view3x3._44 = 1;
+		Helix::ShaderManager::GetInstance().SetSharedParameter("View3x3",view3x3);
 
 		// Go through all of our render objects
 		RenderData *obj = m_submissionBuffers[renderSubmissionIndex];
@@ -636,13 +663,30 @@ void RenderThreadFunc(void *data)
 		// Switch to final backbuffer/depth/stencil
 		device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
 
-		// Set our albedo texture as the texture to use
+		// Set our textures as inputs
 		Shader *shader = ShaderManager::GetInstance().GetShader(m_albedoMaterial->GetShaderName());
 		ID3D10Effect *effect = shader->GetEffect();
-		ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
-		HRESULT hr = shaderResource->SetResource(m_SRView[NORMAL]);
-		_ASSERT(SUCCEEDED(hr));
 
+		// Albedo texture
+		ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+		_ASSERT(shaderResource != NULL);
+		HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+		_ASSERT( SUCCEEDED(hr) );
+
+		// Normal texture
+		shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+		_ASSERT(shaderResource != NULL);
+		hr = shaderResource->SetResource(m_SRView[NORMAL]);
+		_ASSERT( SUCCEEDED(hr) );
+
+		// Setup sunlight vector
+		ID3D10EffectVectorVariable *sunVecVar = effect->GetVariableByName("sunlight")->AsVector();
+		_ASSERT( sunVecVar != NULL );
+
+		D3DXVECTOR3 sunVec(1.0f, 0.0f, 0.0f);
+		D3DXVec3Normalize(&sunVec, &sunVec);
+
+		sunVecVar->SetFloatVector(sunVec);
 		// Set our IB/VB
 		unsigned int stride = shader->GetDecl().VertexSize();
 		unsigned int offset = 0;
