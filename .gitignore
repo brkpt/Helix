@@ -6,6 +6,8 @@ Temp/
 *.suo
 *.user
 *.wwdb
+*.fxo
+
 [Dd]ebug/
 [Rr]elease/
 
