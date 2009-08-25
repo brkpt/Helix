@@ -20,11 +20,13 @@ HANDLE						m_rendererReady =			NULL;
 HANDLE						m_hSubmitMutex =			NULL;
 ID3D10Device *				m_D3DDevice =				NULL;
 IDXGISwapChain *			m_swapChain =				NULL;
+
 ID3D10RenderTargetView *	m_backBufferView = NULL;
 ID3D10Texture2D *			m_backDepthStencil = NULL;
 ID3D10DepthStencilView *	m_backDepthStencilView = NULL;
 
 enum { ALBEDO = 0, NORMAL, MAX_TARGETS };
+
 ID3D10Texture2D *			m_Texture[MAX_TARGETS];
 ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
@@ -36,6 +38,11 @@ ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
 ID3D10Buffer *				m_quadVB = NULL;
 ID3D10Buffer *				m_quadIB = NULL;
 ID3D10RasterizerState *		m_RState = NULL;
+
+D3DXVECTOR3					m_sunlightDir(0.0f, 1.0f, 0.0f);		// Points to sun
+DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
+DXGI_RGB					m_ambientColor = {1.0f, 1.0f, 1.0f};	// Ambient color
+
 struct RenderData
 {
 	D3DXMATRIX		worldMatrix;
@@ -85,6 +92,37 @@ inline bool ReleaseMutex()
 	_ASSERT(result);
 
 	return result != 0;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void SetSunlightDir(const D3DXVECTOR3 &dir)
+{
+	// Normalize our vector
+	D3DXVec3Normalize(&m_sunlightDir,&dir);
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void SetSunlightColor(const DXGI_RGB &color)
+{	
+	m_sunlightColor = color;
+
+	// Clamp values (0..1)
+	m_sunlightColor.Red = m_sunlightColor.Red < 0.0f ? 0.0f : m_sunlightColor.Red;
+	m_sunlightColor.Green = m_sunlightColor.Green < 0.0f ? 0.0f : m_sunlightColor.Green;
+	m_sunlightColor.Blue = m_sunlightColor.Blue < 0.0f ? 0.0f : m_sunlightColor.Blue;
+
+	m_sunlightColor.Red = m_sunlightColor.Red > 1.0f ? 1.0f : m_sunlightColor.Red;
+	m_sunlightColor.Green = m_sunlightColor.Green > 1.0f ? 1.0f : m_sunlightColor.Green;
+	m_sunlightColor.Blue = m_sunlightColor.Blue > 1.0f ? 1.0f : m_sunlightColor.Blue;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void SetAmbientColor(const DXGI_RGB &color)
+{
+	m_ambientColor = color;
 }
 
 // ****************************************************************************
@@ -582,9 +620,9 @@ void RenderThreadFunc(void *data)
 		D3DXMATRIX worldMat;
 		D3DXMatrixIdentity(&worldMat);
 
-		//static float rot = 0.0f;
-		//rot += (1.0f/60.0f);
-		//D3DXMatrixRotationY(&worldMat,rot);
+		static float rot = 0.0f;
+		rot += (1.0f/60.0f);
+		D3DXMatrixRotationY(&worldMat,rot);
 
 		// Calculate the WorldView matrix
 		D3DXMATRIX worldView;
@@ -680,13 +718,38 @@ void RenderThreadFunc(void *data)
 		_ASSERT( SUCCEEDED(hr) );
 
 		// Setup sunlight vector
-		ID3D10EffectVectorVariable *sunVecVar = effect->GetVariableByName("sunlight")->AsVector();
-		_ASSERT( sunVecVar != NULL );
+		D3DXVECTOR3 vecData = m_sunlightDir;
 
-		D3DXVECTOR3 sunVec(1.0f, 0.0f, 0.0f);
-		D3DXVec3Normalize(&sunVec, &sunVec);
+		// Make sure vector is normalized
+		D3DXVec3Normalize(&vecData, &vecData);
 
-		sunVecVar->SetFloatVector(sunVec);
+		// Store
+		ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("sunDir")->AsVector();
+		_ASSERT( vecVar != NULL );
+		vecVar->SetFloatVector(vecData);
+
+		// Setup sunlight color
+		vecData.x = m_sunlightColor.Red;
+		vecData.y = m_sunlightColor.Green;
+		vecData.z = m_sunlightColor.Blue;
+
+		// Store
+		vecVar = effect->GetVariableByName("sunColor")->AsVector();
+		_ASSERT( vecVar != NULL);
+		vecVar->SetFloatVector(vecData);
+
+		// Setup ambient color
+		vecData.x = m_ambientColor.Red;
+		vecData.y = m_ambientColor.Green;
+		vecData.z = m_ambientColor.Blue;
+
+		// Make sure it is normalized
+		D3DXVec3Normalize(&vecData, &vecData);
+
+		vecVar = effect->GetVariableByName("ambientColor")->AsVector();
+		_ASSERT( vecVar != NULL );
+		vecVar->SetFloatVector(vecData);
+		
 		// Set our IB/VB
 		unsigned int stride = shader->GetDecl().VertexSize();
 		unsigned int offset = 0;

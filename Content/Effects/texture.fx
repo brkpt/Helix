@@ -47,7 +47,7 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 {
 	TexturePS_out outValue;
 	outValue.color = textureImage.Sample(texSampler, In.texuv);
-	outValue.normal.xyz = float4(In.normal.xyz,1);
+	outValue.normal = float4(In.normal.xyz,1);
 	return outValue;
 }
 

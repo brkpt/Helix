@@ -36,29 +36,33 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 
 float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 {
-	float4 ambient = { 0.1, 0.1, 0.1, 1 };
-	float4 color = albedoTexture.Sample(texSampler,inVert.texuv);
+	// Get our albedo color
+	float3 color = albedoTexture.Sample(texSampler,inVert.texuv);
 	
+	// Start with ambient
+	float3 outColor = color*ambientColor;
+	
+	// Get our pixel normal
 	float3 normal = normalTexture.Sample(texSampler,inVert.texuv);
 	float normLen = length(normal);
-	
-	float3 sunVec = mul( float4(sunlight,1), View3x3);
-	float4 outColor = color*ambient;
-	
+
+	// If we have a normal (ie: something was rendered at this pixel)
 	if(normLen > 0)
 	{
+		// Compare with sun vector
+		float3 sunVec = mul( float4(sunDir,1), View3x3);
 		float dotProd = dot(normal,sunVec);
-		
-		if(dotProd < 0)
-		{
-			dotProd = 0;
-		}
 
-		outColor = outColor + color*dotProd;
-		//outColor = float4(sunVec,1);
+		// Clamp (0..1)		
+		dotProd = clamp(dotProd,0, 1);
+		
+		// Add in color due to sunlight
+		float3 sunVal = color*sunColor*dotProd;
+		
+		outColor = outColor + sunVal;
 	}
 	
-	return outColor;	
+	return float4(outColor,1);	
 }
 
 technique10 FullScreenQuad

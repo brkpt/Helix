@@ -117,11 +117,21 @@ void TheGame::LoadScene(void)
 	m_camera->SetUp(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
 	m_camera->SetFocalPoint(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
 	float aspectRatio = (float)m_windowWidth/(float)m_windowHeight;
-	m_camera->BuildProjectionMatrix(D3DX_PI/4.0f,aspectRatio,1.0f,200.0f);
-
+	m_camera->BuildProjectionMatrix((float)D3DX_PI/4.0f,aspectRatio,1.0f,200.0f);
 
 	m_triangle = new Triangle;
 	m_grid = new Grid;
+
+	D3DXVECTOR3 sunDir(0.0f, 1.0f, 1.0f);
+	Helix::SetSunlightDir( sunDir );
+
+	DXGI_RGB tempColor = { 1.0f,0.25f, 0.25f};
+	Helix::SetSunlightColor( tempColor );
+
+	tempColor.Red = 0.25f;
+	tempColor.Green = 0.25f;
+	tempColor.Blue = 0.25f;
+	Helix::SetAmbientColor( tempColor );
 }
 
 // ****************************************************************************
