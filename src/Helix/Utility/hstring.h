@@ -1,22 +1,13 @@
-#ifndef __HSTRINGT_H__
-#define __HSTRINGT_H__
+#ifndef HSTRING_H
+#define HSTRING_H
 
-#pragma once
+#include <windows.h>
+#include <crtdbg.h>
 
-#ifndef _ATL_NO_PRAGMA_WARNINGS
-#pragma warning (push)
-#pragma warning(disable : 4668)	// is not defined as a preprocessor macro, replacing with '0' for '#if/#elif
-#pragma warning(disable : 4820)	// padding added after member
-#pragma warning(disable : 4127)  // conditional expression constant
-#endif //!_ATL_NO_PRAGMA_WARNINGS
+#define HELIX_NOINLINE
 
 #pragma warning(disable:4786)	// avoid 255-character limit warnings
 
-#ifdef _MANAGED
-#include <vcclr.h>  // For PtrToStringChars
-#endif
-
-#include <atlsimpstr.h>
 #include <stddef.h>
 
 #ifndef _INC_NEW
@@ -26,442 +17,331 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <limits.h>
-
-#ifndef _ATL_MIN_CRT
 #include <mbstring.h>
-#endif
 
-#ifdef _ATL_CSTRING_EXPLICIT_CONSTRUCTORS
-#define CSTRING_EXPLICIT explicit
-#else
-#define CSTRING_EXPLICIT
-#endif
+//#include <atlconv.h>
+//#include <atlmem.h>
 
-#include <atlconv.h>
-#include <atlmem.h>
+//#ifndef _AFX
+//#define _AFX_FUNCNAME(_Name) _Name
+//#endif
 
-struct tagVARIANT;
-typedef tagVARIANT VARIANT;
 
-#ifndef _AFX
-#define _AFX_FUNCNAME(_Name) _Name
-#endif
-
-#pragma push_macro("new")
-#undef new
-
-#if defined(_AFX)
-#pragma push_macro("FormatMessage")
-#undef FormatMessage
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-// Naming conventions:
-//    The term "length" can be confusing when dealing with ANSI, Unicode, and
-//    MBCS character sets, so this file will use the following naming 
-//    conventions to differentiate between the different meanings of 
-//    "length":
-//
-//    'Byte Length' - Length of a buffer in bytes, regardless of character 
-//       size
-//    'Char Length' - Number of distinct characters in string.  For wide-
-//       character strings, this is equivalent to half the 'Byte Length'.  
-//       For ANSI strings, this is equivalent to the 'Byte Length'.  For MBCS
-//       strings, 'Char Length' counts a lead-byte/trail-byte combination
-//       as one character.
-//    'Length' - When neither of the above terms is used, 'Length' refers to 
-//       length in XCHARs, which is equal to 'Byte Length'/sizeof(XCHAR).
-/////////////////////////////////////////////////////////////////////////////
-
-namespace ATL
+namespace Helix
 {
+
+struct CStringData;
+
+class StringManagerBase
+{
+public:
+	// Allocate a new CStringData
+	virtual CStringData* Allocate( int nAllocLength, int nCharSize ) throw() = 0;
+
+	// Free an existing CStringData
+	virtual void Free( CStringData* pData ) throw() = 0;
+
+	// Change the size of an existing CStringData
+	virtual CStringData* Reallocate( CStringData* pData, int nAllocLength, int nCharSize ) throw() = 0;
+
+	// Get the CStringData for a Nil string
+	virtual CStringData* GetNilString() throw() = 0;
+
+	virtual StringManagerBase* Clone() throw() = 0;
+};
 
 // This struct have the same memory layout as CString and is used to enable
 // const statically initialized CString without making a copy on the heap
-template <class StringType,int t_nChars> struct CConstFixedStringT
+template <class StringType,int t_nChars> struct ConstFixedStringT
 {
 	CStringData m_data;
 	typename StringType::XCHAR m_achData[t_nChars];
 };
 
-#define IMPLEMENT_CONST_STRING_PTR(StringType, value, name) const CConstFixedStringT<StringType, sizeof(value)/sizeof(StringType::XCHAR)> _init##name ={ 	{NULL,		sizeof(value)/sizeof(StringType::XCHAR)-1, 	sizeof(value)/sizeof(StringType::XCHAR)-1, 	-1},			value	};	const StringType::XCHAR* const _value##name = _init##name.m_achData;	extern const StringType* const name = CONST_STRING_PTR(StringType, name);
+#define IMPLEMENT_CONST_STRING_PTR(StringType, value, name) const ConstFixedStringT<StringType, sizeof(value)/sizeof(StringType::XCHAR)> _init##name ={ 	{NULL,		sizeof(value)/sizeof(StringType::XCHAR)-1, 	sizeof(value)/sizeof(StringType::XCHAR)-1, 	-1},			value	};	const StringType::XCHAR* const _value##name = _init##name.m_achData;	extern const StringType* const name = CONST_STRING_PTR(StringType, name);
 #define DECLARE_CONST_STRING_PTR(StringType, name) extern const StringType* const name;
 #define CONST_STRING_PTR(StringType, name) reinterpret_cast<const StringType* const>(&_value##name)
 
 /////////////////////////////////////////////////////////////////////////////
-// inline helpers
-
-inline int _wcstombsz(__out_ecount(count) char* mbstr, __in_z const wchar_t* wcstr, __in ULONG count) throw()
-{
-	// count is number of bytes
-	if (count == 0 && mbstr != NULL)
-		return 0;
-
-	int result = ::WideCharToMultiByte(_AtlGetConversionACP(), 0, wcstr, -1,
-		mbstr, count, NULL, NULL);
-	ATLASSERT(mbstr == NULL || result <= (int)count);
-	return result;
-}
-
-inline int _mbstowcsz(__out_ecount_z(count) wchar_t* wcstr, __in_z const char* mbstr, __in ULONG count)
-{
-	// count is number of wchar_t's
-	if (count == 0 && wcstr != NULL)
-		return 0;
-
-	int result = ::MultiByteToWideChar(_AtlGetConversionACP(), 0, mbstr, -1,
-		wcstr, count);
-	ATLENSURE(wcstr == NULL || result <= (int)count);
-	if ((result > 0) && (wcstr != NULL))
-	{
-		wcstr[result-1] = 0;
-	}
-
-	return result;
-}
-
-#if !defined(_UNICODE) || defined(_CSTRING_ALWAYS_THUNK)
-// Win9x doesn't support Unicode versions of these useful string functions.
-// If the app was built without _UNICODE defined, we thunk at runtime to
-// either the real Unicode implementation (on NT), or a conversion helper
-// (on Win9x).
-
-#pragma warning( push )
-#pragma warning( disable : 4793 )
-
-inline void _AtlInstallStringThunk(void** ppThunk, void* pfnWin9x, void* pfnNT) throw()
-{
-#pragma warning (push)
-#pragma warning (disable : 4640)	// construction of local static object is not thread-safe
-
-	static bool s_bWin9x = (::GetVersion()&0x80000000) != 0;
-	
-#pragma warning (pop)
-
-	void* pfn;
-	if (s_bWin9x)
-		pfn = pfnWin9x;
-	else
-	{
-#ifdef _CSTRING_ALWAYS_THUNK
-		pfn = pfnWin9x;
-		(void)pfnNT;
-#else
-		pfn = pfnNT;
-#endif
-	}
-	InterlockedExchangePointer(ppThunk, pfn);
-}
-
-#pragma warning( pop )
-
-typedef int (WINAPI* ATLCOMPARESTRINGW)(LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
-typedef BOOL (WINAPI* ATLGETSTRINGTYPEEXW)(LCID, DWORD, LPCWSTR, int, LPWORD);
-typedef int (WINAPI* ATLLSTRCMPIW)(LPCWSTR, LPCWSTR);
-typedef LPWSTR (WINAPI* ATLCHARLOWERW)(LPWSTR);
-typedef LPWSTR (WINAPI* ATLCHARUPPERW)(LPWSTR);
-typedef DWORD (WINAPI* ATLGETENVIRONMENTVARIABLEW)(LPCWSTR, LPWSTR, DWORD);
-
-struct _AtlStringThunks
-{
-	ATLCOMPARESTRINGW pfnCompareStringW;
-	ATLGETSTRINGTYPEEXW pfnGetStringTypeExW;
-	ATLLSTRCMPIW pfnlstrcmpiW;
-	ATLCHARLOWERW pfnCharLowerW;
-	ATLCHARUPPERW pfnCharUpperW;
-	ATLGETENVIRONMENTVARIABLEW pfnGetEnvironmentVariableW;
-};
-
-extern _AtlStringThunks _strthunks;
-
-inline DWORD WINAPI GetEnvironmentVariableWFake(__in_z LPCWSTR pszName, 
-	__out_ecount_part_opt(nSize, return) LPWSTR pszBuffer, __in DWORD nSize)
-{
-	ULONG nSizeA;
-	ULONG nSizeW;
-	CTempBuffer<char> pszBufferA;
-	CW2A pszNameA(pszName);
-
-	nSizeA = ::GetEnvironmentVariableA(pszNameA, NULL, 0);
-	if( nSizeA == 0 || nSizeA==ULONG_MAX)
-	{
-		return 0;
-	}
-
-	pszBufferA.Allocate(nSizeA + 1);
-	if( 0 == ::GetEnvironmentVariableA(pszNameA, pszBufferA, nSizeA))
-	{
-		return 0;
-	}
-
-	nSizeW = ::MultiByteToWideChar(_AtlGetConversionACP(), 0, pszBufferA, -1, NULL, 0);
-	if( nSize == 0 )
-	{
-		return nSizeW;
-	}
-	
-	if( nSize >= nSizeW )
-	{
-		nSizeW = ::MultiByteToWideChar(_AtlGetConversionACP(), 0, pszBufferA, -1, pszBuffer, nSizeW );
-	}
-
-	return nSizeW;
-}
-
-inline DWORD WINAPI GetEnvironmentVariableWThunk(__in_z LPCWSTR pszName, 
-	__out_ecount_part_opt(nSize, return) LPWSTR pszBuffer, __in DWORD nSize)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnGetEnvironmentVariableW), 
-		GetEnvironmentVariableWFake, ::GetEnvironmentVariableW);
-
-	return _strthunks.pfnGetEnvironmentVariableW(pszName, pszBuffer, nSize);
-}
-
-inline int WINAPI CompareStringWFake(__in LCID lcid, __in DWORD dwFlags, 
-	__in_ecount(nLength1) LPCWSTR pszString1, __in int nLength1, __in_ecount(nLength2) LPCWSTR pszString2, __in int nLength2)
-{
-	USES_CONVERSION_EX;
-	
-	LPCSTR pszAString1 = NULL;
-	if(pszString1 != NULL)
-	{
-		pszAString1 = W2A_EX(pszString1,_ATL_SAFE_ALLOCA_DEF_THRESHOLD);
-		if(pszAString1 == NULL)
-			AtlThrow(E_OUTOFMEMORY);
-	}
-
-	LPCSTR pszAString2 = NULL;
-	if(pszString2 != NULL)
-	{
-		pszAString2 = W2A_EX(pszString2,_ATL_SAFE_ALLOCA_DEF_THRESHOLD);
-		if(pszAString2 == NULL)
-			AtlThrow(E_OUTOFMEMORY);
-	}
-
-	return ::CompareStringA(lcid, dwFlags, pszAString1, nLength1, pszAString2, nLength2);
-}
-
-inline int WINAPI CompareStringWThunk(__in LCID lcid, __in DWORD dwFlags, 
-	__in_ecount(nLength1) LPCWSTR pszString1, __in int nLength1, __in_ecount(nLength2) LPCWSTR pszString2, __in int nLength2)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnCompareStringW), CompareStringWFake, ::CompareStringW);
-
-	return _strthunks.pfnCompareStringW(lcid, dwFlags, pszString1, nLength1, pszString2, nLength2);
-}
-
-inline BOOL WINAPI GetStringTypeExWFake(__in LCID lcid, __in DWORD dwInfoType, __in_ecount(nLength) LPCWSTR pszSrc,
-	__in int nLength, __out LPWORD pwCharType)
-{
-	int nLengthA;
-	CTempBuffer<char> pszA;
-
-	nLengthA = ::WideCharToMultiByte(_AtlGetConversionACP(), 0, pszSrc, nLength, NULL, 0, NULL, NULL);
-	pszA.Allocate(nLengthA);
-	::WideCharToMultiByte(_AtlGetConversionACP(), 0, pszSrc, nLength, pszA, nLengthA, NULL, NULL);
-
-	if (nLength == -1)
-		nLengthA = -1;
-
-	return ::GetStringTypeExA(lcid, dwInfoType, pszA, nLengthA, pwCharType);
-}
-
-inline BOOL WINAPI GetStringTypeExWThunk(__in LCID lcid, __in DWORD dwInfoType, __in_ecount(nLength) LPCWSTR pszSrc,
-	__in int nLength, __out LPWORD pwCharType)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnGetStringTypeExW), GetStringTypeExWFake, ::GetStringTypeExW);
-
-	return _strthunks.pfnGetStringTypeExW(lcid, dwInfoType, pszSrc, nLength, pwCharType);
-}
-
-inline int WINAPI lstrcmpiWFake(__in_z LPCWSTR psz1, __in_z LPCWSTR psz2)
-{
-	USES_CONVERSION_EX;
-
-	return ::lstrcmpiA(W2A_EX_DEF(psz1), W2A_EX_DEF(psz2));
-}
-
-inline int WINAPI lstrcmpiWThunk(__in_z LPCWSTR psz1, __in_z LPCWSTR psz2)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnlstrcmpiW), lstrcmpiWFake, ::lstrcmpiW);
-
-	return _strthunks.pfnlstrcmpiW(psz1, psz2);
-}
-
-inline LPWSTR WINAPI CharLowerWFake(__inout_z LPWSTR psz)
-{
-	ATLENSURE(psz);
-	USES_CONVERSION_EX;
-	LPSTR pszA;
-
-	pszA = W2A_EX_DEF(psz);
-	::CharLowerA(pszA);
-
-	Checked::wcscpy_s(psz, wcslen(psz) + 1, A2W_EX_DEF(pszA));
-	return psz;
-}
-
-inline LPWSTR WINAPI CharLowerWThunk(__inout LPWSTR psz)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnCharLowerW), CharLowerWFake, ::CharLowerW);
-
-	return _strthunks.pfnCharLowerW(psz);
-}
-
-inline LPWSTR WINAPI CharUpperWFake(__inout_z LPWSTR psz)
-{
-	ATLENSURE(psz);
-	USES_CONVERSION_EX;
-	LPSTR pszA;
-
-	pszA = W2A_EX_DEF(psz);
-	::CharUpperA(pszA);
-
-	Checked::wcscpy_s(psz, wcslen(psz) + 1, A2W_EX_DEF(pszA));
-	return psz;
-}
-
-inline LPWSTR WINAPI CharUpperWThunk(__inout LPWSTR psz)
-{
-	_AtlInstallStringThunk(reinterpret_cast<void**>(&_strthunks.pfnCharUpperW), CharUpperWFake, ::CharUpperW);
-
-	return _strthunks.pfnCharUpperW(psz);
-}
-
-__declspec(selectany) _AtlStringThunks _strthunks =
-{
-	CompareStringWThunk,
-	GetStringTypeExWThunk,
-	lstrcmpiWThunk,
-	CharLowerWThunk,
-	CharUpperWThunk,
-	GetEnvironmentVariableWThunk
-};
-
-#endif  // !_UNICODE
-
-/////////////////////////////////////////////////////////////////////////////
 //
 
-#ifndef _ATL_MIN_CRT
+struct CStringData
+{
+	StringManagerBase* pStringMgr;  // String manager for this CStringData
+	int nDataLength;  // Length of currently used data in XCHARs (not including terminating null)
+	int nAllocLength;  // Length of allocated data in XCHARs (not including terminating null)
+	long nRefs;     // Reference count: negative == locked
+	// XCHAR data[nAllocLength+1]  // A CStringData is always followed in memory by the actual array of character data
+
+	void* data() throw()
+	{
+		return (this+1);
+	}
+
+	void AddRef() throw()
+	{
+		_ASSERT(nRefs > 0);
+		InterlockedIncrement(&nRefs);
+	}
+	bool IsLocked() const throw()
+	{
+		return nRefs < 0;
+	}
+	bool IsShared() const throw()
+	{
+		return( nRefs > 1 ); 
+	}
+	void Lock() throw()
+	{
+		_ASSERT( nRefs <= 1 );
+		nRefs--;  // Locked buffers can't be shared, so no interlocked operation necessary
+		if( nRefs == 0 )
+		{
+			nRefs = -1;
+		}
+	}
+	void Release() throw()
+	{
+		_ASSERT( nRefs != 0 );
+
+		if( InterlockedDecrement( &nRefs ) <= 0 )
+		{
+			pStringMgr->Free( this );
+		}
+	}
+	void Unlock() throw()
+	{
+		_ASSERT( IsLocked() );
+
+		if(IsLocked())
+		{
+			nRefs++;  // Locked buffers can't be shared, so no interlocked operation necessary
+			if( nRefs == 0 )
+			{
+				nRefs = 1;
+			}
+		}
+	}
+};
+
+class CNilStringData :
+	public CStringData
+{
+public:
+	CNilStringData() throw()
+	{
+		pStringMgr = NULL;
+		nRefs = 2;  // Never gets freed by StringManagerBase
+		nDataLength = 0;
+		nAllocLength = 0;
+		achNil[0] = 0;
+		achNil[1] = 0;
+	}
+
+	void SetManager( __in StringManagerBase* pMgr ) throw()
+	{
+		_ASSERT( pStringMgr == NULL );
+		pStringMgr = pMgr;
+	}
+
+public:
+	wchar_t achNil[2];
+};
+
+template< typename BaseType, const int t_nSize >
+class StaticString
+{
+public:
+	StaticString( __in const BaseType* psz ) :
+		m_psz( psz )
+	{
+	}
+
+	operator const BaseType*() const
+	{
+		return m_psz;
+	}
+
+	static int __cdecl GetLength() 
+	{
+		return (t_nSize/sizeof( BaseType ))-1;
+	}
+
+private:
+	const BaseType* m_psz;
+
+private:
+	StaticString( const StaticString& str ) throw();
+	StaticString& operator=( const StaticString& str ) throw();
+};
+
+#define _ST( psz ) ATL::StaticString< TCHAR, sizeof( _T( psz ) ) >( _T( psz ) )
+#define _SA( psz ) ATL::StaticString< char, sizeof( psz ) >( psz )
+#define _SW( psz ) ATL::StaticString< wchar_t, sizeof( L##psz ) >( L##psz )
+#define _SO( psz ) _SW( psz )
+
+
+template< typename BaseType = char >
+class ChTraitsBase
+{
+public:
+	typedef char XCHAR;
+	typedef LPSTR PXSTR;
+	typedef LPCSTR PCXSTR;
+	typedef wchar_t YCHAR;
+	typedef LPWSTR PYSTR;
+	typedef LPCWSTR PCYSTR;
+};
+
+template<>
+class ChTraitsBase< wchar_t >
+{
+public:
+	typedef wchar_t XCHAR;
+	typedef LPWSTR PXSTR;
+	typedef LPCWSTR PCXSTR;
+	typedef char YCHAR;
+	typedef LPSTR PYSTR;
+	typedef LPCSTR PCYSTR;
+};
+
 template< typename _CharType = char >
 class ChTraitsCRT :
 	public ChTraitsBase< _CharType >
 {
 public:
-	static char* __cdecl CharNext( __in_z const char* p ) throw()
+	static char* __cdecl CharNext( const char* p ) throw()
 	{
-		return reinterpret_cast< char* >( _mbsinc( reinterpret_cast< const unsigned char* >( p ) ) );
+		//return reinterpret_cast< char* >( _mbsinc( reinterpret_cast< const unsigned char* >( p ) ) );
+		return (char *)++p;
 	}
 
-	static int __cdecl IsDigit( __in char ch ) throw()
+	static int __cdecl IsDigit(char ch ) throw()
 	{
-		return _ismbcdigit( ch );
+		//return _ismbcdigit( ch );
+		return isdigit(ch);
 	}
 
-	static int __cdecl IsSpace( __in char ch ) throw()
+	static int __cdecl IsSpace(char ch ) throw()
 	{
-		return _ismbcspace( ch );
+		//return _ismbcspace( ch );
+		return isspace(ch);
 	}
 
-	static int __cdecl StringCompare( __in_z LPCSTR pszA, __in_z LPCSTR pszB ) throw()
+	static int __cdecl StringCompare( LPCSTR pszA, LPCSTR pszB ) throw()
 	{
-		return _mbscmp( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		//return _mbscmp( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		return strcmp(pszA, pszB);
 	}
 
-	static int __cdecl StringCompareIgnore( __in_z LPCSTR pszA, __in_z LPCSTR pszB ) throw()
+	static int __cdecl StringCompareIgnore( LPCSTR pszA, LPCSTR pszB ) throw()
 	{
-		return _mbsicmp( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		//return _mbsicmp( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		return stricmp(pszA, pszB);
 	}
 
-	static int __cdecl StringCollate( __in_z LPCSTR pszA, __in_z LPCSTR pszB ) throw()
+	static int __cdecl StringCollate( LPCSTR pszA, LPCSTR pszB ) throw()
 	{
-		return _mbscoll( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		//return _mbscoll( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		return strcoll(pszA, pszB);
 	}
 
-	static int __cdecl StringCollateIgnore( __in_z LPCSTR pszA, __in_z LPCSTR pszB ) throw()
+	static int __cdecl StringCollateIgnore( LPCSTR pszA, LPCSTR pszB ) throw()
 	{
-		return _mbsicoll( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		//return _mbsicoll( reinterpret_cast< const unsigned char* >( pszA ), reinterpret_cast< const unsigned char* >( pszB ) );
+		return _stricoll(pszA,pszB);
 	}
 
-	static LPCSTR __cdecl StringFindString( __in_z LPCSTR pszBlock, __in_z LPCSTR pszMatch ) throw()
+	static LPCSTR __cdecl StringFindString( LPCSTR pszBlock, LPCSTR pszMatch ) throw()
 	{
-		return reinterpret_cast< LPCSTR >( _mbsstr( reinterpret_cast< const unsigned char* >( pszBlock ),
-			reinterpret_cast< const unsigned char* >( pszMatch ) ) );
+		//return reinterpret_cast< LPCSTR >( _mbsstr( reinterpret_cast< const unsigned char* >( pszBlock ),
+		//	reinterpret_cast< const unsigned char* >( pszMatch ) ) );
+		return strstr(pszBlock, pszMatch);
 	}
 
-	static LPSTR __cdecl StringFindString( __in_z LPSTR pszBlock, __in_z LPCSTR pszMatch ) throw()
+	static LPSTR __cdecl StringFindString( LPSTR pszBlock, LPCSTR pszMatch ) throw()
 	{
-		return( const_cast< LPSTR >( StringFindString( const_cast< LPCSTR >( pszBlock ), pszMatch ) ) );
+		//return( const_cast< LPSTR >( StringFindString( const_cast< LPCSTR >( pszBlock ), pszMatch ) ) );
+		return strstr(pszBlock, pszMatch);
 	}
 
-	static LPCSTR __cdecl StringFindChar( __in_z LPCSTR pszBlock, __in char chMatch ) throw()
+	static LPCSTR __cdecl StringFindChar( LPCSTR pszBlock,char chMatch ) throw()
 	{
-		return reinterpret_cast< LPCSTR >( _mbschr( reinterpret_cast< const unsigned char* >( pszBlock ), (unsigned char)chMatch ) );
+		//return reinterpret_cast< LPCSTR >( _mbschr( reinterpret_cast< const unsigned char* >( pszBlock ), (unsigned char)chMatch ) );
+		return strchr(pszBlock, chMatch);
 	}
 
-	static LPCSTR __cdecl StringFindCharRev( __in_z LPCSTR psz, __in char ch ) throw()
+	static LPCSTR __cdecl StringFindCharRev( LPCSTR psz,char ch ) throw()
 	{
-		return reinterpret_cast< LPCSTR >( _mbsrchr( reinterpret_cast< const unsigned char* >( psz ), (unsigned char)ch ) );
+		//return reinterpret_cast< LPCSTR >( _mbsrchr( reinterpret_cast< const unsigned char* >( psz ), (unsigned char)ch ) );
+		return strrchr(psz, ch);
 	}
 
-	static LPCSTR __cdecl StringScanSet( __in_z LPCSTR pszBlock, __in_z LPCSTR pszMatch ) throw()
+	static LPCSTR __cdecl StringScanSet( LPCSTR pszBlock, LPCSTR pszMatch ) throw()
 	{
-		return reinterpret_cast< LPCSTR >( _mbspbrk( reinterpret_cast< const unsigned char* >( pszBlock ),
-			reinterpret_cast< const unsigned char* >( pszMatch ) ) );
+		//return reinterpret_cast< LPCSTR >( _mbspbrk( reinterpret_cast< const unsigned char* >( pszBlock ),
+		//	reinterpret_cast< const unsigned char* >( pszMatch ) ) );
+		return strpbrk(pszBlock, pszMatch);
 	}
 
-	static int __cdecl StringSpanIncluding( __in_z LPCSTR pszBlock, __in_z LPCSTR pszSet ) throw()
+	static int __cdecl StringSpanIncluding( LPCSTR pszBlock, LPCSTR pszSet ) throw()
 	{
-		return (int)_mbsspn( reinterpret_cast< const unsigned char* >( pszBlock ), reinterpret_cast< const unsigned char* >( pszSet ) );
+		//return (int)_mbsspn( reinterpret_cast< const unsigned char* >( pszBlock ), reinterpret_cast< const unsigned char* >( pszSet ) );
+		return strspn(pszBlock, pszSet);
 	}
 
-	static int __cdecl StringSpanExcluding( __in_z LPCSTR pszBlock, __in_z LPCSTR pszSet ) throw()
+	static int __cdecl StringSpanExcluding( LPCSTR pszBlock, LPCSTR pszSet ) throw()
 	{
-		return (int)_mbscspn( reinterpret_cast< const unsigned char* >( pszBlock ), reinterpret_cast< const unsigned char* >( pszSet ) );
+		//return (int)_mbscspn( reinterpret_cast< const unsigned char* >( pszBlock ), reinterpret_cast< const unsigned char* >( pszSet ) );
+		return strcspn(pszBlock, pszSet);
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::StringUppercase")
-	static LPSTR __cdecl StringUppercase( __inout LPSTR psz ) throw()
+	static LPSTR __cdecl StringUppercase( LPSTR psz ) throw()
 	{
 #pragma warning (push)
 #pragma warning(disable : 4996)
-		return reinterpret_cast< LPSTR >( _mbsupr( reinterpret_cast< unsigned char* >( psz ) ) );
+		//return reinterpret_cast< LPSTR >( _mbsupr( reinterpret_cast< unsigned char* >( psz ) ) );
+		return _strupr(psz);
 #pragma warning (pop)
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::StringLowercase")
-	static LPSTR __cdecl StringLowercase( __inout LPSTR psz ) throw()
+	static LPSTR __cdecl StringLowercase( LPSTR psz ) throw()
 	{
 #pragma warning (push)
 #pragma warning(disable : 4996)
-		return reinterpret_cast< LPSTR >( _mbslwr( reinterpret_cast< unsigned char* >( psz ) ) );
+		//return reinterpret_cast< LPSTR >( _mbslwr( reinterpret_cast< unsigned char* >( psz ) ) );
+		return _strlwr(psz);
 #pragma warning (pop)
 	}
 
-	static LPSTR __cdecl StringUppercase( __inout_ecount(size) LPSTR psz, __in size_t size ) throw()
+	static LPSTR __cdecl StringUppercase( LPSTR psz,size_t size ) throw()
 	{
-		Checked::mbsupr_s(reinterpret_cast< unsigned char* >( psz ), size);
+		//mbsupr_s(reinterpret_cast< unsigned char* >( psz ), size);
+		//return psz;
+		strupr_s(psz, size);
 		return psz;
 	}
 
-	static LPSTR __cdecl StringLowercase( __inout_ecount(size) LPSTR psz, __in size_t size ) throw()
+	static LPSTR __cdecl StringLowercase( LPSTR psz,size_t size ) throw()
 	{
-		Checked::mbslwr_s( reinterpret_cast< unsigned char* >( psz ), size );
+		//mbslwr_s( reinterpret_cast< unsigned char* >( psz ), size );
+		//return psz;
+		strlwr_w(psz, size);
 		return psz;
 	}
 
-	static LPSTR __cdecl StringReverse( __inout LPSTR psz ) throw()
+	static LPSTR __cdecl StringReverse( LPSTR psz ) throw()
 	{
-		return reinterpret_cast< LPSTR >( _mbsrev( reinterpret_cast< unsigned char* >( psz ) ) );
+		//return reinterpret_cast< LPSTR >( _mbsrev( reinterpret_cast< unsigned char* >( psz ) ) );
+		return _strrev(psz);
 	}
 
-	static int __cdecl GetFormattedLength( __in __format_string LPCSTR pszFormat, va_list args ) throw()
+	static int __cdecl GetFormattedLength(LPCSTR pszFormat, va_list args ) throw()
 	{
 		return _vscprintf( pszFormat, args );
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::Format")
-	static int __cdecl Format( __out LPSTR pszBuffer, __in __format_string LPCSTR pszFormat, va_list args ) throw()
+	static int __cdecl Format( LPSTR pszBuffer,LPCSTR pszFormat, va_list args ) throw()
 	{
 		#pragma warning (push)
 		#pragma warning(disable : 4996)
@@ -469,178 +349,145 @@ public:
 		#pragma warning (pop)
 
 	}
-	static int __cdecl Format
-		( __out_ecount_part(nlength, return) LPSTR pszBuffer, __in size_t nlength, __in __format_string LPCSTR pszFormat, va_list args ) throw()
+	static int __cdecl Format( LPSTR pszBuffer,size_t nlength,LPCSTR pszFormat, va_list args ) throw()
 	{
 		return vsprintf_s( pszBuffer, nlength, pszFormat, args );
 	}
 
-	static int __cdecl GetBaseTypeLength( __in_z LPCSTR pszSrc ) throw()
+	static int __cdecl GetBaseTypeLength( LPCSTR pszSrc ) throw()
 	{
 		// Returns required buffer length in XCHARs
 		return int( strlen( pszSrc ) );
 	}
 
-	static int __cdecl GetBaseTypeLength( __in_ecount(nLength) LPCSTR pszSrc, int nLength ) throw()
+	static int __cdecl GetBaseTypeLength( LPCSTR pszSrc, int nLength ) throw()
 	{
 		(void)pszSrc;
 		// Returns required buffer length in XCHARs
 		return nLength;
 	}
 
-	static int __cdecl GetBaseTypeLength( __in_z LPCWSTR pszSource ) throw()
-	{
-		// Returns required buffer length in XCHARs
-		return ::WideCharToMultiByte( _AtlGetConversionACP(), 0, pszSource, -1, NULL, 0, NULL, NULL )-1;
-	}
-
-	static int __cdecl GetBaseTypeLength( __in_ecount(nLength) LPCWSTR pszSource, int nLength ) throw()
-	{
-		// Returns required buffer length in XCHARs
-		return ::WideCharToMultiByte( _AtlGetConversionACP(), 0, pszSource, nLength, NULL, 0, NULL, NULL );
-	}
-
-	static void __cdecl ConvertToBaseType( __out_ecount(nDestLength) LPSTR pszDest, __in int nDestLength,
-		__in_z LPCSTR pszSrc, int nSrcLength = -1 ) throw()
+	static void __cdecl ConvertToBaseType( LPSTR pszDest,int nDestLength, LPCSTR pszSrc, int nSrcLength = -1 ) throw()
 	{
 		if (nSrcLength == -1) { nSrcLength=1 + GetBaseTypeLength(pszSrc); }
 		// nLen is in XCHARs
-		Checked::memcpy_s( pszDest, nDestLength*sizeof( char ), 
-			pszSrc, nSrcLength*sizeof( char ) );
+		memcpy_s( pszDest, nDestLength*sizeof( char ), pszSrc, nSrcLength*sizeof( char ) );
 	}
 
-	static void __cdecl ConvertToBaseType( __out_ecount(nDestLength) LPSTR pszDest, __in int nDestLength,
-		__in_z LPCWSTR pszSrc, __in int nSrcLength = -1) throw()
-	{
-		// nLen is in XCHARs
-		::WideCharToMultiByte( _AtlGetConversionACP(), 0, pszSrc, nSrcLength, pszDest, nDestLength, NULL, NULL );
-	}
+	//static void ConvertToOem(_CharType* pstrString) throw()
+	//{
+	//	BOOL fSuccess=::CharToOemA(pstrString, pstrString);
+	//	// old version can't report error
+	//	_ASSERT(fSuccess);
+	//}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::ConvertToOem")
-	static void ConvertToOem(__inout _CharType* pstrString) throw()
-	{
-		BOOL fSuccess=::CharToOemA(pstrString, pstrString);
-		// old version can't report error
-		ATLASSERT(fSuccess);
-	}
+	//static void ConvertToAnsi(_CharType* pstrString) throw()
+	//{
+	//	BOOL fSuccess=::OemToCharA(pstrString, pstrString);
+	//	// old version can't report error
+	//	_ASSERT(fSuccess);
+	//}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::ConvertToAnsi")
-	static void ConvertToAnsi(__inout _CharType* pstrString) throw()
-	{
-		BOOL fSuccess=::OemToCharA(pstrString, pstrString);
-		// old version can't report error
-		ATLASSERT(fSuccess);
-	}
+	//static void ConvertToOem(_CharType* pstrString,size_t size)
+	//{
+	//	if(size>UINT_MAX)
+	//	{
+	//		// API only allows DWORD size
+	//		AtlThrow(E_INVALIDARG);
+	//	}
+	//	DWORD dwSize=static_cast<DWORD>(size);
+	//	BOOL fSuccess=::CharToOemBuffA(pstrString, pstrString, dwSize);
+	//	if(!fSuccess)
+	//	{
+	//		AtlThrowLastWin32();
+	//	}
+	//}
 
-	static void ConvertToOem(__inout_ecount(size) _CharType* pstrString, __in size_t size)
-	{
-		if(size>UINT_MAX)
-		{
-			// API only allows DWORD size
-			AtlThrow(E_INVALIDARG);
-		}
-		DWORD dwSize=static_cast<DWORD>(size);
-		BOOL fSuccess=::CharToOemBuffA(pstrString, pstrString, dwSize);
-		if(!fSuccess)
-		{
-			AtlThrowLastWin32();
-		}
-	}
+	//static void ConvertToAnsi(_CharType* pstrString,size_t size)
+	//{
+	//	if(size>UINT_MAX)
+	//	{
+	//		// API only allows DWORD size
+	//		_ASSERT(0);
+	//	}
+	//	DWORD dwSize=static_cast<DWORD>(size);
+	//	BOOL fSuccess=::OemToCharBuffA(pstrString, pstrString, dwSize);
+	//	if(!fSuccess)
+	//	{
+	//		AtlThrowLastWin32();
+	//	}
+	//}
 
-	static void ConvertToAnsi(__inout_ecount(size) _CharType* pstrString, __in size_t size)
-	{
-		if(size>UINT_MAX)
-		{
-			// API only allows DWORD size
-			AtlThrow(E_INVALIDARG);
-		}
-		DWORD dwSize=static_cast<DWORD>(size);
-		BOOL fSuccess=::OemToCharBuffA(pstrString, pstrString, dwSize);
-		if(!fSuccess)
-		{
-			AtlThrowLastWin32();
-		}
-	}
-
-	static void __cdecl FloodCharacters( __in char ch, __in int nLength, __out_ecount_full(nLength) char* pch ) throw()
+	static void __cdecl FloodCharacters(char ch,int nLength, char* pch ) throw()
 	{
 		// nLength is in XCHARs
 		memset( pch, ch, nLength );
 	}
 
-	static BSTR __cdecl AllocSysString( __in_ecount(nDataLength) const char* pchData, int nDataLength ) throw()
-	{
-		int nLen = ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength,
-			NULL, NULL );
-		BSTR bstr = ::SysAllocStringLen( NULL, nLen );
-		if( bstr != NULL )
-		{
-			::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength,
-				bstr, nLen );
-		}
+	//static BSTR __cdecl AllocSysString( const char* pchData, int nDataLength ) throw()
+	//{
+	//	int nLen = ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength,
+	//		NULL, NULL );
+	//	BSTR bstr = ::SysAllocStringLen( NULL, nLen );
+	//	if( bstr != NULL )
+	//	{
+	//		::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength,
+	//			bstr, nLen );
+	//	}
 
-		return bstr;
-	}
+	//	return bstr;
+	//}
 
-	static BOOL __cdecl ReAllocSysString( __in_ecount(nDataLength) const char* pchData, __out BSTR* pbstr, __in int nDataLength ) throw()
-	{
-		int nLen = ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength, NULL, NULL );
-		BOOL bSuccess = ::SysReAllocStringLen( pbstr, NULL, nLen );
-		if( bSuccess )
-		{
-			::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength, *pbstr, nLen );
-		}
+	//static BOOL __cdecl ReAllocSysString( const char* pchData, BSTR* pbstr,int nDataLength ) throw()
+	//{
+	//	int nLen = ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength, NULL, NULL );
+	//	BOOL bSuccess = ::SysReAllocStringLen( pbstr, NULL, nLen );
+	//	if( bSuccess )
+	//	{
+	//		::MultiByteToWideChar( _AtlGetConversionACP(), 0, pchData, nDataLength, *pbstr, nLen );
+	//	}
 
-		return bSuccess;
-	}
+	//	return bSuccess;
+	//}
 
-	static DWORD __cdecl _AFX_FUNCNAME(FormatMessage)( __in DWORD dwFlags, LPCVOID pSource,
-		__in DWORD dwMessageID, __in DWORD dwLanguageID, __out_ecount(nSize) LPSTR pszBuffer,
+	static DWORD __cdecl FormatMessage(DWORD dwFlags, LPCVOID pSource,
+		DWORD dwMessageID,DWORD dwLanguageID, LPSTR pszBuffer,
 		DWORD nSize, va_list* pArguments ) throw()
 	{
 		return ::FormatMessageA( dwFlags, pSource, dwMessageID, dwLanguageID,
 				pszBuffer, nSize, pArguments );
 	}
 
-#if defined(_AFX)
-	static DWORD __cdecl FormatMessage( __in DWORD dwFlags, LPCVOID pSource,
-		__in DWORD dwMessageID, __in DWORD dwLanguageID, __out_ecount(nSize) LPSTR pszBuffer,
-		DWORD nSize, va_list* pArguments ) throw()
-	{
-		return _AFX_FUNCNAME(FormatMessage)(dwFlags, pSource, dwMessageID, dwLanguageID, pszBuffer, nSize, pArguments);
-	}
-#endif
-
-	static int __cdecl SafeStringLen( __in_z_opt LPCSTR psz ) throw()
+	static int __cdecl SafeStringLen( LPCSTR psz ) throw()
 	{
 		// returns length in bytes
 		return (psz != NULL) ? int( strlen( psz ) ) : 0;
 	}
 
-	static int __cdecl SafeStringLen( __in_z_opt LPCWSTR psz ) throw()
+	static int __cdecl SafeStringLen( LPCWSTR psz ) throw()
 	{
 		// returns length in wchar_ts
 		return (psz != NULL) ? int( wcslen( psz ) ) : 0;
 	}
 
-	static int __cdecl GetCharLen( __in_z const wchar_t* pch ) throw()
+	static int __cdecl GetCharLen( const wchar_t* pch ) throw()
 	{
 		(void)pch;
 		// returns char length
 		return 1;
 	}
 
-	static int __cdecl GetCharLen( __in_z const char* pch ) throw()
+	static int __cdecl GetCharLen( const char* pch ) throw()
 	{
 		// returns char length
 		return int( _mbclen( reinterpret_cast< const unsigned char* >( pch ) ) );
 	}
 
-	static DWORD __cdecl GetEnvironmentVariable( __in_z LPCSTR pszVar,
-		__out_ecount_opt(dwSize) LPSTR pszBuffer, __in DWORD dwSize ) throw()
-	{
-		return ::GetEnvironmentVariableA( pszVar, pszBuffer, dwSize );
-	}
+	//static DWORD __cdecl GetEnvironmentVariable( LPCSTR pszVar,
+	//	LPSTR pszBuffer,DWORD dwSize ) throw()
+	//{
+	//	return ::GetEnvironmentVariableA( pszVar, pszBuffer, dwSize );
+	//}
 };
 
 // specialization for wchar_t
@@ -648,92 +495,83 @@ template<>
 class ChTraitsCRT< wchar_t > :
 	public ChTraitsBase< wchar_t >
 {
-#if defined(_UNICODE) && !defined(_CSTRING_ALWAYS_THUNK)
-	static DWORD __cdecl _GetEnvironmentVariableW( __in_z LPCWSTR pszName, __out_ecount_part_opt(nSize, return) LPWSTR pszBuffer, __in DWORD nSize ) throw()
-	{
-		return ::GetEnvironmentVariableW( pszName, pszBuffer, nSize );
-	}
-#else  // !_UNICODE
-	static DWORD WINAPI _GetEnvironmentVariableW( __in_z LPCWSTR pszName, 
-		__out_ecount_part_opt(nSize,return) LPWSTR pszBuffer, __in DWORD nSize ) throw()
-	{
-		return _strthunks.pfnGetEnvironmentVariableW( pszName, pszBuffer, nSize );
-	}
-#endif  // !_UNICODE
+	//static DWORD __cdecl _GetEnvironmentVariableW( LPCWSTR pszName, LPWSTR pszBuffer,DWORD nSize ) throw()
+	//{
+	//	return ::GetEnvironmentVariableW( pszName, pszBuffer, nSize );
+	//}
 
 public:
-	static LPWSTR __cdecl CharNext( __in_z LPCWSTR psz ) throw()
+	static LPWSTR __cdecl CharNext( LPCWSTR psz ) throw()
 	{
 		return const_cast< LPWSTR >( psz+1 );
 	}
 
-	static int __cdecl IsDigit( __in wchar_t ch ) throw()
+	static int __cdecl IsDigit(wchar_t ch ) throw()
 	{
 		return iswdigit( static_cast<unsigned short>(ch) );
 	}
 
-	static int __cdecl IsSpace( __in wchar_t ch ) throw()
+	static int __cdecl IsSpace(wchar_t ch ) throw()
 	{
 		return iswspace( static_cast<unsigned short>(ch) );
 	}
 
-	static int __cdecl StringCompare( __in_z LPCWSTR pszA, __in_z LPCWSTR pszB ) throw()
+	static int __cdecl StringCompare( LPCWSTR pszA, LPCWSTR pszB ) throw()
 	{
 		return wcscmp( pszA, pszB );
 	}
 
-	static int __cdecl StringCompareIgnore( __in_z LPCWSTR pszA, __in_z LPCWSTR pszB ) throw()
+	static int __cdecl StringCompareIgnore( LPCWSTR pszA, LPCWSTR pszB ) throw()
 	{
 		return _wcsicmp( pszA, pszB );
 	}
 
-	static int __cdecl StringCollate( __in_z LPCWSTR pszA, __in_z LPCWSTR pszB ) throw()
+	static int __cdecl StringCollate( LPCWSTR pszA, LPCWSTR pszB ) throw()
 	{
 		return wcscoll( pszA, pszB );
 	}
 
-	static int __cdecl StringCollateIgnore( __in_z LPCWSTR pszA, __in_z LPCWSTR pszB ) throw()
+	static int __cdecl StringCollateIgnore( LPCWSTR pszA, LPCWSTR pszB ) throw()
 	{
 		return _wcsicoll( pszA, pszB );
 	}
 
-	static LPCWSTR __cdecl StringFindString( __in_z LPCWSTR pszBlock, __in_z LPCWSTR pszMatch ) throw()
+	static LPCWSTR __cdecl StringFindString( LPCWSTR pszBlock, LPCWSTR pszMatch ) throw()
 	{
 		return wcsstr( pszBlock, pszMatch );
 	}
 
-	static LPWSTR __cdecl StringFindString( __in_z LPWSTR pszBlock, __in_z LPCWSTR pszMatch ) throw()
+	static LPWSTR __cdecl StringFindString( LPWSTR pszBlock, LPCWSTR pszMatch ) throw()
 	{
 		return( const_cast< LPWSTR >( StringFindString( const_cast< LPCWSTR >( pszBlock ), pszMatch ) ) );
 	}
 
-	static LPCWSTR __cdecl StringFindChar( __in_z LPCWSTR pszBlock, __in wchar_t chMatch ) throw()
+	static LPCWSTR __cdecl StringFindChar( LPCWSTR pszBlock,wchar_t chMatch ) throw()
 	{
 		return wcschr( pszBlock, chMatch );
 	}
 
-	static LPCWSTR __cdecl StringFindCharRev( __in_z LPCWSTR psz, __in wchar_t ch ) throw()
+	static LPCWSTR __cdecl StringFindCharRev( LPCWSTR psz,wchar_t ch ) throw()
 	{
 		return wcsrchr( psz, ch );
 	}
 
-	static LPCWSTR __cdecl StringScanSet( __in_z LPCWSTR pszBlock, __in_z LPCWSTR pszMatch ) throw()
+	static LPCWSTR __cdecl StringScanSet( LPCWSTR pszBlock, LPCWSTR pszMatch ) throw()
 	{
 		return wcspbrk( pszBlock, pszMatch );
 	}
 
-	static int __cdecl StringSpanIncluding( __in_z LPCWSTR pszBlock, __in_z LPCWSTR pszSet ) throw()
+	static int __cdecl StringSpanIncluding( LPCWSTR pszBlock, LPCWSTR pszSet ) throw()
 	{
 		return (int)wcsspn( pszBlock, pszSet );
 	}
 
-	static int __cdecl StringSpanExcluding( __in_z LPCWSTR pszBlock, __in_z LPCWSTR pszSet ) throw()
+	static int __cdecl StringSpanExcluding( LPCWSTR pszBlock, LPCWSTR pszSet ) throw()
 	{
 		return (int)wcscspn( pszBlock, pszSet );
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::StringUppercase")
-	static LPWSTR __cdecl StringUppercase( __inout LPWSTR psz ) throw()
+	static LPWSTR __cdecl StringUppercase( LPWSTR psz ) throw()
 	{
 #pragma warning (push)
 #pragma warning(disable : 4996)
@@ -741,8 +579,7 @@ public:
 #pragma warning (pop)
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::StringLowercase")
-	static LPWSTR __cdecl StringLowercase( __inout LPWSTR psz ) throw()
+	static LPWSTR __cdecl StringLowercase( LPWSTR psz ) throw()
 	{
 #pragma warning (push)
 #pragma warning(disable : 4996)
@@ -750,40 +587,29 @@ public:
 #pragma warning (pop)
 	}
 
-	static LPWSTR __cdecl StringUppercase( __inout_ecount(size) LPWSTR psz, __in size_t size ) throw()
+	static LPWSTR __cdecl StringUppercase( LPWSTR psz,size_t size ) throw()
 	{
-#if _SECURE_ATL
 		errno_t err = _wcsupr_s( psz, size );
 		return (err == 0) ? psz : NULL;
-#else
-		size;
-		return _wcsupr( psz );
-#endif
 	}
 
-	static LPWSTR __cdecl StringLowercase( __inout_ecount(size) LPWSTR psz, __in size_t size ) throw()
+	static LPWSTR __cdecl StringLowercase( LPWSTR psz,size_t size ) throw()
 	{
-#if _SECURE_ATL
 		errno_t err = _wcslwr_s( psz, size );
 		return (err == 0) ? psz : NULL;
-#else
-		size;
-		return _wcslwr( psz );
-#endif
 	}
 
-	static LPWSTR __cdecl StringReverse( __inout LPWSTR psz ) throw()
+	static LPWSTR __cdecl StringReverse( LPWSTR psz ) throw()
 	{
 		return _wcsrev( psz );
 	}
 
-	static int __cdecl GetFormattedLength( __in __format_string LPCWSTR pszFormat, va_list args) throw()
+	static int __cdecl GetFormattedLength(LPCWSTR pszFormat, va_list args) throw()
 	{
 		return _vscwprintf( pszFormat, args );
 	}
 
-	_ATL_INSECURE_DEPRECATE("You must pass an output size to ChTraitsCRT::Format")
-	static int __cdecl Format( __out LPWSTR pszBuffer, __in __format_string LPCWSTR pszFormat, va_list args) throw()
+	static int __cdecl Format( LPWSTR pszBuffer,LPCWSTR pszFormat, va_list args) throw()
 	{
 		#pragma warning (push)
 		#pragma warning(disable : 4996)
@@ -791,52 +617,32 @@ public:
 		#pragma warning (pop)
 	}
 	static int __cdecl Format
-		( __out_ecount(nLength) LPWSTR pszBuffer, __in size_t nLength, __in __format_string LPCWSTR pszFormat, va_list args) throw()
+		( LPWSTR pszBuffer,size_t nLength,LPCWSTR pszFormat, va_list args) throw()
 	{
 		return vswprintf_s( pszBuffer, nLength, pszFormat, args );
 	}
 
-	static int __cdecl GetBaseTypeLength( __in_z LPCSTR pszSrc ) throw()
-	{
-		// Returns required buffer size in wchar_ts
-		return ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pszSrc, -1, NULL, 0 )-1;
-	}
-
-	static int __cdecl GetBaseTypeLength( __in_ecount(nLength) LPCSTR pszSrc, __in int nLength ) throw()
-	{
-		// Returns required buffer size in wchar_ts
-		return ::MultiByteToWideChar( _AtlGetConversionACP(), 0, pszSrc, nLength, NULL, 0 );
-	}
-
-	static int __cdecl GetBaseTypeLength( __in_z LPCWSTR pszSrc ) throw()
+	static int __cdecl GetBaseTypeLength( LPCWSTR pszSrc ) throw()
 	{
 		// Returns required buffer size in wchar_ts
 		return (int)wcslen( pszSrc );
 	}
 
-	static int __cdecl GetBaseTypeLength( __in_ecount(nLength) LPCWSTR pszSrc, __in int nLength ) throw()
+	static int __cdecl GetBaseTypeLength( LPCWSTR pszSrc,int nLength ) throw()
 	{
 		(void)pszSrc;
 		// Returns required buffer size in wchar_ts
 		return nLength;
 	}
 
-	static void __cdecl ConvertToBaseType( __out_ecount(nDestLength) LPWSTR pszDest, __in int nDestLength,
-		__in_z LPCSTR pszSrc, __in int nSrcLength = -1) throw()
-	{
-		// nLen is in wchar_ts
-		::MultiByteToWideChar( _AtlGetConversionACP(), 0, pszSrc, nSrcLength, pszDest, nDestLength );
-	}
-
-	static void __cdecl ConvertToBaseType( __out_ecount(nDestLength) LPWSTR pszDest, __in int nDestLength,
-		__in_z LPCWSTR pszSrc, int nSrcLength = -1 ) throw()
+	static void __cdecl ConvertToBaseType( LPWSTR pszDest,int nDestLength, LPCWSTR pszSrc, int nSrcLength = -1 ) throw()
 	{		
 		if (nSrcLength == -1) { nSrcLength=1 + GetBaseTypeLength(pszSrc); }
 		// nLen is in wchar_ts
-		Checked::wmemcpy_s(pszDest, nDestLength, pszSrc, nSrcLength);
+		wmemcpy_s(pszDest, nDestLength, pszSrc, nSrcLength);
 	}
 
-	static void __cdecl FloodCharacters( __in wchar_t ch, __in int nLength, __out_ecount_full(nLength) LPWSTR psz ) throw()
+	static void __cdecl FloodCharacters(wchar_t ch,int nLength, LPWSTR psz ) throw()
 	{
 		// nLength is in XCHARs
 		for( int i = 0; i < nLength; i++ )
@@ -845,208 +651,891 @@ public:
 		}
 	}
 
-	static BSTR __cdecl AllocSysString( __in_ecount(nDataLength) const wchar_t* pchData, __in int nDataLength ) throw()
-	{
-		return ::SysAllocStringLen( pchData, nDataLength );
-	}
+	//static BSTR __cdecl AllocSysString( const wchar_t* pchData,int nDataLength ) throw()
+	//{
+	//	return ::SysAllocStringLen( pchData, nDataLength );
+	//}
 
-	static BOOL __cdecl ReAllocSysString( __in_ecount(nDataLength) const wchar_t* pchData, __inout BSTR* pbstr, __in int nDataLength ) throw()
-	{
-		return ::SysReAllocStringLen( pbstr, pchData, nDataLength );
-	}
+	//static BOOL __cdecl ReAllocSysString( const wchar_t* pchData, BSTR* pbstr,int nDataLength ) throw()
+	//{
+	//	return ::SysReAllocStringLen( pbstr, pchData, nDataLength );
+	//}
 
-	static int __cdecl SafeStringLen( __in_z_opt LPCSTR psz ) throw()
+	static int __cdecl SafeStringLen( LPCSTR psz ) throw()
 	{
 		// returns length in bytes
 		return (psz != NULL) ? (int)strlen( psz ) : 0;
 	}
 
-	static int __cdecl SafeStringLen( __in_opt LPCWSTR psz ) throw()
+	static int __cdecl SafeStringLen( LPCWSTR psz ) throw()
 	{
 		// returns length in wchar_ts
 		return (psz != NULL) ? (int)wcslen( psz ) : 0;
 	}
 
-	static int __cdecl GetCharLen( __in_z const wchar_t* pch ) throw()
+	static int __cdecl GetCharLen( const wchar_t* pch ) throw()
 	{
 		(void)pch;
 		// returns char length
 		return 1;
 	}
 
-	static int __cdecl GetCharLen( __in_z const char* pch ) throw()
+	static int __cdecl GetCharLen( const char* pch ) throw()
 	{
 		// returns char length
 		return (int)( _mbclen( reinterpret_cast< const unsigned char* >( pch ) ) );
 	}
 
-	static DWORD __cdecl GetEnvironmentVariable( __in_z LPCWSTR pszVar, __out_ecount_opt(dwSize) LPWSTR pszBuffer, __in DWORD dwSize ) throw()
-	{
-		return _GetEnvironmentVariableW( pszVar, pszBuffer, dwSize );
-	}
+	//static DWORD __cdecl GetEnvironmentVariable( LPCWSTR pszVar, LPWSTR pszBuffer,DWORD dwSize ) throw()
+	//{
+	//	return _GetEnvironmentVariableW( pszVar, pszBuffer, dwSize );
+	//}
 
-	static void __cdecl ConvertToOem( __reserved LPWSTR /*psz*/ )
-	{
-		ATLENSURE(FALSE); // Unsupported Feature 
-	}
+	//static void __cdecl ConvertToOem( __reserved LPWSTR /*psz*/ )
+	//{
+	//	_ASSERT(FALSE); // Unsupported Feature 
+	//}
 
-	static void __cdecl ConvertToAnsi( __reserved LPWSTR /*psz*/ )
-	{
-		ATLENSURE(FALSE); // Unsupported Feature 
-	}
+	//static void __cdecl ConvertToAnsi( __reserved LPWSTR /*psz*/ )
+	//{
+	//	_ASSERT(FALSE); // Unsupported Feature 
+	//}
 
-	static void __cdecl ConvertToOem( __reserved LPWSTR /*psz*/, size_t )
-	{
-		ATLENSURE(FALSE); // Unsupported Feature 
-	}
+	//static void __cdecl ConvertToOem( __reserved LPWSTR /*psz*/, size_t )
+	//{
+	//	_ASSERT(FALSE); // Unsupported Feature 
+	//}
 
-	static void __cdecl ConvertToAnsi( __reserved LPWSTR /*psz*/, size_t ) 
-	{
-		ATLENSURE(FALSE); // Unsupported Feature 
-	}
+	//static void __cdecl ConvertToAnsi( __reserved LPWSTR /*psz*/, size_t ) 
+	//{
+	//	_ASSERT(FALSE); // Unsupported Feature 
+	//}
 
-#ifdef _UNICODE
 public:
-	static DWORD __cdecl _AFX_FUNCNAME(FormatMessage)( __in DWORD dwFlags, LPCVOID pSource,
-		__in DWORD dwMessageID, __in DWORD dwLanguageID, __out_ecount(nSize) LPWSTR pszBuffer,
-		__in DWORD nSize, va_list* pArguments ) throw()
+	static DWORD __cdecl FormatMessage(DWORD dwFlags, LPCVOID pSource,
+		DWORD dwMessageID,DWORD dwLanguageID, LPWSTR pszBuffer,
+		DWORD nSize, va_list* pArguments ) throw()
 	{
 		return ::FormatMessageW( dwFlags, pSource, dwMessageID, dwLanguageID,
 				pszBuffer, nSize, pArguments );
 	}
-
-#if defined(_AFX)
-	static DWORD __cdecl FormatMessage( __in DWORD dwFlags, LPCVOID pSource,
-		__in DWORD dwMessageID, __in DWORD dwLanguageID, __out_ecount(nSize) LPWSTR pszBuffer,
-		__in DWORD nSize, va_list* pArguments ) throw()
-	{
-		return _AFX_FUNCNAME(FormatMessage)(dwFlags, pSource, dwMessageID, dwLanguageID, pszBuffer, nSize, pArguments);
-	}
-#endif
-
-#else
-	static DWORD __cdecl _AFX_FUNCNAME(FormatMessage)( DWORD /*dwFlags*/, LPCVOID /*pSource*/,
-		DWORD /*dwMessageID*/, DWORD /*dwLanguageID*/, __reserved LPWSTR /*pszBuffer*/,
-		DWORD /*nSize*/, va_list* /*pArguments*/ )
-	{
-		ATLENSURE(FALSE); // Unsupported Feature 
-		return 0;
-	}
-
-#if defined(_AFX)
-	static DWORD __cdecl FormatMessage( DWORD dwFlags, LPCVOID pSource,
-		DWORD dwMessageID, DWORD dwLanguageID, __reserved LPWSTR pszBuffer,
-		DWORD nSize, va_list* pArguments )
-	{
-		return _AFX_FUNCNAME(FormatMessage)(dwFlags, pSource, dwMessageID, dwLanguageID, pszBuffer, nSize, pArguments);
-	}
-#endif
-
-#endif
-
-};
-#endif  // _ATL_MIN_CRT
-
-}	// namespace ATL
-
-#ifndef _ATL_MIN_CRT
-
-// Forward declare
-template< typename _CharType = char, class StringIterator = ATL::ChTraitsCRT< _CharType > >
-class StrTraitMFC_DLL;
-
-#endif	// _ATL_MIN_CRT
-
-namespace ATL
-{
-
-namespace _CSTRING_IMPL_
-{
-template <typename _CharType, class StringTraits>
-struct _MFCDLLTraitsCheck
-{
-	const static bool c_bIsMFCDLLTraits = false;
 };
 
-#ifndef _ATL_MIN_CRT
-
-template<typename _CharType> 
-struct _MFCDLLTraitsCheck<_CharType, StrTraitMFC_DLL<_CharType, ATL::ChTraitsCRT< _CharType > > >
+class IAtlStringMgrf
 {
-	const static bool c_bIsMFCDLLTraits = true;
+public:
+	// Allocate a new CStringData
+	CStringData* Allocate( int nAllocLength, int nCharSize ) throw();
+	// Free an existing CStringData
+	void Free( CStringData* pData ) throw();
+	// Change the size of an existing CStringData
+	CStringData* Reallocate( CStringData* pData, int nAllocLength, int nCharSize ) throw();
+	// Get the CStringData for a Nil string
+	CStringData* GetNilString() throw();
+	StringManagerBase* Clone() throw();
 };
 
-#endif	// _ATL_MIN_CRT
-}
+template< typename TCharType, bool t_bMFCDLL = false >
+class StrBufT;
 
-// The CStringT class has a few varargs member functions that will cause 4793
-// warnings if compiled /clr. Because of the way template classes are parsed,
-// we need to disable the warning for the entire class.
-//#pragma warning( push )
-//#pragma warning( disable : 4793 )
+template< typename BaseType , bool t_bMFCDLL = false>
+class SimpleStringT
+{
+public:
+	typedef typename ChTraitsBase< BaseType >::XCHAR XCHAR;
+	typedef typename ChTraitsBase< BaseType >::PXSTR PXSTR;
+	typedef typename ChTraitsBase< BaseType >::PCXSTR PCXSTR;
+	typedef typename ChTraitsBase< BaseType >::YCHAR YCHAR;
+	typedef typename ChTraitsBase< BaseType >::PYSTR PYSTR;
+	typedef typename ChTraitsBase< BaseType >::PCYSTR PCYSTR;
 
+public:
+	explicit SimpleStringT( StringManagerBase* pStringMgr )
+	{
+		_ASSERT( pStringMgr != NULL );
+		CStringData* pData = pStringMgr->GetNilString();
+		Attach( pData );
+	}
+	
+	SimpleStringT( const SimpleStringT& strSrc )
+	{
+		CStringData* pSrcData = strSrc.GetData();
+		CStringData* pNewData = CloneData( pSrcData );
+		Attach( pNewData );
+	}
+	
+	SimpleStringT( const SimpleStringT<BaseType, !t_bMFCDLL>& strSrc )
+	{
+		CStringData* pSrcData = strSrc.GetData();
+		CStringData* pNewData = CloneData( pSrcData );
+		Attach( pNewData );
+	}
+	
+	SimpleStringT( PCXSTR pszSrc, StringManagerBase* pStringMgr )
+	{
+		_ASSERT( pStringMgr != NULL );
+
+		int nLength = StringLength( pszSrc );
+		CStringData* pData = pStringMgr->Allocate( nLength, sizeof( XCHAR ) );
+		if( pData == NULL )
+		{
+			ThrowMemoryException();
+		}
+		Attach( pData );
+		SetLength( nLength );
+        CopyChars( m_pszData, nLength, pszSrc, nLength );
+	}
+	SimpleStringT( const XCHAR* pchSrc, int nLength, StringManagerBase* pStringMgr )
+	{
+		_ASSERT( pStringMgr != NULL );
+		
+		if(pchSrc == NULL && nLength != 0)
+			AtlThrow(E_INVALIDARG);
+
+		CStringData* pData = pStringMgr->Allocate( nLength, sizeof( XCHAR ) );
+		if( pData == NULL )
+		{
+			_ASSERT(0);
+			//ThrowMemoryException();
+		}
+		Attach( pData );
+		SetLength( nLength );
+        CopyChars( m_pszData, nLength, pchSrc, nLength );
+	}
+	~SimpleStringT() throw()
+	{
+		CStringData* pData = GetData();
+		pData->Release();
+	}
+	
+	operator SimpleStringT<BaseType, !t_bMFCDLL>&()
+	{
+		return *(SimpleStringT<BaseType, !t_bMFCDLL>*)this;
+	}
+
+	SimpleStringT& operator=( const SimpleStringT& strSrc )
+	{
+		CStringData* pSrcData = strSrc.GetData();
+		CStringData* pOldData = GetData();
+		if( pSrcData != pOldData)
+		{
+			if( pOldData->IsLocked() || pSrcData->pStringMgr != pOldData->pStringMgr )
+			{
+				SetString( strSrc.GetString(), strSrc.GetLength() );
+			}
+			else
+			{
+				CStringData* pNewData = CloneData( pSrcData );
+				pOldData->Release();
+				Attach( pNewData );
+			}
+		}
+
+		return( *this );
+	}
+	
+	SimpleStringT& operator=( const SimpleStringT<BaseType, !t_bMFCDLL>& strSrc )
+	{
+		CStringData* pSrcData = strSrc.GetData();
+		CStringData* pOldData = GetData();
+		if( pSrcData != pOldData)
+		{
+			if( pOldData->IsLocked() || pSrcData->pStringMgr != pOldData->pStringMgr )
+			{
+				SetString( strSrc.GetString(), strSrc.GetLength() );
+			}
+			else
+			{
+				CStringData* pNewData = CloneData( pSrcData );
+				pOldData->Release();
+				Attach( pNewData );
+			}
+		}
+
+		return( *this );
+	}
+	
+	SimpleStringT& operator=( PCXSTR pszSrc )
+	{
+		SetString( pszSrc );
+
+		return( *this );
+	}
+
+	SimpleStringT& operator+=( const SimpleStringT& strSrc )
+	{
+		Append( strSrc );
+
+		return( *this );
+	}
+	template <bool bMFCDLL>
+	SimpleStringT& operator+=( const SimpleStringT<BaseType, bMFCDLL>& strSrc )
+	{
+		Append( strSrc );
+
+		return( *this );
+	}
+	
+	SimpleStringT& operator+=( PCXSTR pszSrc )
+	{
+		Append( pszSrc );
+
+		return( *this );
+	}
+	template< int t_nSize >
+	SimpleStringT& operator+=( const StaticString< XCHAR, t_nSize >& strSrc )
+	{
+		Append( static_cast<const XCHAR *>(strSrc), strSrc.GetLength() );
+
+		return( *this );
+	}
+	SimpleStringT& operator+=( char ch )
+	{
+		AppendChar( XCHAR( ch ) );
+
+		return( *this );
+	}
+	SimpleStringT& operator+=( unsigned char ch )
+	{
+		AppendChar( XCHAR( ch ) );
+
+		return( *this );
+	}
+	SimpleStringT& operator+=( wchar_t ch )
+	{
+		AppendChar( XCHAR( ch ) );
+
+		return( *this );
+	}
+
+	XCHAR operator[]( int iChar ) const
+	{
+		_ASSERT( (iChar >= 0) && (iChar <= GetLength()) );  // Indexing the '\0' is OK
+		
+		if( (iChar < 0) || (iChar > GetLength()) )
+			_ASSERT(0);
+			//AtlThrow(E_INVALIDARG);
+			
+		return( m_pszData[iChar] );
+	}
+
+	operator PCXSTR() const throw()
+	{
+		return( m_pszData );
+	}
+
+	void Append( PCXSTR pszSrc )
+	{
+		Append( pszSrc, StringLength( pszSrc ) );
+	}
+	void Append( PCXSTR pszSrc, int nLength )
+	{
+		// See comment in SetString() about why we do this
+		UINT_PTR nOffset = pszSrc-GetString();
+
+		UINT nOldLength = GetLength();
+		if (nOldLength < 0)
+		{
+			// protects from underflow
+			nOldLength = 0;
+		}
+		int nNewLength = nOldLength+nLength;
+		PXSTR pszBuffer = GetBuffer( nNewLength );
+		if( nOffset <= nOldLength )
+		{
+			pszSrc = pszBuffer+nOffset;
+			// No need to call CopyCharsOverlapped, since the destination is
+			// beyond the end of the original buffer
+		}
+        CopyChars( pszBuffer+nOldLength, nLength, pszSrc, nLength );
+		ReleaseBufferSetLength( nNewLength );
+	}
+	void AppendChar( XCHAR ch )
+	{
+		UINT nOldLength = GetLength();
+		int nNewLength = nOldLength+1;
+		PXSTR pszBuffer = GetBuffer( nNewLength );
+		pszBuffer[nOldLength] = ch;
+		ReleaseBufferSetLength( nNewLength );
+	}
+	void Append( const SimpleStringT& strSrc )
+	{
+		Append( strSrc.GetString(), strSrc.GetLength() );
+	}
+	template <bool bMFCDLL>
+	void Append( const SimpleStringT<BaseType, bMFCDLL>& strSrc )
+	{
+		Append( strSrc.GetString(), strSrc.GetLength() );
+	}	
+	void Empty() throw()
+	{
+		CStringData* pOldData = GetData();
+		StringManagerBase* pStringMgr = pOldData->pStringMgr;
+		if( pOldData->nDataLength == 0 )
+		{
+			return;
+		}
+
+		if( pOldData->IsLocked() )
+		{
+			// Don't reallocate a locked buffer that's shrinking
+			SetLength( 0 );
+		}
+		else
+		{
+			pOldData->Release();
+			CStringData* pNewData = pStringMgr->GetNilString();
+			Attach( pNewData );
+		}
+	}
+	void FreeExtra()
+	{
+		CStringData* pOldData = GetData();
+		int nLength = pOldData->nDataLength;
+		StringManagerBase* pStringMgr = pOldData->pStringMgr;
+		if( pOldData->nAllocLength == nLength )
+		{
+			return;
+		}
+
+		if( !pOldData->IsLocked() )  // Don't reallocate a locked buffer that's shrinking
+		{
+			CStringData* pNewData = pStringMgr->Allocate( nLength, sizeof( XCHAR ) );
+			if( pNewData == NULL )
+			{
+				SetLength( nLength );
+				return;
+			}
+			
+            CopyChars( PXSTR( pNewData->data() ), nLength, 
+				PCXSTR( pOldData->data() ), nLength );
+
+			pOldData->Release();
+			Attach( pNewData );
+			SetLength( nLength );
+		}
+	}
+
+	int GetAllocLength() const throw()
+	{
+		return( GetData()->nAllocLength );
+	}
+	XCHAR GetAt( int iChar ) const
+	{
+		_ASSERT( (iChar >= 0) && (iChar <= GetLength()) );  // Indexing the '\0' is OK
+		if( (iChar < 0) || (iChar > GetLength()) )
+			_ASSERT(0);
+			//AtlThrow(E_INVALIDARG);		
+			
+		return( m_pszData[iChar] );
+	}
+	PXSTR GetBuffer()
+	{
+		CStringData* pData = GetData();
+		if( pData->IsShared() )
+		{
+			Fork( pData->nDataLength );
+		}
+
+		return( m_pszData );
+	}
+	PXSTR GetBuffer( int nMinBufferLength )
+	{
+		return( PrepareWrite( nMinBufferLength ) );
+	}
+	PXSTR GetBufferSetLength( int nLength )
+	{
+		PXSTR pszBuffer = GetBuffer( nLength );
+		SetLength( nLength );
+
+		return( pszBuffer );
+	}
+	int GetLength() const throw()
+	{
+		return( GetData()->nDataLength );
+	}
+	StringManagerBase* GetManager() const throw()
+	{
+		StringManagerBase* pStringMgr = GetData()->pStringMgr;
+		return pStringMgr ? pStringMgr->Clone() : NULL;
+	}
+
+	PCXSTR GetString() const throw()
+	{
+		return( m_pszData );
+	}
+	bool IsEmpty() const throw()
+	{
+		return( GetLength() == 0 );
+	}
+	PXSTR LockBuffer()
+	{
+		CStringData* pData = GetData();
+		if( pData->IsShared() )
+		{
+			Fork( pData->nDataLength );
+			pData = GetData();  // Do it again, because the fork might have changed it
+		}
+		pData->Lock();
+
+		return( m_pszData );
+	}
+	void UnlockBuffer() throw()
+	{
+		CStringData* pData = GetData();
+		pData->Unlock();
+	}
+	void Preallocate( int nLength )
+	{
+		PrepareWrite( nLength );
+	}
+	void ReleaseBuffer( int nNewLength = -1 )
+	{
+		if( nNewLength == -1 )
+		{
+			nNewLength = StringLength( m_pszData );
+		}
+		SetLength( nNewLength );
+	}
+	void ReleaseBufferSetLength( int nNewLength )
+	{
+		_ASSERT( nNewLength >= 0 );
+		SetLength( nNewLength );
+	}
+	void Truncate( int nNewLength )
+	{
+		_ASSERT( nNewLength <= GetLength() );
+		GetBuffer( nNewLength );
+		ReleaseBufferSetLength( nNewLength );
+	}
+	void SetAt( int iChar, XCHAR ch )
+	{
+		_ASSERT( (iChar >= 0) && (iChar < GetLength()) );
+
+		if( (iChar < 0) || (iChar >= GetLength()) )
+			_ASSERT(0);
+			//AtlThrow(E_INVALIDARG);		
+			
+		int nLength = GetLength();
+		PXSTR pszBuffer = GetBuffer();
+		pszBuffer[iChar] = ch;
+		ReleaseBufferSetLength( nLength );
+			
+	}
+	void SetManager( StringManagerBase* pStringMgr )
+	{
+		_ASSERT( IsEmpty() );
+
+		CStringData* pData = GetData();
+		pData->Release();
+		pData = pStringMgr->GetNilString();
+		Attach( pData );
+	}
+	void SetString( PCXSTR pszSrc )
+	{
+		SetString( pszSrc, StringLength( pszSrc ) );
+	}
+	void SetString( PCXSTR pszSrc, int nLength )
+	{
+		if( nLength == 0 )
+		{
+			Empty();
+		}
+		else
+		{
+			// It is possible that pszSrc points to a location inside of our 
+			// buffer.  GetBuffer() might change m_pszData if (1) the buffer 
+			// is shared or (2) the buffer is too small to hold the new 
+			// string.  We detect this aliasing, and modify pszSrc to point
+			// into the newly allocated buffer instead.
+			
+			if(pszSrc == NULL)
+				_ASSERT(0);
+				//AtlThrow(E_INVALIDARG);			
+				
+			UINT nOldLength = GetLength();
+			UINT_PTR nOffset = pszSrc-GetString();
+			// If 0 <= nOffset <= nOldLength, then pszSrc points into our 
+			// buffer
+
+			PXSTR pszBuffer = GetBuffer( nLength );
+			if( nOffset <= nOldLength )
+			{
+                CopyCharsOverlapped( pszBuffer, nLength, 
+					pszBuffer+nOffset, nLength );
+			}
+			else
+			{
+				CopyChars( pszBuffer, nLength, pszSrc, nLength );
+			}
+			ReleaseBufferSetLength( nLength );
+		}
+	}
+
+public:
+	friend SimpleStringT operator+(
+		const SimpleStringT& str1,
+		const SimpleStringT& str2 )
+	{
+		SimpleStringT s( str1.GetManager() );
+
+		Concatenate( s, str1, str1.GetLength(), str2, str2.GetLength() );
+
+		return( s );
+	}
+
+	friend SimpleStringT operator+(
+		const SimpleStringT& str1,
+		PCXSTR psz2 )
+	{
+		SimpleStringT s( str1.GetManager() );
+
+		Concatenate( s, str1, str1.GetLength(), psz2, StringLength( psz2 ) );
+
+		return( s );
+	}
+
+	friend SimpleStringT operator+(
+		PCXSTR psz1,
+		const SimpleStringT& str2 )
+	{
+		SimpleStringT s( str2.GetManager() );
+
+		Concatenate( s, psz1, StringLength( psz1 ), str2, str2.GetLength() );
+
+		return( s );
+	}
+
+	static void __cdecl CopyChars
+		( XCHAR* pchDest, const XCHAR* pchSrc, int nChars ) throw()
+	{
+		#pragma warning (push)
+		#pragma warning(disable : 4996)
+		memcpy( pchDest, pchSrc, nChars*sizeof( XCHAR ) );
+		#pragma warning (pop)
+	}
+	static void __cdecl CopyChars
+		( XCHAR* pchDest, size_t nDestLen, const XCHAR* pchSrc, int nChars ) throw()
+	{
+		memcpy_s( pchDest, nDestLen*sizeof( XCHAR ), 
+			pchSrc, nChars*sizeof( XCHAR ) );
+	}
+
+	static void __cdecl CopyCharsOverlapped
+		( XCHAR* pchDest, const XCHAR* pchSrc, int nChars ) throw()
+	{
+		#pragma warning (push)
+		#pragma warning(disable : 4996)
+		memmove( pchDest, pchSrc, nChars*sizeof( XCHAR ) );
+		#pragma warning (pop)
+	}
+	static void __cdecl CopyCharsOverlapped
+		( XCHAR* pchDest, size_t nDestLen, const XCHAR* pchSrc, int nChars ) throw()
+	{
+		memmove_s( pchDest, nDestLen*sizeof( XCHAR ), 
+			pchSrc, nChars*sizeof( XCHAR ) );
+	}
+	static int __cdecl StringLength( const char* psz ) throw()
+	{
+		if( psz == NULL )
+		{
+			return( 0 );
+		}
+		return( int( strlen( psz ) ) );
+	}
+	static int __cdecl StringLength( const wchar_t* psz ) throw()
+	{
+		if( psz == NULL )
+		{
+			return( 0 );
+		}
+		return( int( wcslen( psz ) ) );
+	}
+
+protected:
+	static void __cdecl Concatenate( __out SimpleStringT& strResult, __in_ecount(nLength1) PCXSTR psz1, int nLength1, __in_ecount(nLength2) PCXSTR psz2, int nLength2 )
+	{
+		int nNewLength = nLength1+nLength2;
+		PXSTR pszBuffer = strResult.GetBuffer( nNewLength );
+        CopyChars( pszBuffer, nLength1, psz1, nLength1 );
+		CopyChars( pszBuffer+nLength1, nLength2, psz2, nLength2 );
+		strResult.ReleaseBufferSetLength( nNewLength );
+	}
+	HELIX_NOINLINE __declspec( noreturn ) static void __cdecl ThrowMemoryException()
+	{
+		_ASSERT(0);
+		//AtlThrow( E_OUTOFMEMORY );
+	}
+
+// Implementation
+private:
+	void Attach( CStringData* pData ) throw()
+	{
+		m_pszData = static_cast< PXSTR >( pData->data() );
+	}
+	HELIX_NOINLINE void Fork( int nLength )
+	{
+		CStringData* pOldData = GetData();
+		int nOldLength = pOldData->nDataLength;
+		CStringData* pNewData = pOldData->pStringMgr->Clone()->Allocate( nLength, sizeof( XCHAR ) );
+		if( pNewData == NULL )
+		{
+			ThrowMemoryException();
+		}
+		int nCharsToCopy = ((nOldLength < nLength) ? nOldLength : nLength)+1;  // Copy '\0'
+        CopyChars( PXSTR( pNewData->data() ), nCharsToCopy, 
+			PCXSTR( pOldData->data() ), nCharsToCopy );
+		pNewData->nDataLength = nOldLength;
+		pOldData->Release();
+		Attach( pNewData );
+	}
+	CStringData* GetData() const throw()
+	{
+		return( reinterpret_cast< CStringData* >( m_pszData )-1 );
+	}
+	PXSTR PrepareWrite( int nLength )
+	{
+		CStringData* pOldData = GetData();
+		int nShared = 1-pOldData->nRefs;  // nShared < 0 means true, >= 0 means false
+		int nTooShort = pOldData->nAllocLength-nLength;  // nTooShort < 0 means true, >= 0 means false
+		if( (nShared|nTooShort) < 0 )  // If either sign bit is set (i.e. either is less than zero), we need to copy data
+		{
+			PrepareWrite2( nLength );
+		}
+
+		return( m_pszData );
+	}
+	HELIX_NOINLINE void PrepareWrite2( int nLength )
+	{
+		CStringData* pOldData = GetData();
+		if( pOldData->nDataLength > nLength )
+		{
+			nLength = pOldData->nDataLength;
+		}
+		if( pOldData->IsShared() )
+		{
+			Fork( nLength );
+		}
+		else if( pOldData->nAllocLength < nLength )
+		{
+			// Grow exponentially, until we hit 1K.
+			int nNewLength = pOldData->nAllocLength;
+			if( nNewLength > 1024 )
+			{
+				nNewLength += 1024;
+			}
+			else
+			{
+				nNewLength *= 2;
+			}
+			if( nNewLength < nLength )
+			{
+				nNewLength = nLength;
+			}
+			Reallocate( nNewLength );
+		}
+	}
+	HELIX_NOINLINE void Reallocate( int nLength )
+	{
+		CStringData* pOldData = GetData();
+		_ASSERT( pOldData->nAllocLength < nLength );
+		StringManagerBase* pStringMgr = pOldData->pStringMgr;
+                if ( pOldData->nAllocLength >= nLength || nLength <= 0)
+                {
+			ThrowMemoryException();
+                        return;
+                }
+		CStringData* pNewData = pStringMgr->Reallocate( pOldData, nLength, sizeof( XCHAR ) );
+		if( pNewData == NULL )
+		{
+			ThrowMemoryException();
+		}
+		Attach( pNewData );
+	}
+
+	void SetLength( int nLength )
+	{
+		_ASSERT( nLength >= 0 );
+		_ASSERT( nLength <= GetData()->nAllocLength );
+
+		if( nLength < 0 || nLength > GetData()->nAllocLength)
+			_ASSERT(0);
+			//AtlThrow(E_INVALIDARG);
+			
+		GetData()->nDataLength = nLength;
+		m_pszData[nLength] = 0;
+	}
+
+	static CStringData* __cdecl CloneData( CStringData* pData )
+	{
+		CStringData* pNewData = NULL;
+
+		StringManagerBase* pNewStringMgr = pData->pStringMgr->Clone();
+		if( !pData->IsLocked() && (pNewStringMgr == pData->pStringMgr) )
+		{
+			pNewData = pData;
+			pNewData->AddRef();
+		}
+		else
+		{
+			pNewData = pNewStringMgr->Allocate( pData->nDataLength, sizeof( XCHAR ) );
+			if( pNewData == NULL )
+			{
+				ThrowMemoryException();
+			}
+			pNewData->nDataLength = pData->nDataLength;
+            CopyChars( PXSTR( pNewData->data() ), pData->nDataLength+1,
+				PCXSTR( pData->data() ), pData->nDataLength+1 );  // Copy '\0'
+		}
+
+		return( pNewData );
+	}
+
+public :
+	typedef StrBufT<BaseType, t_bMFCDLL> CStrBuf;
+private:
+	PXSTR m_pszData;
+	
+	friend class SimpleStringT<BaseType, !t_bMFCDLL>;
+};
+
+template< typename TCharType, bool t_bMFCDLL >
+class StrBufT
+{
+public:
+	typedef SimpleStringT< TCharType, t_bMFCDLL> StringType;
+	typedef typename StringType::XCHAR XCHAR;
+	typedef typename StringType::PXSTR PXSTR;
+	typedef typename StringType::PCXSTR PCXSTR;
+
+	static const DWORD AUTO_LENGTH = 0x01;  // Automatically determine the new length of the string at release.  The string must be null-terminated.
+	static const DWORD SET_LENGTH = 0x02;  // Set the length of the string object at GetBuffer time
+
+public:
+	explicit StrBufT( __in StringType& str ) throw( ... ) :
+		m_str( str ),
+		m_pszBuffer( NULL ),
+#ifdef _DEBUG
+		m_nBufferLength( str.GetLength() ),
+#endif
+		m_nLength( str.GetLength() )
+	{
+		m_pszBuffer = m_str.GetBuffer();
+	}
+	
+	StrBufT( __in StringType& str, __in int nMinLength, __in DWORD dwFlags = AUTO_LENGTH ) throw( ... ) :
+		m_str( str ),
+		m_pszBuffer( NULL ),
+#ifdef _DEBUG
+		m_nBufferLength( nMinLength ),
+#endif
+		m_nLength( (dwFlags&AUTO_LENGTH) ? -1 : nMinLength )
+	{
+		if( dwFlags&SET_LENGTH )
+		{
+			m_pszBuffer = m_str.GetBufferSetLength( nMinLength );
+		}
+		else
+		{
+			m_pszBuffer = m_str.GetBuffer( nMinLength );
+		}
+	}
+
+	~StrBufT()
+	{
+		m_str.ReleaseBuffer( m_nLength );
+	}
+
+	operator PXSTR() throw()
+	{
+		return( m_pszBuffer );
+	}
+	operator PCXSTR() const throw()
+	{
+		return( m_pszBuffer );
+	}
+
+	void SetLength( __in int nLength )
+	{
+		ATLASSERT( nLength >= 0 );		
+		ATLASSERT( nLength <= m_nBufferLength );
+
+		if( nLength < 0 )
+			AtlThrow(E_INVALIDARG);
+		
+		m_nLength = nLength;
+	}
+
+// Implementation
+private:
+	StringType& m_str;
+	PXSTR m_pszBuffer;
+	int m_nLength;
+#ifdef _DEBUG
+	int m_nBufferLength;
+#endif
+
+// Private copy constructor and copy assignment operator to prevent accidental use
+private:
+	StrBufT( const StrBufT& ) throw();
+	StrBufT& operator=( const StrBufT& ) throw();
+};
+
+typedef SimpleStringT< TCHAR > CSimpleString;
+typedef SimpleStringT< char > CSimpleStringA;
+typedef SimpleStringT< wchar_t > CSimpleStringW;
+typedef StrBufT< TCHAR > CStrBuf;
+typedef StrBufT< char > CStrBufA;
+typedef StrBufT< wchar_t > CStrBufW;
 
 template< typename BaseType, class StringTraits >
-class CStringT :
-	public CSimpleStringT< BaseType, _CSTRING_IMPL_::_MFCDLLTraitsCheck<BaseType, StringTraits>::c_bIsMFCDLLTraits >
+class StringT :
+	public SimpleStringT< BaseType >
 {
 public:
-	typedef CSimpleStringT< BaseType, _CSTRING_IMPL_::_MFCDLLTraitsCheck<BaseType, StringTraits>::c_bIsMFCDLLTraits > CThisSimpleString;
+	typedef SimpleStringT< BaseType > ThisSimpleString;
 	typedef StringTraits StrTraits;
-	typedef typename CThisSimpleString::XCHAR XCHAR;
-	typedef typename CThisSimpleString::PXSTR PXSTR;
-	typedef typename CThisSimpleString::PCXSTR PCXSTR;
-	typedef typename CThisSimpleString::YCHAR YCHAR;
-	typedef typename CThisSimpleString::PYSTR PYSTR;
-	typedef typename CThisSimpleString::PCYSTR PCYSTR;
+	typedef typename ThisSimpleString::XCHAR XCHAR;
+	typedef typename ThisSimpleString::PXSTR PXSTR;
+	typedef typename ThisSimpleString::PCXSTR PCXSTR;
+	typedef typename ThisSimpleString::YCHAR YCHAR;
+	typedef typename ThisSimpleString::PYSTR PYSTR;
+	typedef typename ThisSimpleString::PCYSTR PCYSTR;
 
 public:
-	CStringT() throw() :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
+	StringT() throw() :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
 	}
-	explicit CStringT( IAtlStringMgr* pStringMgr ) throw() :
-		CThisSimpleString( pStringMgr )
+	explicit StringT( StringManagerBase* pStringMgr ) throw() :
+		ThisSimpleString( pStringMgr )
 	{ 
 	}
 
-	CStringT( const VARIANT& varSrc );
-	CStringT( const VARIANT& varSrc, IAtlStringMgr* pStringMgr );
-
-	static void __cdecl Construct( CStringT* pString )
+	static void __cdecl Construct( StringT* pString )
 	{
-		new( pString ) CStringT;
+		new( pString ) StringT;
 	}
 
 	// Copy constructor
-	CStringT( const CStringT& strSrc ) :
-		CThisSimpleString( strSrc )
+	StringT( const StringT& strSrc ) :
+		ThisSimpleString( strSrc )
 	{
 	}
 
-	// Construct from CSimpleStringT
-	operator CSimpleStringT<BaseType, !_CSTRING_IMPL_::_MFCDLLTraitsCheck<BaseType, StringTraits>::c_bIsMFCDLLTraits >&()
+	// Construct from SimpleStringT
+	operator SimpleStringT<BaseType >&()
 	{
-		return *(CSimpleStringT<BaseType, !_CSTRING_IMPL_::_MFCDLLTraitsCheck<BaseType, StringTraits>::c_bIsMFCDLLTraits >*)this;
+		return *(SimpleStringT<BaseType >*)this;
 	}
 	template <bool bMFCDLL>
-	CStringT( __in const CSimpleStringT<BaseType, bMFCDLL>& strSrc ) :
-		CThisSimpleString( strSrc )
+	StringT( const SimpleStringT<BaseType, bMFCDLL>& strSrc ) :
+		ThisSimpleString( strSrc )
 	{
 	}
 
-	CStringT( __in_z_opt const XCHAR* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		if( !CheckImplicitLoad( pszSrc ) )
-		{
-			// nDestLength is in XCHARs
-			*this = pszSrc;
-		}
-	}
-
-	CStringT( __in_z_opt LPCSTR pszSrc, __in IAtlStringMgr* pStringMgr ) :
-		CThisSimpleString( pStringMgr )
+	StringT( const XCHAR* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
 		if( !CheckImplicitLoad( pszSrc ) )
 		{
@@ -1055,8 +1544,18 @@ public:
 		}
 	}
 
-	CSTRING_EXPLICIT CStringT( __in_z_opt const YCHAR* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
+	StringT( LPCSTR pszSrc, StringManagerBase* pStringMgr ) :
+		ThisSimpleString( pStringMgr )
+	{
+		if( !CheckImplicitLoad( pszSrc ) )
+		{
+			// nDestLength is in XCHARs
+			*this = pszSrc;
+		}
+	}
+
+	explicit StringT( const YCHAR* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
 		if( !CheckImplicitLoad( pszSrc ) )
 		{
@@ -1064,8 +1563,8 @@ public:
 		}
 	}
 
-	CStringT( __in_z_opt LPCWSTR pszSrc, __in IAtlStringMgr* pStringMgr ) :
-		CThisSimpleString( pStringMgr )
+	StringT( LPCWSTR pszSrc, StringManagerBase* pStringMgr ) :
+		ThisSimpleString( pStringMgr )
 	{
 		if( !CheckImplicitLoad( pszSrc ) )
 		{
@@ -1076,80 +1575,40 @@ public:
 	// This template will compile only for
 	// class SystemString == System::String
 
-#if defined(__cplusplus_cli)
-
-	template <class SystemString>
-	CStringT( SystemString^ pString ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		cli::pin_ptr<const System::Char> pChar = PtrToStringChars( pString );
-		const wchar_t *psz = pChar;
-		*this = psz;
-	}
-
-#elif defined(_MANAGED)
-
-	template<class SystemString>
-	CStringT( SystemString __gc* pString ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{		
-		const wchar_t __pin* psz = PtrToStringChars( pString );
-		*this = psz;
-	}
-
-#endif
-
-	CSTRING_EXPLICIT CStringT( const unsigned char* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		*this = reinterpret_cast< const char* >( pszSrc );
-	}
-//ctors to prevent from oldSyntax template ctor (above) hijack certain types.
-//MFC dll instantiate all CStringT methods inside the dll and declares dllimport for 
-//all methods in user build (see afxstr.h), so need to include the methods in MFC dll builds.
-#if defined(_AFXDLL) && defined(_MFC_DLL_BLD) || !defined(__cplusplus_cli) && defined(_MANAGED)
-
-	/*CSTRING_EXPLICIT*/ CStringT( __in_z_opt char* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		const char *psz = reinterpret_cast< const char* >( pszSrc );
-		if (!CheckImplicitLoad( psz ))
-		{
-			*this = psz;
-		}
-	}
-
-	CSTRING_EXPLICIT CStringT( __in_z_opt unsigned char* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		const char *psz = reinterpret_cast< const char* >( pszSrc );
-		if (!CheckImplicitLoad( psz ))
-		{
-			*this = psz;
-		}
-	}
-
-	CSTRING_EXPLICIT CStringT( __in_z_opt wchar_t* pszSrc ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
-	{
-		const wchar_t *psz = reinterpret_cast< const wchar_t* >( pszSrc );
-		if (!CheckImplicitLoad( psz ))
-		{
-			*this = psz;
-		}
-	}
-#endif
-
-	CStringT( __in_z_opt const unsigned char* pszSrc, __in IAtlStringMgr* pStringMgr ) :
-		CThisSimpleString( pStringMgr )
+	explicit StringT( const unsigned char* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
 		*this = reinterpret_cast< const char* >( pszSrc );
 	}
 
-	CSTRING_EXPLICIT CStringT( __in char ch, __in int nLength = 1 ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
+	explicit StringT( char* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
-		ATLASSERT( nLength >= 0 );
+		*this = reinterpret_cast< const char *>( pszSrc );
+	}
+
+	explicit StringT( unsigned char* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
+	{
+		*this = reinterpret_cast< const char *>( pszSrc );
+	}
+
+	explicit StringT( wchar_t* pszSrc ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
+	{
+		*this = reinterpret_cast< const wchar_t* >( pszSrc );
+	}
+
+	StringT( const unsigned char* pszSrc, StringManagerBase* pStringMgr ) :
+		ThisSimpleString( pStringMgr )
+	{
+		*this = reinterpret_cast< const char* >( pszSrc );
+	}
+
+	explicit StringT( char ch, int nLength = 1 ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
+	{
+		_ASSERT( nLength >= 0 );
 		if( nLength > 0 )
 		{
 			PXSTR pszBuffer = GetBuffer( nLength );
@@ -1158,10 +1617,10 @@ public:
 		}
 	}
 
-	CSTRING_EXPLICIT CStringT( __in wchar_t ch, __in int nLength = 1 ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
+	explicit StringT( wchar_t ch, int nLength = 1 ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
-		ATLASSERT( nLength >= 0 );
+		_ASSERT( nLength >= 0 );
 		if( nLength > 0 )
 		{			
 			//Convert ch to the BaseType
@@ -1197,25 +1656,24 @@ public:
 		}
 	}
 
-	CStringT( __in_ecount(nLength) const XCHAR* pch, __in int nLength ) :
-		CThisSimpleString( pch, nLength, StringTraits::GetDefaultManager() )
+	StringT( const XCHAR* pch, int nLength ) :
+		ThisSimpleString( pch, nLength, StringTraits::GetDefaultManager() )
 	{
 	}
 
-	CStringT( __in_ecount(nLength) const XCHAR* pch, __in int nLength, __in IAtlStringMgr* pStringMgr ) :
-		CThisSimpleString( pch, nLength, pStringMgr )
+	StringT( const XCHAR* pch, int nLength, StringManagerBase* pStringMgr ) :
+		ThisSimpleString( pch, nLength, pStringMgr )
 	{
 	}
 
-	CStringT( __in_ecount(nLength) const YCHAR* pch, __in int nLength ) :
-		CThisSimpleString( StringTraits::GetDefaultManager() )
+	StringT( const YCHAR* pch, int nLength ) :
+		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
-		ATLASSERT( nLength >= 0 );
+		_ASSERT( nLength >= 0 );
 		if( nLength > 0 )
 		{
-			ATLASSERT( AtlIsValidAddress( pch, nLength*sizeof( YCHAR ), FALSE ) );
 			if(pch == NULL)
-				AtlThrow(E_INVALIDARG);
+				_ASSERT(0);
 
 			int nDestLength = StringTraits::GetBaseTypeLength( pch, nLength );
 			PXSTR pszBuffer = GetBuffer( nDestLength );
@@ -1224,15 +1682,14 @@ public:
 		}
 	}
 
-	CStringT( __in_ecount(nLength) const YCHAR* pch, __in int nLength, __in IAtlStringMgr* pStringMgr ) :
-		CThisSimpleString( pStringMgr )
+	StringT( const YCHAR* pch, int nLength, StringManagerBase* pStringMgr ) :
+		ThisSimpleString( pStringMgr )
 	{
-		ATLASSERT( nLength >= 0 );
+		_ASSERT( nLength >= 0 );
 		if( nLength > 0 )
 		{
-			ATLASSERT( AtlIsValidAddress( pch, nLength*sizeof( YCHAR ), FALSE ) );
 			if(pch == NULL)
-				AtlThrow(E_INVALIDARG);
+				_ASSERT(0);
 
 			int nDestLength = StringTraits::GetBaseTypeLength( pch, nLength );
 			PXSTR pszBuffer = GetBuffer( nDestLength );
@@ -1242,34 +1699,34 @@ public:
 	}
 
 	// Destructor
-	~CStringT() throw()
+	~StringT() throw()
 	{
 	}
 
 	// Assignment operators
-	CStringT& operator=( __in const CStringT& strSrc )
+	StringT& operator=( const StringT& strSrc )
 	{
-		CThisSimpleString::operator=( strSrc );
+		ThisSimpleString::operator=( strSrc );
 
 		return( *this );
 	}
 	
 	template <bool bMFCDLL>
-	CStringT& operator=( __in const CSimpleStringT<BaseType, bMFCDLL>& strSrc )
+	StringT& operator=( const SimpleStringT<BaseType, bMFCDLL>& strSrc )
 	{
-		CThisSimpleString::operator=( strSrc );
+		ThisSimpleString::operator=( strSrc );
 
 		return( *this );
 	}
 
-	CStringT& operator=( __in_z_opt PCXSTR pszSrc )
+	StringT& operator=( PCXSTR pszSrc )
 	{
-		CThisSimpleString::operator=( pszSrc );
+		ThisSimpleString::operator=( pszSrc );
 
 		return( *this );
 	}
 
-	CStringT& operator=( __in_z_opt PCYSTR pszSrc )
+	StringT& operator=( PCYSTR pszSrc )
 	{
 		// nDestLength is in XCHARs
 		int nDestLength = (pszSrc != NULL) ? StringTraits::GetBaseTypeLength( pszSrc ) : 0;
@@ -1287,88 +1744,86 @@ public:
 		return( *this );
 	}
 
-	CStringT& operator=( __in_z_opt const unsigned char* pszSrc )
+	StringT& operator=( const unsigned char* pszSrc )
 	{
 		return( operator=( reinterpret_cast< const char* >( pszSrc ) ) );
 	}
 
-	CStringT& operator=( __in char ch )
+	StringT& operator=( char ch )
 	{
 		char ach[2] = { ch, 0 };
 
 		return( operator=( ach ) );
 	}
 
-	CStringT& operator=( __in wchar_t ch )
+	StringT& operator=( wchar_t ch )
 	{
 		wchar_t ach[2] = { ch, 0 };
 
 		return( operator=( ach ) );
 	}
 
-	CStringT& operator=( __in const VARIANT& var );
-
-	CStringT& operator+=( __in const CThisSimpleString& str )
+	StringT& operator+=( const ThisSimpleString& str )
 	{
-		CThisSimpleString::operator+=( str );
+		ThisSimpleString::operator+=( str );
 
 		return( *this );
 	}
 	template <bool bMFCDLL>
-	CStringT& operator+=( __in const CSimpleStringT<BaseType, bMFCDLL>& str )
+	StringT& operator+=( const SimpleStringT<BaseType, bMFCDLL>& str )
 	{
-		CThisSimpleString::operator+=( str );
+		ThisSimpleString::operator+=( str );
 
 		return( *this );
 	}
 	
-	CStringT& operator+=( __in_z_opt PCXSTR pszSrc )
+	StringT& operator+=( PCXSTR pszSrc )
 	{
-		CThisSimpleString::operator+=( pszSrc );
+		ThisSimpleString::operator+=( pszSrc );
 
 		return( *this );
 	}
 	template< int t_nSize >
-	CStringT& operator+=( __in const CStaticString< XCHAR, t_nSize >& strSrc )
+	StringT& operator+=( const StaticString< XCHAR, t_nSize >& strSrc )
 	{
-		CThisSimpleString::operator+=( strSrc );
+		ThisSimpleString::operator+=( strSrc );
 
 		return( *this );
 	}
-	CStringT& operator+=( __in_z_opt PCYSTR pszSrc )
+	StringT& operator+=( PCYSTR pszSrc )
 	{
-		CStringT str( pszSrc, GetManager() );
+		StringT str( pszSrc, GetManager() );
 
 		return( operator+=( str ) );
 	}
 
-	CStringT& operator+=( __in char ch )
+	StringT& operator+=( char ch )
 	{
-		CThisSimpleString::operator+=( ch );
+		ThisSimpleString::operator+=( ch );
 
 		return( *this );
 	}
 
-	CStringT& operator+=( __in unsigned char ch )
+	StringT& operator+=( unsigned char ch )
 	{
-		CThisSimpleString::operator+=( ch );
+		ThisSimpleString::operator+=( ch );
 
 		return( *this );
 	}
 
-	CStringT& operator+=( __in wchar_t ch )
+	StringT& operator+=( wchar_t ch )
 	{
-		CThisSimpleString::operator+=( ch );
+		ThisSimpleString::operator+=( ch );
 
 		return( *this );
 	}
 
-	CStringT& operator+=( __in const VARIANT& var );
+	StringT& operator+=( const VARIANT& var );
 
 	// Override from base class
-	IAtlStringMgr* GetManager() const throw()
+	StringManagerBase* GetManager() const throw()
 	{
-		IAtlStringMgr* pStringMgr = CThisSimpleString::GetManager();
+		StringManagerBase* pStringMgr = ThisSimpleString::GetManager();
 		if(pStringMgr) { return pStringMgr; }
 
 		pStringMgr = StringTraits::GetDefaultManager();
@@ -1377,34 +1832,32 @@ public:
 
 	// Comparison
 
-	int Compare( __in_z_opt PCXSTR psz ) const
+	int Compare( PCXSTR psz ) const
 	{
-		ATLENSURE( AtlIsValidString( psz ) );
 		return( StringTraits::StringCompare( GetString(), psz ) );
 	}
 
-	int CompareNoCase( __in_z_opt PCXSTR psz ) const throw()
+	int CompareNoCase( PCXSTR psz ) const throw()
 	{
-		ATLASSERT( AtlIsValidString( psz ) );
 		return( StringTraits::StringCompareIgnore( GetString(), psz ) );
 	}
 
-	int Collate( __in_z_opt PCXSTR psz ) const throw()
+	int Collate( PCXSTR psz ) const throw()
 	{
-		ATLASSERT( AtlIsValidString( psz ) );
+		_ASSERT( AtlIsValidString( psz ) );
 		return( StringTraits::StringCollate( GetString(), psz ) );
 	}
 
-	int CollateNoCase( __in_z_opt PCXSTR psz ) const throw()
+	int CollateNoCase( PCXSTR psz ) const throw()
 	{
-		ATLASSERT( AtlIsValidString( psz ) );
+		_ASSERT( AtlIsValidString( psz ) );
 		return( StringTraits::StringCollateIgnore( GetString(), psz ) );
 	}
 
 	// Advanced manipulation
 
 	// Delete 'nCount' characters, starting at index 'iIndex'
-	int Delete( __in int iIndex, __in int nCount = 1 )
+	int Delete( int iIndex, int nCount = 1 )
 	{
 		if( iIndex < 0 )
 			iIndex = 0;
@@ -1413,7 +1866,7 @@ public:
 			nCount = 0;
 
 		int nLength = GetLength();
-		if( (::ATL::AtlAddThrow(nCount, iIndex)) > nLength )
+		if(nCount + iIndex > nLength )
 		{
 			nCount = nLength-iIndex;
 		}
@@ -1422,7 +1875,7 @@ public:
 			int nNewLength = nLength-nCount;
 			int nXCHARsToCopy = nLength-(iIndex+nCount)+1;
 			PXSTR pszBuffer = GetBuffer();
-			Checked::memmove_s( pszBuffer+iIndex, nXCHARsToCopy*sizeof( XCHAR ), 
+			memmove_s( pszBuffer+iIndex, nXCHARsToCopy*sizeof( XCHAR ), 
 				pszBuffer+iIndex+nCount, nXCHARsToCopy*sizeof( XCHAR ) );
 			ReleaseBufferSetLength( nNewLength );
 		}
@@ -1431,7 +1884,7 @@ public:
 	}
 
 	// Insert character 'ch' before index 'iIndex'
-	int Insert( __in int iIndex, __in XCHAR ch )
+	int Insert( int iIndex, XCHAR ch )
 	{
 		if( iIndex < 0 )
 			iIndex = 0;
@@ -1445,7 +1898,7 @@ public:
 		PXSTR pszBuffer = GetBuffer( nNewLength );
 
 		// move existing bytes down 
-        Checked::memmove_s( pszBuffer+iIndex+1, (nNewLength-iIndex)*sizeof( XCHAR ), 
+        memmove_s( pszBuffer+iIndex+1, (nNewLength-iIndex)*sizeof( XCHAR ), 
 			pszBuffer+iIndex, (nNewLength-iIndex)*sizeof( XCHAR ) );
 		pszBuffer[iIndex] = ch;
 
@@ -1455,7 +1908,7 @@ public:
 	}
 
 	// Insert string 'psz' before index 'iIndex'
-	int Insert( __in int iIndex, __in PCXSTR psz )
+	int Insert( int iIndex, PCXSTR psz )
 	{
 		if( iIndex < 0 )
 			iIndex = 0;
@@ -1474,9 +1927,9 @@ public:
 
 			PXSTR pszBuffer = GetBuffer( nNewLength );
 			// move existing bytes down 
-            Checked::memmove_s( pszBuffer+iIndex+nInsertLength, (nNewLength-iIndex-nInsertLength+1)*sizeof( XCHAR ), 
+            memmove_s( pszBuffer+iIndex+nInsertLength, (nNewLength-iIndex-nInsertLength+1)*sizeof( XCHAR ), 
 				pszBuffer+iIndex, (nNewLength-iIndex-nInsertLength+1)*sizeof( XCHAR ) );
-			Checked::memcpy_s( pszBuffer+iIndex, nInsertLength*sizeof( XCHAR ), 
+			memcpy_s( pszBuffer+iIndex, nInsertLength*sizeof( XCHAR ), 
 				psz, nInsertLength*sizeof( XCHAR ) );
 			ReleaseBufferSetLength( nNewLength );
 		}
@@ -1485,7 +1938,7 @@ public:
 	}
 
 	// Replace all occurrences of character 'chOld' with character 'chNew'
-	int Replace( __in XCHAR chOld, __in XCHAR chNew )
+	int Replace( XCHAR chOld, XCHAR chNew )
 	{
 		int nCount = 0;
 
@@ -1523,7 +1976,7 @@ public:
 	}
 
 	// Replace all occurrences of string 'pszOld' with string 'pszNew'
-	int Replace( __in PCXSTR pszOld, __in PCXSTR pszNew )
+	int Replace( PCXSTR pszOld, PCXSTR pszNew )
 	{
 		// can't have empty or NULL lpszOld
 
@@ -1571,9 +2024,9 @@ public:
 				while( (pszTarget = StringTraits::StringFindString( pszStart, pszOld ) ) != NULL )
 				{
 					int nBalance = nOldLength-int(pszTarget-pszBuffer+nSourceLen);
-                    Checked::memmove_s( pszTarget+nReplacementLen, nBalance*sizeof( XCHAR ), 
+                    memmove_s( pszTarget+nReplacementLen, nBalance*sizeof( XCHAR ), 
 						pszTarget+nSourceLen, nBalance*sizeof( XCHAR ) );
-					Checked::memcpy_s( pszTarget, nReplacementLen*sizeof( XCHAR ), 
+					memcpy_s( pszTarget, nReplacementLen*sizeof( XCHAR ), 
 						pszNew, nReplacementLen*sizeof( XCHAR ) );
 					pszStart = pszTarget+nReplacementLen;
 					pszTarget[nReplacementLen+nBalance] = 0;
@@ -1581,7 +2034,7 @@ public:
 				}
 				pszStart += StringTraits::SafeStringLen( pszStart )+1;
 			}
-			ATLASSERT( pszBuffer[nNewLength] == 0 );
+			_ASSERT( pszBuffer[nNewLength] == 0 );
 			ReleaseBufferSetLength( nNewLength );
 		}
 
@@ -1589,7 +2042,7 @@ public:
 	}
 
 	// Remove all occurrences of character 'chRemove'
-	int Remove( __in XCHAR chRemove )
+	int Remove( XCHAR chRemove )
 	{
 		int nLength = GetLength();
 		PXSTR pszBuffer = GetBuffer( nLength );
@@ -1624,18 +2077,18 @@ public:
 		return( nCount );
 	}
 
-	CStringT Tokenize( __in PCXSTR pszTokens, __inout int& iStart ) const
+	StringT Tokenize( PCXSTR pszTokens, int& iStart ) const
 	{
-		ATLASSERT( iStart >= 0 );
+		_ASSERT( iStart >= 0 );
 			
 		if(iStart < 0)
-			AtlThrow(E_INVALIDARG);			
+			_ASSERT(0);
 			
 		if( (pszTokens == NULL) || (*pszTokens == (XCHAR)0) )
 		{
 			if (iStart < GetLength())
 			{
-				return( CStringT( GetString()+iStart, GetManager() ) );
+				return( StringT( GetString()+iStart, GetManager() ) );
 			}
 		}
 		else
@@ -1664,16 +2117,16 @@ public:
 		// return empty string, done tokenizing
 		iStart = -1;
 
-		return( CStringT( GetManager() ) );
+		return( StringT( GetManager() ) );
 	}
 
 	// find routines
 
 	// Find the first occurrence of character 'ch', starting at index 'iStart'
-	int Find( __in XCHAR ch, __in int iStart = 0 ) const throw()
+	int Find( XCHAR ch, int iStart = 0 ) const throw()
 	{
 		// iStart is in XCHARs
-		ATLASSERT( iStart >= 0 );
+		_ASSERT( iStart >= 0 );
 
 		// nLength is in XCHARs
 		int nLength = GetLength();
@@ -1692,11 +2145,11 @@ public:
 	// look for a specific sub-string
 
 	// Find the first occurrence of string 'pszSub', starting at index 'iStart'
-	int Find( __in PCXSTR pszSub, __in int iStart = 0 ) const throw()
+	int Find( PCXSTR pszSub, int iStart = 0 ) const throw()
 	{
 		// iStart is in XCHARs
-		ATLASSERT( iStart >= 0 );
-		ATLASSERT( AtlIsValidString( pszSub ) );
+		_ASSERT( iStart >= 0 );
+		_ASSERT( AtlIsValidString( pszSub ) );
 
 		if(pszSub == NULL)
 		{
@@ -1717,15 +2170,15 @@ public:
 	}
 
 	// Find the first occurrence of any of the characters in string 'pszCharSet'
-	int FindOneOf( __in PCXSTR pszCharSet ) const throw()
+	int FindOneOf( PCXSTR pszCharSet ) const throw()
 	{
-		ATLASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( AtlIsValidString( pszCharSet ) );
 		PCXSTR psz = StringTraits::StringScanSet( GetString(), pszCharSet );
 		return( (psz == NULL) ? -1 : int( psz-GetString() ) );
 	}
 
 	// Find the last occurrence of character 'ch'
-	int ReverseFind( __in XCHAR ch ) const throw()
+	int ReverseFind( XCHAR ch ) const throw()
 	{
 		// find last single character
 		PCXSTR psz = StringTraits::StringFindCharRev( GetString(), ch );
@@ -1737,7 +2190,7 @@ public:
 	// manipulation
 
 	// Convert the string to uppercase
-	CStringT& MakeUpper()
+	StringT& MakeUpper()
 	{
 		int nLength = GetLength();
 		PXSTR pszBuffer = GetBuffer( nLength );
@@ -1748,7 +2201,7 @@ public:
 	}
 
 	// Convert the string to lowercase
-	CStringT& MakeLower()
+	StringT& MakeLower()
 	{
 		int nLength = GetLength();
 		PXSTR pszBuffer = GetBuffer( nLength );
@@ -1759,7 +2212,7 @@ public:
 	}
 
 	// Reverse the string
-	CStringT& MakeReverse()
+	StringT& MakeReverse()
 	{
 		int nLength = GetLength();
 		PXSTR pszBuffer = GetBuffer( nLength );
@@ -1772,7 +2225,7 @@ public:
 	// trimming
 
 	// Remove all trailing whitespace
-	CStringT& TrimRight()
+	StringT& TrimRight()
 	{
 		// find beginning of trailing spaces by starting
 		// at beginning (DBCS aware)
@@ -1806,7 +2259,7 @@ public:
 	}
 
 	// Remove all leading whitespace
-	CStringT& TrimLeft()
+	StringT& TrimLeft()
 	{
 		// find first non-space character
 
@@ -1824,7 +2277,7 @@ public:
 			PXSTR pszBuffer = GetBuffer( GetLength() );
 			psz = pszBuffer+iFirst;
 			int nDataLength = GetLength()-iFirst;
-            Checked::memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
+            memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
 				psz, (nDataLength+1)*sizeof( XCHAR ) );
 			ReleaseBufferSetLength( nDataLength );
 		}
@@ -1833,19 +2286,19 @@ public:
 	}
 
 	// Remove all leading and trailing whitespace
-	CStringT& Trim()
+	StringT& Trim()
 	{
 		return( TrimRight().TrimLeft() );
 	}
 
 	// Remove all leading and trailing occurrences of character 'chTarget'
-	CStringT& Trim( __in XCHAR chTarget )
+	StringT& Trim( XCHAR chTarget )
 	{
 		return( TrimRight( chTarget ).TrimLeft( chTarget ) );
 	}
 
 	// Remove all leading and trailing occurrences of any of the characters in the string 'pszTargets'
-	CStringT& Trim( __in PCXSTR pszTargets )
+	StringT& Trim( PCXSTR pszTargets )
 	{
 		return( TrimRight( pszTargets ).TrimLeft( pszTargets ) );
 	}
@@ -1853,7 +2306,7 @@ public:
 	// trimming anything (either side)
 
 	// Remove all trailing occurrences of character 'chTarget'
-	CStringT& TrimRight( __in XCHAR chTarget )
+	StringT& TrimRight( XCHAR chTarget )
 	{
 		// find beginning of trailing matches
 		// by starting at beginning (DBCS aware)
@@ -1888,7 +2341,7 @@ public:
 	}
 
 	// Remove all trailing occurrences of any of the characters in string 'pszTargets'
-	CStringT& TrimRight( __in PCXSTR pszTargets )
+	StringT& TrimRight( PCXSTR pszTargets )
 	{
 		// if we're not trimming anything, we're not doing any work
 		if( (pszTargets == NULL) || (*pszTargets == 0) )
@@ -1929,7 +2382,7 @@ public:
 	}
 
 	// Remove all leading occurrences of character 'chTarget'
-	CStringT& TrimLeft( __in XCHAR chTarget )
+	StringT& TrimLeft( XCHAR chTarget )
 	{
 		// find first non-matching character
 		PCXSTR psz = GetString();
@@ -1946,7 +2399,7 @@ public:
 			PXSTR pszBuffer = GetBuffer( GetLength() );
 			psz = pszBuffer+iFirst;
 			int nDataLength = GetLength()-iFirst;
-            Checked::memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
+            memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
 				psz, (nDataLength+1)*sizeof( XCHAR ) );
 			ReleaseBufferSetLength( nDataLength );
 		}
@@ -1955,7 +2408,7 @@ public:
 	}
 
 	// Remove all leading occurrences of any of the characters in string 'pszTargets'
-	CStringT& TrimLeft( __in PCXSTR pszTargets )
+	StringT& TrimLeft( PCXSTR pszTargets )
 	{
 		// if we're not trimming anything, we're not doing any work
 		if( (pszTargets == NULL) || (*pszTargets == 0) )
@@ -1976,7 +2429,7 @@ public:
 			PXSTR pszBuffer = GetBuffer( GetLength() );
 			psz = pszBuffer+iFirst;
 			int nDataLength = GetLength()-iFirst;
-            Checked::memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
+            memmove_s( pszBuffer, (nDataLength+1)*sizeof( XCHAR ), 
 				psz, (nDataLength+1)*sizeof( XCHAR ) );
 			ReleaseBufferSetLength( nDataLength );
 		}
@@ -1985,33 +2438,33 @@ public:
 	}
 
 	// Convert the string to the OEM character set
-	void AnsiToOem()
-	{
-		int nLength = GetLength();
-		PXSTR pszBuffer = GetBuffer( nLength );
-		StringTraits::ConvertToOem( pszBuffer, nLength+1 );
-		ReleaseBufferSetLength( nLength );
-	}
+	//void AnsiToOem()
+	//{
+	//	int nLength = GetLength();
+	//	PXSTR pszBuffer = GetBuffer( nLength );
+	//	StringTraits::ConvertToOem( pszBuffer, nLength+1 );
+	//	ReleaseBufferSetLength( nLength );
+	//}
 
 	// Convert the string to the ANSI character set
-	void OemToAnsi()
-	{
-		int nLength = GetLength();
-		PXSTR pszBuffer = GetBuffer( nLength );
-		StringTraits::ConvertToAnsi( pszBuffer, nLength+1 );
-		ReleaseBufferSetLength( nLength );
-	}
+	//void OemToAnsi()
+	//{
+	//	int nLength = GetLength();
+	//	PXSTR pszBuffer = GetBuffer( nLength );
+	//	StringTraits::ConvertToAnsi( pszBuffer, nLength+1 );
+	//	ReleaseBufferSetLength( nLength );
+	//}
 
 	// Very simple sub-string extraction
 
 	// Return the substring starting at index 'iFirst'
-	CStringT Mid( __in int iFirst ) const
+	StringT Mid( int iFirst ) const
 	{
 		return( Mid( iFirst, GetLength()-iFirst ) );
 	}
 
 	// Return the substring starting at index 'iFirst', with length 'nCount'
-	CStringT Mid( __in int iFirst, __in int nCount ) const
+	StringT Mid( int iFirst, int nCount ) const
 	{
 		// nCount is in XCHARs
 
@@ -2021,7 +2474,7 @@ public:
 		if (nCount < 0)
 			nCount = 0;
 
-		if( (::ATL::AtlAddThrow(iFirst,nCount)) > GetLength() )
+		if( iFirst + nCount > GetLength() )
 		{
 			nCount = GetLength()-iFirst;
 		}
@@ -2030,7 +2483,7 @@ public:
 			nCount = 0;
 		}
 
-		ATLASSERT( (nCount == 0) || ((iFirst+nCount) <= GetLength()) );
+		_ASSERT( (nCount == 0) || ((iFirst+nCount) <= GetLength()) );
 
 		// optimize case of returning entire string
 		if( (iFirst == 0) && ((iFirst+nCount) == GetLength()) )
@@ -2038,11 +2491,11 @@ public:
 			return( *this );
 		}
 
-		return( CStringT( GetString()+iFirst, nCount, GetManager() ) );
+		return( StringT( GetString()+iFirst, nCount, GetManager() ) );
 	}
 
 	// Return the substring consisting of the rightmost 'nCount' characters
-	CStringT Right( __in int nCount ) const
+	StringT Right( int nCount ) const
 	{
 		// nCount is in XCHARs
 		if (nCount < 0)
@@ -2054,11 +2507,11 @@ public:
 			return( *this );
 		}
 
-		return( CStringT( GetString()+nLength-nCount, nCount, GetManager() ) );
+		return( StringT( GetString()+nLength-nCount, nCount, GetManager() ) );
 	}
 
 	// Return the substring consisting of the leftmost 'nCount' characters
-	CStringT Left( __in int nCount ) const
+	StringT Left( int nCount ) const
 	{
 		// nCount is in XCHARs
 		if (nCount < 0)
@@ -2070,144 +2523,85 @@ public:
 			return( *this );
 		}
 
-		return( CStringT( GetString(), nCount, GetManager() ) );
+		return( StringT( GetString(), nCount, GetManager() ) );
 	}
 
 	// Return the substring consisting of the leftmost characters in the set 'pszCharSet'
-	CStringT SpanIncluding( __in PCXSTR pszCharSet ) const
+	StringT SpanIncluding( PCXSTR pszCharSet ) const
 	{
-		ATLASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( AtlIsValidString( pszCharSet ) );
 		if(pszCharSet == NULL)
-			AtlThrow(E_INVALIDARG);
+			_ASSERT(0)
 
 		return( Left( StringTraits::StringSpanIncluding( GetString(), pszCharSet ) ) );
 	}
 
 	// Return the substring consisting of the leftmost characters not in the set 'pszCharSet'
-	CStringT SpanExcluding( __in PCXSTR pszCharSet ) const
+	StringT SpanExcluding( PCXSTR pszCharSet ) const
 	{
-		ATLASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( AtlIsValidString( pszCharSet ) );
 		if(pszCharSet == NULL)
-			AtlThrow(E_INVALIDARG);
+			_ASSERT(0);
 
 		return( Left( StringTraits::StringSpanExcluding( GetString(), pszCharSet ) ) );
  	}
 
 	// Format data using format string 'pszFormat'
-	void __cdecl Format( __in __format_string PCXSTR pszFormat, ... );
+	void __cdecl Format( PCXSTR pszFormat, ... );
 
 	// Format data using format string loaded from resource 'nFormatID'
-	void __cdecl Format( __format_string UINT nFormatID, ... );
+	void __cdecl Format( UINT nFormatID, ... );
 
 	// Append formatted data using format string loaded from resource 'nFormatID'
-	void __cdecl AppendFormat( __in UINT nFormatID, ... );
+	void __cdecl AppendFormat( UINT nFormatID, ... );
 
 	// Append formatted data using format string 'pszFormat'
-	void __cdecl AppendFormat( __in __format_string PCXSTR pszFormat, ... );
-	void AppendFormatV( __in __format_string PCXSTR pszFormat, va_list args )
+	void __cdecl AppendFormat( PCXSTR pszFormat, ... );
+	void AppendFormatV( PCXSTR pszFormat, va_list args )
 	{
-		ATLASSERT( AtlIsValidString( pszFormat ) );
+		_ASSERT( AtlIsValidString( pszFormat ) );
 
 		int nCurrentLength = GetLength();
 		int nAppendLength = StringTraits::GetFormattedLength( pszFormat, args );
 		PXSTR pszBuffer = GetBuffer( nCurrentLength+nAppendLength );
-#if _SECURE_ATL
         StringTraits::Format( pszBuffer+nCurrentLength, 
 			nAppendLength+1, pszFormat, args );
-#else
-		StringTraits::Format( pszBuffer+nCurrentLength, pszFormat, args );
-#endif
 		ReleaseBufferSetLength( nCurrentLength+nAppendLength );
 	}
 
-	void FormatV( __in __format_string PCXSTR pszFormat, va_list args )
+	void FormatV( PCXSTR pszFormat, va_list args )
 	{
-		ATLASSERT( AtlIsValidString( pszFormat ) );
 		if(pszFormat == NULL)
-			AtlThrow(E_INVALIDARG);
+			_ASSERT(0);
 
 		int nLength = StringTraits::GetFormattedLength( pszFormat, args );
 		PXSTR pszBuffer = GetBuffer( nLength );
-#if _SECURE_ATL
         StringTraits::Format( pszBuffer, nLength+1, pszFormat, args );
-#else
-		StringTraits::Format( pszBuffer, pszFormat, args );
-#endif
 		ReleaseBufferSetLength( nLength );
 	}
 
 	// Format a message using format string 'pszFormat'
-	void __cdecl _AFX_FUNCNAME(FormatMessage)( __in __format_string PCXSTR pszFormat, ... );
-
-	// Format a message using format string loaded from resource 'nFormatID'
-	void __cdecl _AFX_FUNCNAME(FormatMessage)( __in UINT nFormatID, ... );
-
-#if defined(_AFX)
-	void __cdecl FormatMessage( __in __format_string PCXSTR pszFormat, ... );
-
-	void __cdecl FormatMessage( __in UINT nFormatID, ... );
-#endif
+	void __cdecl FormatMessage( PCXSTR pszFormat, ... );
 
 	// Format a message using format string 'pszFormat' and va_list
-	void FormatMessageV( __in __format_string PCXSTR pszFormat, va_list* pArgList )
-	{
-		// format message into temporary buffer pszTemp
-		CHeapPtr< XCHAR, CLocalAllocator > pszTemp;
-		DWORD dwResult = StringTraits::_AFX_FUNCNAME(FormatMessage)( FORMAT_MESSAGE_FROM_STRING|
-			FORMAT_MESSAGE_ALLOCATE_BUFFER, pszFormat, 0, 0, reinterpret_cast< PXSTR >( &pszTemp ),
-			0, pArgList );
-		if( dwResult == 0 )
-		{
-			ThrowMemoryException();
-		}
+	//void FormatMessageV( PCXSTR pszFormat, va_list* pArgList )
+	//{
+	//	// format message into temporary buffer pszTemp
+	//	CHeapPtr< XCHAR, CLocalAllocator > pszTemp;
+	//	DWORD dwResult = StringTraits::_AFX_FUNCNAME(FormatMessage)( FORMAT_MESSAGE_FROM_STRING|
+	//		FORMAT_MESSAGE_ALLOCATE_BUFFER, pszFormat, 0, 0, reinterpret_cast< PXSTR >( &pszTemp ),
+	//		0, pArgList );
+	//	if( dwResult == 0 )
+	//	{
+	//		ThrowMemoryException();
+	//	}
 
-		*this = pszTemp;
-	}
+	//	*this = pszTemp;
+	//}
 
-	// OLE BSTR support
-
-	// Allocate a BSTR containing a copy of the string
-	BSTR AllocSysString() const
-	{
-		BSTR bstrResult = StringTraits::AllocSysString( GetString(), GetLength() );
-
-#pragma warning(push)
-#pragma warning(disable:4068)
-#pragma prefast(push)
-#pragma prefast(disable:325, "We are deliberately checking if this has already been allocated")
-		if( bstrResult == NULL )
-		{
-			ThrowMemoryException();
-		}
-#pragma prefast(pop)
-#pragma warning(pop)
-
-		return( bstrResult );
-	}
-
-	BSTR SetSysString( __out BSTR* pbstr ) const
-	{
-		ATLASSERT( AtlIsValidAddress( pbstr, sizeof( BSTR ) ) );
-
-		if( !StringTraits::ReAllocSysString( GetString(), pbstr,
-			GetLength() ) )
-		{
-			ThrowMemoryException();
-		}
-
-#pragma warning(push)
-#pragma warning(disable:4068)
-#pragma prefast(push)
-#pragma prefast(disable:325, "We are deliberately checking if this has already been allocated")
-		ATLASSERT( *pbstr != NULL );
-#pragma prefast(pop)
-#pragma warning(pop)
-
-        return( *pbstr );
-	}
 
 	// Set the string to the value of environment variable 'pszVar'
-	__checkReturn BOOL GetEnvironmentVariable( __in PCXSTR pszVar )
+	BOOL GetEnvironmentVariable( PCXSTR pszVar )
 	{
 		ULONG nLength = StringTraits::GetEnvironmentVariable( pszVar, NULL, 0 );
 		BOOL bRetVal = FALSE;
@@ -2227,82 +2621,36 @@ public:
 		return( bRetVal );
 	}
 
-	// Load the string from resource 'nID'
-	__checkReturn BOOL LoadString( __in UINT nID )
+	friend StringT operator+( const StringT& str1, const StringT& str2 )
 	{
-		HINSTANCE hInst = StringTraits::FindStringResourceInstance( nID );
-		if( hInst == NULL )
-		{
-			return( FALSE );
-		}
-
-		return( LoadString( hInst, nID ) );		
-	}
-
-	// Load the string from resource 'nID' in module 'hInstance'
-	__checkReturn BOOL LoadString( __in HINSTANCE hInstance, __in UINT nID )
-	{
-		const ATLSTRINGRESOURCEIMAGE* pImage = AtlGetStringResourceImage( hInstance, nID );
-		if( pImage == NULL )
-		{
-			return( FALSE );
-		}
-
-		int nLength = StringTraits::GetBaseTypeLength( pImage->achString, pImage->nLength );
-		PXSTR pszBuffer = GetBuffer( nLength );
-		StringTraits::ConvertToBaseType( pszBuffer, nLength, pImage->achString, pImage->nLength );
-		ReleaseBufferSetLength( nLength );
-
-		return( TRUE );
-	}
-
-	// Load the string from resource 'nID' in module 'hInstance', using language 'wLanguageID'
-	__checkReturn BOOL LoadString( __in HINSTANCE hInstance, __in UINT nID, __in WORD wLanguageID )
-	{
-		const ATLSTRINGRESOURCEIMAGE* pImage = AtlGetStringResourceImage( hInstance, nID, wLanguageID );
-		if( pImage == NULL )
-		{
-			return( FALSE );
-		}
-
-		int nLength = StringTraits::GetBaseTypeLength( pImage->achString, pImage->nLength );
-		PXSTR pszBuffer = GetBuffer( nLength );
-		StringTraits::ConvertToBaseType( pszBuffer, nLength, pImage->achString, pImage->nLength );
-		ReleaseBufferSetLength( nLength );
-
-		return( TRUE );
-	}
-
-	friend CStringT operator+( __in const CStringT& str1, __in const CStringT& str2 )
-	{
-		CStringT strResult( str1.GetManager() );
+		StringT strResult( str1.GetManager() );
 
 		Concatenate( strResult, str1, str1.GetLength(), str2, str2.GetLength() );
 
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in const CStringT& str1, __in PCXSTR psz2 )
+	friend StringT operator+( const StringT& str1, PCXSTR psz2 )
 	{
-		CStringT strResult( str1.GetManager() );
+		StringT strResult( str1.GetManager() );
 
 		Concatenate( strResult, str1, str1.GetLength(), psz2, StringLength( psz2 ) );
 
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in PCXSTR psz1, __in const CStringT& str2 )
+	friend StringT operator+( PCXSTR psz1, const StringT& str2 )
 	{
-		CStringT strResult( str2.GetManager() );
+		StringT strResult( str2.GetManager() );
 
 		Concatenate( strResult, psz1, StringLength( psz1 ), str2, str2.GetLength() );
 
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in const CStringT& str1, __in wchar_t ch2 )
+	friend StringT operator+( const StringT& str1, wchar_t ch2 )
 	{
-		CStringT strResult( str1.GetManager() );
+		StringT strResult( str1.GetManager() );
 		XCHAR chTemp = XCHAR( ch2 );
 
 		Concatenate( strResult, str1, str1.GetLength(), &chTemp, 1 );
@@ -2310,9 +2658,9 @@ public:
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in const CStringT& str1, __in char ch2 )
+	friend StringT operator+( const StringT& str1, char ch2 )
 	{
-		CStringT strResult( str1.GetManager() );
+		StringT strResult( str1.GetManager() );
 		XCHAR chTemp = XCHAR( ch2 );
 
 		Concatenate( strResult, str1, str1.GetLength(), &chTemp, 1 );
@@ -2320,9 +2668,9 @@ public:
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in wchar_t ch1, __in const CStringT& str2 )
+	friend StringT operator+( wchar_t ch1, const StringT& str2 )
 	{
-		CStringT strResult( str2.GetManager() );
+		StringT strResult( str2.GetManager() );
 		XCHAR chTemp = XCHAR( ch1 );
 
 		Concatenate( strResult, &chTemp, 1, str2, str2.GetLength() );
@@ -2330,9 +2678,9 @@ public:
 		return( strResult );
 	}
 
-	friend CStringT operator+( __in char ch1, __in const CStringT& str2 )
+	friend StringT operator+( char ch1, const StringT& str2 )
 	{
-		CStringT strResult( str2.GetManager() );
+		StringT strResult( str2.GetManager() );
 		XCHAR chTemp = XCHAR( ch1 );
 
 		Concatenate( strResult, &chTemp, 1, str2, str2.GetLength() );
@@ -2340,171 +2688,154 @@ public:
 		return( strResult );
 	}
 
-	friend bool operator==( __in const CStringT& str1, __in const CStringT& str2 ) throw()
+	friend bool operator==( const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) == 0 );
 	}
 
 	friend bool operator==(
-		__in const CStringT& str1, __in PCXSTR psz2 ) throw()
+		const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) == 0 );
 	}
 
 	friend bool operator==(
-		__in PCXSTR psz1, __in const CStringT& str2 ) throw()
+		PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) == 0 );
 	}
 
 	friend bool operator==(
-		__in const CStringT& str1, __in PCYSTR psz2 ) throw( ... )
+		const StringT& str1, PCYSTR psz2 ) throw( ... )
 	{
-		CStringT str2( psz2, str1.GetManager() );
+		StringT str2( psz2, str1.GetManager() );
 
 		return( str1 == str2 );
 	}
 
 	friend bool operator==(
-		__in PCYSTR psz1, __in const CStringT& str2 ) throw( ... )
+		PCYSTR psz1, const StringT& str2 ) throw( ... )
 	{
-		CStringT str1( psz1, str2.GetManager() );
+		StringT str1( psz1, str2.GetManager() );
 
 		return( str1 == str2 );
 	}
 
 	friend bool operator!=(
-		__in const CStringT& str1, __in const CStringT& str2 ) throw()
+		const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) != 0 );
 	}
 
 	friend bool operator!=(
-		__in const CStringT& str1, __in PCXSTR psz2 ) throw()
+		const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) != 0 );
 	}
 
 	friend bool operator!=(
-		__in PCXSTR psz1, __in const CStringT& str2 ) throw()
+		PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) != 0 );
 	}
 
 	friend bool operator!=(
-		__in const CStringT& str1, __in PCYSTR psz2 ) throw( ... )
+		const StringT& str1, PCYSTR psz2 ) throw( ... )
 	{
-		CStringT str2( psz2, str1.GetManager() );
+		StringT str2( psz2, str1.GetManager() );
 
 		return( str1 != str2 );
 	}
 
 	friend bool operator!=(
-		__in PCYSTR psz1, __in const CStringT& str2 ) throw( ... )
+		PCYSTR psz1, const StringT& str2 ) throw( ... )
 	{
-		CStringT str1( psz1, str2.GetManager() );
+		StringT str1( psz1, str2.GetManager() );
 
 		return( str1 != str2 );
 	}
 
-	friend bool operator<( __in const CStringT& str1, __in const CStringT& str2 ) throw()
+	friend bool operator<( const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) < 0 );
 	}
 
-	friend bool operator<( __in const CStringT& str1, __in PCXSTR psz2 ) throw()
+	friend bool operator<( const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) < 0 );
 	}
 
-	friend bool operator<( __in PCXSTR psz1, __in const CStringT& str2 ) throw()
+	friend bool operator<( PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) > 0 );
 	}
 
-	friend bool operator>( __in const CStringT& str1, __in const CStringT& str2 ) throw()
+	friend bool operator>( const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) > 0 );
 	}
 
-	friend bool operator>( __in const CStringT& str1, __in PCXSTR psz2 ) throw()
+	friend bool operator>( const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) > 0 );
 	}
 
-	friend bool operator>( __in PCXSTR psz1, __in const CStringT& str2 ) throw()
+	friend bool operator>( PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) < 0 );
 	}
 
-	friend bool operator<=( __in const CStringT& str1, __in const CStringT& str2 ) throw()
+	friend bool operator<=( const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) <= 0 );
 	}
 
-	friend bool operator<=( __in const CStringT& str1, __in PCXSTR psz2 ) throw()
+	friend bool operator<=( const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) <= 0 );
 	}
 
-	friend bool operator<=( __in PCXSTR psz1, __in const CStringT& str2 ) throw()
+	friend bool operator<=( PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) >= 0 );
 	}
 
-	friend bool operator>=( __in const CStringT& str1, __in const CStringT& str2 ) throw()
+	friend bool operator>=( const StringT& str1, const StringT& str2 ) throw()
 	{
 		return( str1.Compare( str2 ) >= 0 );
 	}
 
-	friend bool operator>=( __in const CStringT& str1, __in PCXSTR psz2 ) throw()
+	friend bool operator>=( const StringT& str1, PCXSTR psz2 ) throw()
 	{
 		return( str1.Compare( psz2 ) >= 0 );
 	}
 
-	friend bool operator>=( __in PCXSTR psz1, __in const CStringT& str2 ) throw()
+	friend bool operator>=( PCXSTR psz1, const StringT& str2 ) throw()
 	{
 		return( str2.Compare( psz1 ) <= 0 );
 	}
 
-	friend bool operator==( __in XCHAR ch1, __in const CStringT& str2 ) throw()
+	friend bool operator==( XCHAR ch1, const StringT& str2 ) throw()
 	{
 		return( (str2.GetLength() == 1) && (str2[0] == ch1) );
 	}
 
-	friend bool operator==( __in const CStringT& str1, __in XCHAR ch2 ) throw()
+	friend bool operator==( const StringT& str1, XCHAR ch2 ) throw()
 	{
 		return( (str1.GetLength() == 1) && (str1[0] == ch2) );
 	}
 
-	friend bool operator!=( __in XCHAR ch1, __in const CStringT& str2 ) throw()
+	friend bool operator!=( XCHAR ch1, const StringT& str2 ) throw()
 	{
 		return( (str2.GetLength() != 1) || (str2[0] != ch1) );
 	}
 
-	friend bool operator!=( __in const CStringT& str1, __in XCHAR ch2 ) throw()
+	friend bool operator!=( const StringT& str1, XCHAR ch2 ) throw()
 	{
 		return( (str1.GetLength() != 1) || (str1[0] != ch2) );
 	}
 
 private:
-	bool CheckImplicitLoad( __in_opt const void* pv )
-	{
-		bool bRet = false;
-
-		if( (pv != NULL) && IS_INTRESOURCE( pv ) )
-		{
-			UINT nID = LOWORD( reinterpret_cast< DWORD_PTR >( pv ) );
-			if( !LoadString( nID ) )
-			{
-				ATLTRACE( atlTraceString, 2, _T( "Warning: implicit LoadString(%u) failed\n" ), nID );
-			}
-			bRet = true;
-		}
-
-		return( bRet );
-	}
-
 };
 
 #ifndef _CSTRING_BUFFER_SIZE
@@ -2515,9 +2846,9 @@ private:
 #pragma warning(disable : 4793)
 // Format data using format string 'pszFormat'
 template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::Format( __in __format_string PCXSTR pszFormat, ... )
+inline void __cdecl StringT<BaseType, StringTraits>::Format( PCXSTR pszFormat, ... )
 {
-	ATLASSERT( AtlIsValidString( pszFormat ) );
+	_ASSERT( AtlIsValidString( pszFormat ) );
 
 	va_list argList;
 	va_start( argList, pszFormat );
@@ -2525,41 +2856,10 @@ inline void __cdecl CStringT<BaseType, StringTraits>::Format( __in __format_stri
 	va_end( argList );
 }
 
-// Format data using format string loaded from resource 'nFormatID'
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::Format( __format_string UINT nFormatID, ... )
-{
-	CStringT strFormat( GetManager() );
-	ATLVERIFY( strFormat.LoadString( nFormatID ) );
-
-	va_list argList;
-	va_start( argList, nFormatID );
-	FormatV( strFormat, argList );
-	va_end( argList );
-}
-
-// Append formatted data using format string loaded from resource 'nFormatID'
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::AppendFormat( __in UINT nFormatID, ... )
-{
-	va_list argList;
-	va_start( argList, nFormatID );
-
-	CStringT strFormat( GetManager() );
-	ATLVERIFY( strFormat.LoadString( nFormatID ) ); 
-
-	AppendFormatV( strFormat, argList );
-
-	va_end( argList );
-}
-
-
 // Append formatted data using format string 'pszFormat'
 template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::AppendFormat( __in __format_string PCXSTR pszFormat, ... )
+inline void __cdecl StringT<BaseType, StringTraits>::AppendFormat( PCXSTR pszFormat, ... )
 {
-	ATLASSERT( AtlIsValidString( pszFormat ) );
-
 	va_list argList;
 	va_start( argList, pszFormat );
 
@@ -2568,366 +2868,14 @@ inline void __cdecl CStringT<BaseType, StringTraits>::AppendFormat( __in __forma
 	va_end( argList );
 }
 
-// Format a message using format string 'pszFormat'
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::_AFX_FUNCNAME(FormatMessage)( __in __format_string PCXSTR pszFormat, ... )
-{
-	if(pszFormat == NULL)
-		AtlThrow(E_INVALIDARG);
-
-	va_list argList;
-	va_start( argList, pszFormat );
-
-	FormatMessageV( pszFormat, &argList );
-
-	va_end( argList );
-}
-
-#if defined(_AFX)
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::FormatMessage( __in __format_string PCXSTR pszFormat, ... )
-{
-	if(pszFormat == NULL)
-		AtlThrow(E_INVALIDARG);
-
-	va_list argList;
-	va_start( argList, pszFormat );
-
-	FormatMessageV( pszFormat, &argList );
-
-	va_end( argList );
-}
-#endif
-
-// Format a message using format string loaded from resource 'nFormatID'
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::_AFX_FUNCNAME(FormatMessage)( __in UINT nFormatID, ... )
-{
-	// get format string from string table
-	CStringT strFormat( GetManager() );
-	ATLVERIFY( strFormat.LoadString( nFormatID ) );
-
-	if(strFormat.GetLength() == 0)
-		AtlThrow(E_INVALIDARG);
-
-	va_list argList;
-	va_start( argList, nFormatID );
-
-	FormatMessageV( strFormat, &argList );
-
-	va_end( argList );
-}
-
-#if defined(_AFX)
-template< typename BaseType, class StringTraits >
-inline void __cdecl CStringT<BaseType, StringTraits>::FormatMessage( __in UINT nFormatID, ... )
-{
-	// get format string from string table
-	CStringT strFormat( GetManager() );
-	ATLVERIFY( strFormat.LoadString( nFormatID ) );
-
-	if(strFormat.GetLength() == 0)
-		AtlThrow(E_INVALIDARG);
-
-	va_list argList;
-	va_start( argList, nFormatID );
-
-	FormatMessageV( strFormat, &argList );
-
-	va_end( argList );
-}
-#endif
-
-#pragma warning( pop )
-
-class IFixedStringLog
-{
-public:
-	virtual void OnAllocateSpill( int nActualChars, int nFixedChars, const CStringData* pData ) throw() = 0;
-	virtual void OnReallocateSpill( int nActualChars, int nFixedChars, const CStringData* pData ) throw() = 0;
-};
-
-class CFixedStringMgr :
-	public IAtlStringMgr
-{
-public:
-	CFixedStringMgr( __in CStringData* pData, __in int nChars, __in_opt IAtlStringMgr* pMgr = NULL ) throw() :
-		m_pData( pData ),
-		m_pMgr( pMgr )
-	{
-		m_pData->nRefs = -1;
-		m_pData->nDataLength = 0;
-		m_pData->nAllocLength = nChars;
-		m_pData->pStringMgr = this;
-		*static_cast< wchar_t* >( m_pData->data() ) = 0;
-	}
-	virtual ~CFixedStringMgr() throw()
-	{
-	}
-
-// IAtlStringMgr
-public:
-	virtual CStringData* Allocate( __in int nChars, __in int nCharSize ) throw()
-	{
-		ATLASSUME( m_pData->nRefs == -1 );
-		ATLASSUME( m_pData->nDataLength == 0 );
-		ATLASSERT(nChars>=0);
-
-		/* no way to report problems here; allocate empty */
-		if(nChars<0)
-		{
-			nChars=0;
-		}
-
-		if( nChars > m_pData->nAllocLength )
-		{
-			if( s_pLog != NULL )
-			{
-				s_pLog->OnAllocateSpill( nChars, m_pData->nAllocLength, m_pData );
-			}
-			CStringData* pData = m_pMgr->Allocate( nChars, nCharSize );
-			if( pData != NULL )
-			{
-				pData->pStringMgr = this;
-				pData->nRefs = -1;  // Locked
-			}
-
-			return pData;
-		}
-
-		m_pData->nRefs = -1;  // Locked
-		m_pData->nDataLength = 0;
-		m_pData->pStringMgr = this;
-
-		return m_pData;
-	}
-	virtual void Free( __inout CStringData* pData ) throw()
-	{
-		ATLASSERT( pData->nRefs <= 0 );
-		if( pData != m_pData )
-		{
-			// Must have been allocated from the backup manager
-			pData->pStringMgr = m_pMgr;
-			m_pMgr->Free( pData );
-		}
-
-		// Always make sure the fixed buffer is ready to be used as the nil string.
-		m_pData->nRefs = -1;
-		m_pData->nDataLength = 0;
-		*static_cast< wchar_t* >( m_pData->data() ) = 0;
-	}
-	virtual CStringData* Reallocate( __inout CStringData* pData, __in int nChars, __in int nCharSize ) throw()
-	{
-		CStringData* pNewData;
-
-		ATLASSERT( pData->nRefs < 0 );
-		if( pData != m_pData )
-		{
-			pData->pStringMgr = m_pMgr;
-			pNewData = m_pMgr->Reallocate( pData, nChars, nCharSize );
-			if( pNewData == NULL )
-			{
-				pData->pStringMgr = this;
-			}
-			else
-			{
-				pNewData->pStringMgr = this;
-			}
-		}
-		else
-		{
-			if( nChars > pData->nAllocLength )
-			{
-				if( s_pLog != NULL )
-				{
-					s_pLog->OnReallocateSpill( nChars, pData->nAllocLength, pData );
-				}
-				pNewData = m_pMgr->Allocate( nChars, nCharSize );
-				if( pNewData == NULL )
-				{
-					return NULL;
-				}
-
-				// Copy the string data 
-                Checked::memcpy_s( pNewData->data(), nChars*nCharSize, 
-					pData->data(), (pData->nAllocLength+1)*nCharSize );
-				pNewData->nRefs = pData->nRefs;  // Locked
-				pNewData->pStringMgr = this;
-				pNewData->nDataLength = pData->nDataLength;
-			}
-			else
-			{
-				// Don't do anything if the buffer is already big enough.
-				pNewData = pData;
-			}
-		}
-
-		return pNewData;
-	}
-	virtual CStringData* GetNilString() throw()
-	{
-		ATLASSUME( m_pData->nRefs == -1 );
-		ATLASSUME( m_pData->nDataLength == 0 );
-
-		return m_pData;
-	}
-	virtual IAtlStringMgr* Clone() throw()
-	{
-		return m_pMgr;
-	}
-
-public:
-	static IFixedStringLog* s_pLog;
-
-	IAtlStringMgr* GetBackupManager() const throw()
-	{
-		return m_pMgr;
-	}
-
-protected:
-	IAtlStringMgr* m_pMgr;
-	CStringData* m_pData;
-};
-
-__declspec( selectany ) IFixedStringLog* CFixedStringMgr::s_pLog = NULL;
-
-#pragma warning( push )
-#pragma warning( disable: 4355 )  // 'this' used in base member initializer list
-
-template< class StringType, int t_nChars >
-class CFixedStringT :
-	private CFixedStringMgr,  // This class must be first, since it needs to be initialized before StringType
-	public StringType
-{
-public:
-	CFixedStringT() throw() :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( static_cast< IAtlStringMgr* >( this ) )
-	{
-	}
-
-	explicit CFixedStringT( __in IAtlStringMgr* pStringMgr ) throw() :
-		CFixedStringMgr( &m_data, t_nChars, pStringMgr ),
-		StringType( static_cast< IAtlStringMgr* >( this ) )
-	{
-	}
-
-	CFixedStringT( __in const CFixedStringT< StringType, t_nChars >& str ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( str.GetString(), str.GetLength(), static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	CFixedStringT( __in const StringType& str ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( str.GetString(), str.GetLength(), static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	CFixedStringT( __in const typename StringType::XCHAR* psz ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( psz, static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	CFixedStringT( __in_ecount(nLength) const typename StringType::XCHAR* psz, __in int nLength ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( psz, nLength, static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	explicit CFixedStringT( __in const typename StringType::YCHAR* psz ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( psz, static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	explicit CFixedStringT( __in const unsigned char* psz ) :
-		CFixedStringMgr( &m_data, t_nChars, StrTraits::GetDefaultManager() ),
-		StringType( psz, static_cast< CFixedStringMgr* >( this ) )
-	{
-	}
-
-	~CFixedStringT() throw()
-	{
-		Empty();
-	}
-
-	CFixedStringT< StringType, t_nChars >& operator=( __in const CFixedStringT< StringType, t_nChars >& str )
-	{
-		StringType::operator=( str );
-		return *this;
-	}
-
-	CFixedStringT< StringType, t_nChars >& operator=( __in_z const char* psz )
-	{
-		StringType::operator=( psz );
-		return *this;
-	}
-
-	CFixedStringT< StringType, t_nChars >& operator=( __in_z const wchar_t* psz )
-	{
-		StringType::operator=( psz );
-		return *this;
-	}
-
-	CFixedStringT< StringType, t_nChars >& operator=( __in_z const unsigned char* psz )
-	{
-		StringType::operator=( psz );
-		return *this;
-	}
-
-	CFixedStringT< StringType, t_nChars >& operator=( __in const StringType& str )
-	{
-		StringType::operator=( str );
-		return *this;
-	}
-
-// Implementation
-protected:
-	CStringData m_data;
-	typename StringType::XCHAR m_achData[t_nChars+1];
-};
-
-#pragma warning( pop )
-class CFixedStringLog :
-	public IFixedStringLog
-{
-public:
-	CFixedStringLog() throw()
-	{
-		CFixedStringMgr::s_pLog = this;
-	}
-	virtual ~CFixedStringLog() throw()
-	{
-		CFixedStringMgr::s_pLog = NULL;
-	}
-
-public:
-	void OnAllocateSpill( __in int nActualChars, __in int nFixedChars, __in const CStringData* pData ) throw()
-	{
-		(void)nActualChars;
-		(void)nFixedChars;
-		(void)pData;
-		ATLTRACE( atlTraceString, 0, _T( "CFixedStringMgr::Allocate() spilling to heap.  %d chars (fixed size = %d chars)\n" ), nActualChars, nFixedChars );
-	}
-	void OnReallocateSpill( __in int nActualChars, __in int nFixedChars, __in const CStringData* pData ) throw()
-	{
-		(void)nActualChars;
-		(void)nFixedChars;
-		(void)pData;
-		ATLTRACE( atlTraceString, 0, _T( "CFixedStringMgr::Reallocate() spilling to heap.  %d chars (fixed size = %d chars)\n" ), nActualChars, nFixedChars );
-	}
-};
-
 template< typename T >
-class CStringElementTraits
+class StringElementTraits
 {
 public:
 	typedef typename T::PCXSTR INARGTYPE;
 	typedef T& OUTARGTYPE;
 
-	static void __cdecl CopyElements( __out_ecount_full(nElements) T* pDest, const __in_ecount(nElements) T* pSrc, __in size_t nElements )
+	static void __cdecl CopyElements( T* pDest, const T* pSrc,size_t nElements )
 	{
 		for( size_t iElement = 0; iElement < nElements; iElement++ )
 		{
@@ -2935,12 +2883,12 @@ public:
 		}
 	}
 
-	static void __cdecl RelocateElements( __out_ecount_full(nElements) T* pDest, __in_ecount(nElements) T* pSrc, __in size_t nElements )
+	static void __cdecl RelocateElements( T* pDest, T* pSrc,size_t nElements )
 	{
-		Checked::memmove_s( pDest, nElements*sizeof( T ), pSrc, nElements*sizeof( T ) );
+		memmove_s( pDest, nElements*sizeof( T ), pSrc, nElements*sizeof( T ) );
 	}
 
-	static ULONG __cdecl Hash( __in INARGTYPE str )
+	static ULONG __cdecl Hash(INARGTYPE str )
 	{
 		ATLENSURE( str != NULL );
 		ULONG nHash = 0;
@@ -2954,36 +2902,66 @@ public:
 		return( nHash );
 	}
 
-	static bool __cdecl CompareElements( __in INARGTYPE str1, __in INARGTYPE str2 )
+	static bool __cdecl CompareElements(INARGTYPE str1,INARGTYPE str2 )
 	{
 		return( T::StrTraits::StringCompare( str1, str2 ) == 0 );
 	}
 
-	static int __cdecl CompareElementsOrdered( __in INARGTYPE str1, __in INARGTYPE str2 )
+	static int __cdecl CompareElementsOrdered(INARGTYPE str1,INARGTYPE str2 )
 	{
 		return( T::StrTraits::StringCompare( str1, str2 ) );
 	}
 };
 
-#pragma pop_macro("new")
+class StrTraitsA;
+class StrTraitsW;
 
-#if defined(_AFX)
-#pragma pop_macro("FormatMessage")
-#endif
+typedef StringT< wchar_t, StrTraitsW > StringW;
+typedef StringT< char, StrTraitsA > StringA;
+//typedef StringT< TCHAR, StrTraitMFC< TCHAR > > String;
 
-};  // namespace ATL
+class StrTraitsA : public ChTraitsCRT< char >
+{
+public:
+	static StringManagerBase* GetDefaultManager() throw()
+	{
+		return s_StringManager ? s_StringManager : InitializeManager();
+	}
+
+	//static StringA& GetEmptyString() throw()
+	//{
+	//	return s_EmptyString ? *s_EmptyString : InitializeEmptyString();
+	//}
+
+private:
+	static StringManagerBase* InitializeManager(); // throw();
+	//static StringA& InitializeEmptyString() throw();
+	static StringManagerBase* s_StringManager;
+	//static StringA* s_EmptyString;
+};
 
 
+class StrTraitsW : public ChTraitsCRT< wchar_t >
+{
+public:
+	static StringManagerBase* GetDefaultManager() throw()
+	{
+		return s_StringManager ? s_StringManager : InitializeManager();
+	}
 
-#ifdef __ATLCOMCLI_H__
-#include <cstringt.inl>
-#endif	// __ATLCOMCLI_H__
+	//static StringW& GetEmptyString() throw()
+	//{
+	//	return s_EmptyString ? *s_EmptyString : InitializeEmptyString();
+	//}
+
+private:
+	static StringManagerBase* InitializeManager();// throw();
+	//static StringW& InitializeEmptyString() throw();
+	static StringManagerBase* s_StringManager;
+	//static StringW* s_EmptyString;
+};
+
+}	// namespace Helix
 
 
-#ifndef _ATL_NO_PRAGMA_WARNINGS
-#pragma warning (pop)
-#endif
-
-
-
-#endif	// __HSTRINGT_H__
+#endif //  HSTRING_H
