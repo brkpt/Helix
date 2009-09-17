@@ -7,6 +7,8 @@ IncludeModule CopyFile ;
 		Carsen.lua
 		Triangle.lua
 		FunnyFace.lua
+		Grid.lua
+		lambert3.lua
 		Quad.lua
 		;
 		

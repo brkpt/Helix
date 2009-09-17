@@ -6,6 +6,7 @@ IncludeModule CopyFile ;
 	local MESH_FILES =
 		cube.lua
 		Triangle.lua
+		holodeck.lua
 		;
 		
 	local sources = [ FGristFiles $(MESH_FILES) ] ;
