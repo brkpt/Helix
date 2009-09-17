@@ -119,9 +119,6 @@ void TheGame::LoadScene(void)
 	float aspectRatio = (float)m_windowWidth/(float)m_windowHeight;
 	m_camera->BuildProjectionMatrix((float)D3DX_PI/4.0f,aspectRatio,1.0f,200.0f);
 
-	m_triangle = new Triangle;
-	m_grid = new Grid;
-
 	D3DXVECTOR3 sunDir(0.0f, 1.0f, 1.0f);
 	Helix::SetSunlightDir( sunDir );
 
@@ -132,14 +129,17 @@ void TheGame::LoadScene(void)
 	tempColor.Green = 0.25f;
 	tempColor.Blue = 0.25f;
 	Helix::SetAmbientColor( tempColor );
+
+	m_world = new Helix::Instance;
+	m_world->SetMeshName("World");
+	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load("holodeck");
+
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void TheGame::UnloadScene(void)
 {
-	delete m_triangle;
-	delete m_grid;
 }
 
 // ****************************************************************************
@@ -229,9 +229,9 @@ void TheGame::Update(void)
 	GetCursorPos( &ptCursor );
 //	m_pD3DDevice->SetCursorPosition(ptCursor.x,ptCursor.y,0);
 
+	Helix::SubmitInstance(*m_world);
+
 	m_camera->Update();
-	m_triangle->Update(0.0f);
-	m_grid->Update(0.0f);
 
 	m_mouseState.mouseDeltaX = 0;
 	m_mouseState.mouseDeltaY = 0;
@@ -256,7 +256,6 @@ void TheGame::Render(void)
 	Helix::SubmitViewMatrix(game->CurrentCamera()->GetViewMatrix());
 	Helix::SubmitProjMatrix(game->CurrentCamera()->GetProjectionMatrix());
 
-	m_triangle->Render();
 	Helix::RenderScene();
 }
 

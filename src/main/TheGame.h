@@ -54,11 +54,10 @@ public:
 protected:
 
 	static TheGame *	m_instance;
-	Triangle *			m_triangle;
-	Grid *				m_grid;
 	Camera *			m_camera;
 	bool				m_keyboardState[KEY_COUNT];
 	struct MouseState	m_mouseState;
+	Helix::Instance *	m_world;
 };
 
 #endif // THEGAME_DOT_H
