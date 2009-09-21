@@ -143,6 +143,10 @@
 				RelativePath=".\Memory\FixedAlloc.h"
 				>
 			</File>
+			<File
+				RelativePath=".\memory\HeapAlloc.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="String"
@@ -165,6 +169,10 @@
 			>
 			<File
 				RelativePath=".\Container\Array.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Container\Array.inl"
 				>
 			</File>
 			<File

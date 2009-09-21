@@ -13,30 +13,37 @@ class Foo
 public:
 	Foo()
 	{
-		int a =1;
+		index = ++totalCount;
 	}
 
 	Foo(const Foo &other)
 	{
-		int b = 1;
+		index = ++totalCount;
 	}
 
 	~Foo()
 	{
-		int a = 1;
+		index = 0;
 	}
 
 	const Foo &operator=(const Foo &other)
 	{
+		index = ++totalCount;
 		return *this;
 	}
 	DECLARE_FIXED_ALLOC(Foo);
 
 private:
 	char	fooData[100];
+	int		index;
+
+	static int	totalCount;
 };
 
 IMPLEMENT_FIXED_ALLOC(Foo,5);
+
+int Foo::totalCount = 0;
+
 
 // ****************************************************************************
 // ****************************************************************************
