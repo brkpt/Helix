@@ -4,17 +4,71 @@
 #include "TheGame.h"
 #include "Utility/bits.h"
 
-#include "Utility/hstring.h"
+#include "Utility/String/String.h"
+#include "Utility/Memory/FixedAlloc.h"
+#include "Utility/Container/Array.h"
+
+class Foo
+{
+public:
+	Foo()
+	{
+		int a =1;
+	}
+
+	Foo(const Foo &other)
+	{
+		int b = 1;
+	}
+
+	~Foo()
+	{
+		int a = 1;
+	}
+
+	const Foo &operator=(const Foo &other)
+	{
+		return *this;
+	}
+	DECLARE_FIXED_ALLOC(Foo);
+
+private:
+	char	fooData[100];
+};
+
+IMPLEMENT_FIXED_ALLOC(Foo,5);
 
 // ****************************************************************************
 // ****************************************************************************
 int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow)
 {
 	{
-		Helix::StringA Foo;
+		Helix::Array<Foo>	myArray;
+		Foo bar;
+		myArray.Add(bar);
+		myArray.RemoveAt(0);
+		myArray.SetCount(10);
+		for(int i=0;i<10;i++)
+		{
+			myArray[i] = bar;
+		}
+		myArray.RemoveAll();
+	}
+	{
+		Foo * list[10];
+
+		for(int i=0;i<10;i++)
+			list[i] = new Foo;
+
+		for(int i=0;i<10;i++)
+			delete list[i];
+
+	}
+	{
+		Helix::String Foo;
 		Foo = "ABCD";
 
-		Helix::StringA Bar(Foo);
+		Helix::String Bar(Foo);
 		Bar = Foo + "EFGH";
 
 		Foo = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

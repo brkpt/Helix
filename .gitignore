@@ -1,14 +1,21 @@
 # Ignore files in the Build and Temp folders
 Build/
 Temp/
-*.sln
 *.ncb
 *.suo
 *.user
 *.wwdb
 *.fxo
 *.WW
+*.htm
+*.swatch
+*.swatches
+*.bak
 
-[Dd]ebug/
-[Rr]elease/
+# [Dd]ebug/
+# [Rr]elease/
+Debug/
+debug/
+Release/
+
 

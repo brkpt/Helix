@@ -136,16 +136,44 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Memory"
+			>
+			<File
+				RelativePath=".\Memory\FixedAlloc.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="String"
+			>
+			<File
+				RelativePath=".\String\SimpleString.h"
+				>
+			</File>
+			<File
+				RelativePath=".\String\String.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\String\String.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Container"
+			>
+			<File
+				RelativePath=".\Container\Array.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Container\ElementTraits.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\bits.h"
-			>
-		</File>
-		<File
-			RelativePath=".\hstring.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\hstring.h"
 			>
 		</File>
 		<File
