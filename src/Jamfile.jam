@@ -1,5 +1,0 @@
-SubDir TOP src ;
-
-SubInclude TOP src main ;
-SubInclude TOP src RenderCore ;
-SubInclude TOP src Helix ;
