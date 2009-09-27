@@ -1,7 +1,7 @@
 #ifndef THEGAME_DOT_H
 #define THEGAME_DOT_H
 
-#include "Win32DX9.h"
+#include "Kernel/Win32DX10.h"
 
 #define	KEY_COUNT		256
 

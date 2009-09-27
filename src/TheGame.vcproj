@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="Helix; .;C:/Projects/LuaPlus/work51/Src/LuaPlus"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)/Helix&quot;;C:/Projects/LuaPlus/work51/Src/LuaPlus"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="Helix; .;C:/Projects/LuaPlus/work51/Src/LuaPlus"
+				AdditionalIncludeDirectories=".;&quot;$(SolutionDir)/Helix&quot;;C:/Projects/LuaPlus/work51/Src/LuaPlus"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -223,14 +223,6 @@
 		</File>
 		<File
 			RelativePath=".\main\triangle.h"
-			>
-		</File>
-		<File
-			RelativePath=".\main\Win32DX9.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\main\Win32DX9.h"
 			>
 		</File>
 		<File

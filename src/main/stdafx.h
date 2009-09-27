@@ -23,8 +23,8 @@
 #include <stdio.h>
 #include <d3d10.h>
 #include <d3dx10.h>
-#include "Win32DX9.h"
 #include "LuaPlus.h"
+#include "Kernel/Win32DX10.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/VertexDecl.h"
 #include "RenderCore/InstanceManager.h"
