@@ -131,7 +131,7 @@ void TheGame::LoadScene(void)
 	Helix::SetAmbientColor( tempColor );
 
 	m_world = new Helix::Instance;
-	m_world->SetMeshName("World");
+	m_world->SetMeshName("holodeck");
 	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load("holodeck");
 
 }
