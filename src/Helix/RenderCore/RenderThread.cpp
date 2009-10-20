@@ -52,6 +52,7 @@ struct RenderData
 };
 
 int				m_submissionIndex = 0;
+int				m_renderIndex = 0;
 RenderData *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_viewMatrix[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_projMatrix[NUM_SUBMISSION_BUFFERS];
@@ -512,6 +513,10 @@ void ShutDownRenderThread()
 // ****************************************************************************
 void RenderScene()
 {
+	// This call happens from the main thread.  Setup our render/submission
+	// indices before kicking off the renderer
+	m_renderIndex = m_submissionIndex;
+	m_submissionIndex = (m_submissionIndex + 1 ) % NUM_SUBMISSION_BUFFERS;
 	DWORD result = SetEvent(m_startRenderEvent);
 	_ASSERT(result != 0);
 }
@@ -579,14 +584,6 @@ void RenderThreadFunc(void *data)
 		result = WaitForSingleObject(m_startRenderEvent,INFINITE);
 		_ASSERT(result == WAIT_OBJECT_0);
 
-		// Thread safety first
-		AcquireMutex();
-
-		int renderSubmissionIndex = m_submissionIndex;
-		m_submissionIndex = (m_submissionIndex + 1 ) % NUM_SUBMISSION_BUFFERS;
-
-		ReleaseMutex();
-
 		ID3D10Device *device = m_D3DDevice;
 		_ASSERT(device);
 
@@ -609,20 +606,16 @@ void RenderThreadFunc(void *data)
 		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
 		// Setup camera parameters
-		Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[renderSubmissionIndex]);
+		Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[m_renderIndex]);
 
 		// Get the view matrix
-		D3DXMATRIX viewMat = m_viewMatrix[renderSubmissionIndex];
+		D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
 		Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
 
 		// TODO: Get the world matrix from the object.  
 		// Use I for now
 		D3DXMATRIX worldMat;
 		D3DXMatrixIdentity(&worldMat);
-
-		static float rot = 0.0f;
-		rot += (1.0f/60.0f);
-		D3DXMatrixRotationY(&worldMat,rot);
 
 		// Calculate the WorldView matrix
 		D3DXMATRIX worldView;
@@ -649,7 +642,11 @@ void RenderThreadFunc(void *data)
 		Helix::ShaderManager::GetInstance().SetSharedParameter("View3x3",view3x3);
 
 		// Go through all of our render objects
-		RenderData *obj = m_submissionBuffers[renderSubmissionIndex];
+		RenderData *obj = m_submissionBuffers[m_renderIndex];
+		if (obj == NULL)
+		{
+			int a =1;
+		}
 		while(obj)
 		{
 			// Set the parameters
@@ -775,7 +772,7 @@ void RenderThreadFunc(void *data)
 		m_swapChain->Present(0,0);
 
 		// Delete all our render objects
-		obj = m_submissionBuffers[renderSubmissionIndex];
+		obj = m_submissionBuffers[m_renderIndex];
 		while(obj != NULL)
 		{
 			RenderData *nextObj = obj->next;
@@ -783,7 +780,7 @@ void RenderThreadFunc(void *data)
 			obj = nextObj;
 		}
 
-		m_submissionBuffers[renderSubmissionIndex] = NULL;
+		m_submissionBuffers[m_renderIndex] = NULL;
 
 	}
 }
