@@ -10,8 +10,6 @@
 #include "RenderCore/RenderMgr.h"
 #include "Kernel/Callback.h"
 #include "Camera.h"
-#include "triangle.h"
-#include "grid.h"
 
 // ****************************************************************************
 // ****************************************************************************
