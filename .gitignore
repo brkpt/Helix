@@ -12,10 +12,5 @@ Temp/
 *.swatches
 *.bak
 
-# [Dd]ebug/
-# [Rr]elease/
-Debug/
-debug/
-Release/
-
-
+src/debug
+src/release
