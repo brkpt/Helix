@@ -1,0 +1,120 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DeferredShader", "DeferredShader.vcproj", "{44FEA62E-9856-4489-B15D-1D0D715945A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{D2A26B71-B052-49D7-BA05-C80B2A76B191}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix", "Helix", "{99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kernel", "..\..\Win32DX9\src\Helix\Kernel\Kernel.vcproj", "{C58F564D-0582-404A-9934-80565850D2BD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderCore", "..\..\Win32DX9\src\Helix\RenderCore\RenderCore.vcproj", "{F74E106B-6F37-4ACC-A783-131BA702E329}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThreadLoad", "..\..\Win32DX9\src\Helix\ThreadLoad\ThreadLoad.vcproj", "{49EBBA02-2990-41EF-AF7C-836119C04FC9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "..\..\Win32DX9\src\Helix\Utility\Utility.vcproj", "{4598A354-9054-42A0-B90A-0B4FD27B83B0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C3D03-5020-439A-864E-0692CC8CA51A}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
+		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
+		..\Content\Effects\Quad.fx = ..\Content\Effects\Quad.fx
+		..\Content\Effects\shared.fx = ..\Content\Effects\shared.fx
+		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{A125B020-FAAF-4E6C-A4DE-2C9D89A7D3BE}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Materials\Carsen.lua = ..\Content\Materials\Carsen.lua
+		..\Content\Materials\FunnyFace.lua = ..\Content\Materials\FunnyFace.lua
+		..\Content\Materials\Grid.lua = ..\Content\Materials\Grid.lua
+		..\Content\Materials\Jamfile.jam = ..\Content\Materials\Jamfile.jam
+		..\Content\Materials\lambert3.lua = ..\Content\Materials\lambert3.lua
+		..\Content\Materials\Quad.lua = ..\Content\Materials\Quad.lua
+		..\Content\Materials\Triangle.lua = ..\Content\Materials\Triangle.lua
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Meshes", "Meshes", "{63E3C2B0-7838-49B3-867D-682BA68177CE}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Meshes\cube.lua = ..\Content\Meshes\cube.lua
+		..\Content\Meshes\holodeck.lua = ..\Content\Meshes\holodeck.lua
+		..\Content\Meshes\Jamfile.jam = ..\Content\Meshes\Jamfile.jam
+		..\Content\Meshes\Triangle.lua = ..\Content\Meshes\Triangle.lua
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scenes", "Scenes", "{4944259D-82C2-4BEA-B586-F2CF6CF05955}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Scenes\holodeck\holodeck.lua = ..\Content\Scenes\holodeck\holodeck.lua
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2CFEE-0AC3-4C02-9050-2A45057F3408}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Shaders\diffuse.lua = ..\Content\Shaders\diffuse.lua
+		..\Content\Shaders\Jamfile.jam = ..\Content\Shaders\Jamfile.jam
+		..\Content\Shaders\pos3.lua = ..\Content\Shaders\pos3.lua
+		..\Content\Shaders\pos3_norm3_tex1.lua = ..\Content\Shaders\pos3_norm3_tex1.lua
+		..\Content\Shaders\pos3_tex1.lua = ..\Content\Shaders\pos3_tex1.lua
+		..\Content\Shaders\pos4_tex1.lua = ..\Content\Shaders\pos4_tex1.lua
+		..\Content\Shaders\quad.lua = ..\Content\Shaders\quad.lua
+		..\Content\Shaders\shared.lua = ..\Content\Shaders\shared.lua
+		..\Content\Shaders\texture.lua = ..\Content\Shaders\texture.lua
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Textures", "Textures", "{F17EB613-FD96-4FFD-B732-0D0D3A995475}"
+	ProjectSection(SolutionItems) = preProject
+		..\Content\Textures\Carsen_crop.png = ..\Content\Textures\Carsen_crop.png
+		..\Content\Textures\Grid.png = ..\Content\Textures\Grid.png
+		..\Content\Textures\WoodGrain.png = ..\Content\Textures\WoodGrain.png
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Content", "..\Content\Content.vcproj", "{71BEB6F2-560D-424D-86A8-1CC6F905DE48}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Debug|Win32.Build.0 = Debug|Win32
+		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Release|Win32.ActiveCfg = Release|Win32
+		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Release|Win32.Build.0 = Release|Win32
+		{C58F564D-0582-404A-9934-80565850D2BD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C58F564D-0582-404A-9934-80565850D2BD}.Debug|Win32.Build.0 = Debug|Win32
+		{C58F564D-0582-404A-9934-80565850D2BD}.Release|Win32.ActiveCfg = Release|Win32
+		{C58F564D-0582-404A-9934-80565850D2BD}.Release|Win32.Build.0 = Release|Win32
+		{F74E106B-6F37-4ACC-A783-131BA702E329}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F74E106B-6F37-4ACC-A783-131BA702E329}.Debug|Win32.Build.0 = Debug|Win32
+		{F74E106B-6F37-4ACC-A783-131BA702E329}.Release|Win32.ActiveCfg = Release|Win32
+		{F74E106B-6F37-4ACC-A783-131BA702E329}.Release|Win32.Build.0 = Release|Win32
+		{49EBBA02-2990-41EF-AF7C-836119C04FC9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{49EBBA02-2990-41EF-AF7C-836119C04FC9}.Debug|Win32.Build.0 = Debug|Win32
+		{49EBBA02-2990-41EF-AF7C-836119C04FC9}.Release|Win32.ActiveCfg = Release|Win32
+		{49EBBA02-2990-41EF-AF7C-836119C04FC9}.Release|Win32.Build.0 = Release|Win32
+		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Debug|Win32.Build.0 = Debug|Win32
+		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Release|Win32.ActiveCfg = Release|Win32
+		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Release|Win32.Build.0 = Release|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.ActiveCfg = Debug|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.Build.0 = Debug|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.ActiveCfg = Release|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{594C3D03-5020-439A-864E-0692CC8CA51A} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{A125B020-FAAF-4E6C-A4DE-2C9D89A7D3BE} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{63E3C2B0-7838-49B3-867D-682BA68177CE} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{4944259D-82C2-4BEA-B586-F2CF6CF05955} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{98F2CFEE-0AC3-4C02-9050-2A45057F3408} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{F17EB613-FD96-4FFD-B732-0D0D3A995475} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48} = {D2A26B71-B052-49D7-BA05-C80B2A76B191}
+		{C58F564D-0582-404A-9934-80565850D2BD} = {99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}
+		{F74E106B-6F37-4ACC-A783-131BA702E329} = {99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}
+		{49EBBA02-2990-41EF-AF7C-836119C04FC9} = {99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}
+		{4598A354-9054-42A0-B90A-0B4FD27B83B0} = {99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}
+	EndGlobalSection
+EndGlobal

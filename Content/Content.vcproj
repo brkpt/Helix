@@ -22,9 +22,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/"
-				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/ -a"
-				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/ clean"
+				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/"
+				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ -a"
+				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ clean"
 				Output=""
 				PreprocessorDefinitions="WIN32;_DEBUG"
 				IncludeSearchPath=""
@@ -42,9 +42,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/"
-				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/ -a"
-				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/Win32DX9/ clean"
+				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/"
+				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ -a"
+				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ clean"
 				Output=""
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				IncludeSearchPath=""

@@ -1,12 +1,12 @@
 SubDir TOP ;
 
 # Generated file NOT
-ALL_LOCATE_TARGET = c:/Projects/Win32DX9/Temp/temp-$(PLATFORM)-$(CONFIG) ;
+ALL_LOCATE_TARGET = c:/Projects/DeferredShader/Temp/temp-$(PLATFORM)-$(CONFIG) ;
 
 DEPCACHE.standard = $(ALL_LOCATE_TARGET)/.depcache ;
 DEPCACHE = standard ;
 
-AppRoot = c:/projects/Win32DX9/ ;
+AppRoot = c:/projects/DeferredShader/ ;
 
 SubInclude TOP Content ;
 
