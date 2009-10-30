@@ -14,14 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{D2A2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix", "Helix", "{99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kernel", "..\..\Win32DX9\src\Helix\Kernel\Kernel.vcproj", "{C58F564D-0582-404A-9934-80565850D2BD}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderCore", "..\..\Win32DX9\src\Helix\RenderCore\RenderCore.vcproj", "{F74E106B-6F37-4ACC-A783-131BA702E329}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThreadLoad", "..\..\Win32DX9\src\Helix\ThreadLoad\ThreadLoad.vcproj", "{49EBBA02-2990-41EF-AF7C-836119C04FC9}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "..\..\Win32DX9\src\Helix\Utility\Utility.vcproj", "{4598A354-9054-42A0-B90A-0B4FD27B83B0}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C3D03-5020-439A-864E-0692CC8CA51A}"
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
@@ -76,6 +68,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Textures", "Textures", "{F1
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Content", "..\Content\Content.vcproj", "{71BEB6F2-560D-424D-86A8-1CC6F905DE48}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kernel", "Helix\Kernel\Kernel.vcproj", "{C58F564D-0582-404A-9934-80565850D2BD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RenderCore", "Helix\RenderCore\RenderCore.vcproj", "{F74E106B-6F37-4ACC-A783-131BA702E329}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThreadLoad", "Helix\ThreadLoad\ThreadLoad.vcproj", "{49EBBA02-2990-41EF-AF7C-836119C04FC9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "Helix\Utility\Utility.vcproj", "{4598A354-9054-42A0-B90A-0B4FD27B83B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -86,6 +86,10 @@ Global
 		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Debug|Win32.Build.0 = Debug|Win32
 		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Release|Win32.ActiveCfg = Release|Win32
 		{44FEA62E-9856-4489-B15D-1D0D715945A1}.Release|Win32.Build.0 = Release|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.ActiveCfg = Debug|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.Build.0 = Debug|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.ActiveCfg = Release|Win32
+		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.Build.0 = Release|Win32
 		{C58F564D-0582-404A-9934-80565850D2BD}.Debug|Win32.ActiveCfg = Debug|Win32
 		{C58F564D-0582-404A-9934-80565850D2BD}.Debug|Win32.Build.0 = Debug|Win32
 		{C58F564D-0582-404A-9934-80565850D2BD}.Release|Win32.ActiveCfg = Release|Win32
@@ -102,10 +106,6 @@ Global
 		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Debug|Win32.Build.0 = Debug|Win32
 		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Release|Win32.ActiveCfg = Release|Win32
 		{4598A354-9054-42A0-B90A-0B4FD27B83B0}.Release|Win32.Build.0 = Release|Win32
-		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.ActiveCfg = Debug|Win32
-		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Debug|Win32.Build.0 = Debug|Win32
-		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.ActiveCfg = Release|Win32
-		{71BEB6F2-560D-424D-86A8-1CC6F905DE48}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
