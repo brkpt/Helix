@@ -5,7 +5,9 @@ namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 Texture::Texture()
-: m_textureRV(NULL)
+: m_shaderView(NULL)
+, m_targetView(NULL)
+, m_type(INVALID)
 {
 }
 
@@ -13,10 +15,17 @@ Texture::Texture()
 // ****************************************************************************
 Texture::~Texture()
 {
-	if(m_textureRV)
+	switch(m_type)
 	{
-		m_textureRV->Release();
-		m_textureRV = NULL;
+		case SHADER_VIEW:
+			m_shaderView->Release();
+			m_shaderView = NULL;
+			break;
+
+		case TARGET_VIEW:
+			m_targetView->Release();
+			m_targetView = NULL;
+			break;
 	}
 }
 // ****************************************************************************
@@ -33,8 +42,9 @@ bool Texture::Load(const std::string &filename)
 	loadInfo.BindFlags = D3D10_BIND_SHADER_RESOURCE;
 	loadInfo.Format = DXGI_FORMAT_BC1_UNORM;
 
+	m_type = SHADER_VIEW;
 	ID3D10ShaderResourceView *pSRView = NULL;
-	HRESULT hr = D3DX10CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &m_textureRV, NULL );
+	HRESULT hr = D3DX10CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &m_shaderView, NULL );
 	return SUCCEEDED(hr);
 }
 

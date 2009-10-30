@@ -44,7 +44,7 @@ void Material::SetParameters()
 	{
 		// Mesh that only uses render targets as input textures 
 		// may not have a texture 
-		ID3D10ShaderResourceView *textureRV = tex->GetResourceView();
+		ID3D10ShaderResourceView *textureRV = tex->GetShaderView();
 		HRESULT hr = shaderResource->SetResource(textureRV);
 		_ASSERT(SUCCEEDED(hr));
 	}

@@ -10,11 +10,20 @@ public:
 	Texture();
 	~Texture();
 
+	enum ViewType { INVALID=-1, SHADER_VIEW, TARGET_VIEW };
+
 	bool	Load(const std::string &path);
-	ID3D10ShaderResourceView *	GetResourceView() { return m_textureRV; }
+	ID3D10ShaderResourceView *	GetShaderView() { return m_shaderView; }
+	ID3D10RenderTargetView *	GetTargetView() { return m_targetView; }
+	ViewType	Type() { return m_type; }
 
 private:
-	ID3D10ShaderResourceView *	m_textureRV;
+	
+	ViewType	m_type;
+	union {
+		ID3D10ShaderResourceView *	m_shaderView;
+		ID3D10RenderTargetView *	m_targetView;
+	};
 };
 
 } // namespace Helix
