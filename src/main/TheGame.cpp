@@ -108,7 +108,6 @@ void TheGame::LoadScene(void)
 	//scb1->Call();
 	//scb2->Call();
 
-	Helix::ShaderManager::GetInstance().LoadShared();
 	m_camera = new Camera;
 
 	m_camera->SetPosition(D3DXVECTOR3(0.0f, 1.0f, -4.0f));
