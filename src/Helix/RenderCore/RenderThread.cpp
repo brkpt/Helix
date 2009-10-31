@@ -159,6 +159,8 @@ void CreateBackbufferViews()
     pBuffer->Release();
 	_ASSERT( SUCCEEDED(hr) );
 
+	TextureManager::GetInstance().AddTexture(new Texture(m_backBufferView),"[backbuffer]");
+
 	// Create depth stencil texture
     D3D10_TEXTURE2D_DESC descDepth;
     descDepth.Width = m_backbufferWidth;
@@ -184,6 +186,8 @@ void CreateBackbufferViews()
 	descDSV.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
     hr = m_D3DDevice->CreateDepthStencilView( m_backDepthStencil, &descDSV, &m_backDepthStencilView );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_backDepthStencilView), "[backdepthstencil]");
 	_ASSERT( SUCCEEDED(hr) );
 }
 
@@ -219,6 +223,8 @@ void CreateColorTarget()
 	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[ALBEDO], &rtDesc, &m_RTView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
 
+	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[ALBEDO]), "[albedotarget]");
+
 	// Create the shader input view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
 	srDesc.Format = desc.Format;
@@ -228,6 +234,8 @@ void CreateColorTarget()
 
 	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[ALBEDO], &srDesc, &m_SRView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[ALBEDO]), "[albedoshader]");
 }
 
 // ****************************************************************************
@@ -262,6 +270,8 @@ void CreateDepthStencilTarget()
     hr = m_D3DDevice->CreateDepthStencilView(m_depthStencilTexture,&dsDesc,&m_depthStencilDSView );
 	_ASSERT( SUCCEEDED(hr) );
 
+	TextureManager::GetInstance().AddTexture(new Texture(m_depthStencilDSView), "[depthstenciltarget]");
+
 	// Create our shader resource view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
 	ZeroMemory(&srDesc, sizeof(srDesc));
@@ -272,6 +282,8 @@ void CreateDepthStencilTarget()
 
 	hr = m_D3DDevice->CreateShaderResourceView(m_depthStencilTexture,&srDesc,&m_depthStencilSRView );
 	_ASSERT( SUCCEEDED(hr) );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_depthStencilSRView), "[depthstencilshader]");
 }
 
 // ****************************************************************************
@@ -303,6 +315,8 @@ void CreateNormalTarget()
 	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[NORMAL], &rtDesc, &m_RTView[NORMAL] );
 	_ASSERT( SUCCEEDED(hr) );
 
+	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[NORMAL]), "[normaltarget]");
+
 	// Create the shader input view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
 	srDesc.Format = desc.Format;
@@ -312,6 +326,8 @@ void CreateNormalTarget()
 
 	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[NORMAL], &srDesc, &m_SRView[NORMAL] );
 	_ASSERT( SUCCEEDED(hr) );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[NORMAL]), "[normalshader]");
 }
 
 // ****************************************************************************
