@@ -13,6 +13,30 @@ Texture::Texture()
 
 // ****************************************************************************
 // ****************************************************************************
+Texture::Texture(ID3D10ShaderResourceView *view)
+: m_type(SHADER_VIEW)
+, m_shaderView(view)
+{
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Texture::Texture(ID3D10RenderTargetView *view)
+: m_type(TARGET_VIEW)
+, m_targetView(view)
+{
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Texture::Texture(ID3D10DepthStencilView *view)
+: m_type(DEPTHSTENCIL_VIEW)
+, m_depthStencilView(view)
+{
+}
+
+// ****************************************************************************
+// ****************************************************************************
 Texture::~Texture()
 {
 	switch(m_type)
@@ -26,8 +50,14 @@ Texture::~Texture()
 			m_targetView->Release();
 			m_targetView = NULL;
 			break;
+
+		case DEPTHSTENCIL_VIEW:
+			m_depthStencilView->Release();
+			m_depthStencilView = NULL;
+			break;
 	}
 }
+
 // ****************************************************************************
 // ****************************************************************************
 bool Texture::Load(const std::string &filename)
