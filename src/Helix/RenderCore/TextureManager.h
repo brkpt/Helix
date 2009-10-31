@@ -18,6 +18,7 @@ public:
 
 	Texture *	GetTexture(const std::string &textureName);
 	Texture *	LoadTexture(const std::string &textureName);
+	void		AddTexture(Texture *tex, const std::string &textureName);
 
 private:
 	TextureManager();

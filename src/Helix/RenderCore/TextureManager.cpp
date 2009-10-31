@@ -13,6 +13,17 @@ TextureManager::~TextureManager()
 
 // ****************************************************************************
 // ****************************************************************************
+void TextureManager::AddTexture(Helix::Texture *tex, const std::string &textureName)
+{
+	TextureMap::const_iterator iter = m_database.find(textureName);
+
+	_ASSERT(iter == m_database.end());
+
+	m_database[textureName] = tex;
+}
+
+// ****************************************************************************
+// ****************************************************************************
 Texture * TextureManager::GetTexture(const std::string &textureName)
 {
 	TextureMap::const_iterator iter = m_database.find(textureName);
