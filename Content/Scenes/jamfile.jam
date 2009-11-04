@@ -1,0 +1,24 @@
+SubDir Content Scenes ;
+
+IncludeModule CopyFile ;
+
+{
+	local sceneDirs = 
+		giant
+		holodeck
+		;
+	
+	local targetDir = $(AppRoot)Build/Meshes ;
+	Depends content : scenes ;
+	
+	for dir in $(sceneDirs)
+	{
+		# Assumes scene name is the same name as dir
+		local srcFile = [ FGristFiles $(dir)/$(dir:S=.lua) ] ;
+		
+		echo srcFile - $(srcFile) ;
+		local targetFile = $(dir:S=.lua) ;
+		CopyFile scenes : $(targetDir)/$(targetFile) : $(srcFile) ;
+	}
+
+}
