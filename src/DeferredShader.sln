@@ -43,7 +43,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Meshes", "Meshes", "{63E3C2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scenes", "Scenes", "{4944259D-82C2-4BEA-B586-F2CF6CF05955}"
 	ProjectSection(SolutionItems) = preProject
+		..\Content\Scenes\giant\giant.lua = ..\Content\Scenes\giant\giant.lua
 		..\Content\Scenes\holodeck\holodeck.lua = ..\Content\Scenes\holodeck\holodeck.lua
+		..\Content\Scenes\jamfile.jam = ..\Content\Scenes\jamfile.jam
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2CFEE-0AC3-4C02-9050-2A45057F3408}"
