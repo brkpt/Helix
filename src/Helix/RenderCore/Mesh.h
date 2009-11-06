@@ -32,6 +32,7 @@ private:
 	unsigned int	m_numTriangles;
 	std::string		m_materialName;
 	std::string		m_meshName;
+	bool			m_32bitIndices;
 };
 
 } // namespace Helix

@@ -11,6 +11,7 @@ Mesh::Mesh()
 , m_numVertices(0)
 , m_numIndices(0)
 , m_numTriangles(0)
+, m_32bitIndices(false)
 {
 }
 
@@ -231,21 +232,35 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	delete vb;
 
 	// Create our index buffer
-	_ASSERT(m_numVertices < 0xffff);
 	m_numIndices = m_numTriangles * 3;
+	if(m_numVertices > 0xffff)
+	{
+		m_32bitIndices = true;
+	}
 
 	// Create a system buffer to hold the data
-	unsigned short *ib = new unsigned short[ m_numIndices ] ;
-	unsigned short *idxPos = ib;
+	int dataSize = m_32bitIndices ? m_numIndices * 4 : m_numIndices * 2;
+	void *ib = static_cast<void *>(new unsigned char[ dataSize ]);
+	unsigned short *usIdxPos = static_cast<unsigned short *>(ib);
+	unsigned long *ulIdxPos = static_cast<unsigned long *>(ib);
 
 	// Now fill it in
 	int indexIndex=0;
 	int vertexIndex=0;
 	for(unsigned int i=0; i<m_numTriangles; i++)
 	{
-		idxPos[indexIndex + 0] = vertexIndex;
-		idxPos[indexIndex + 1] = vertexIndex + 1;
-		idxPos[indexIndex + 2] = vertexIndex + 2;
+		if(m_32bitIndices)
+		{
+			ulIdxPos[indexIndex + 0] = vertexIndex;
+			ulIdxPos[indexIndex + 1] = vertexIndex + 1;
+			ulIdxPos[indexIndex + 2] = vertexIndex + 2;
+		}
+		else
+		{
+			usIdxPos[indexIndex + 0] = vertexIndex;
+			usIdxPos[indexIndex + 1] = vertexIndex + 1;
+			usIdxPos[indexIndex + 2] = vertexIndex + 2;
+		}
 
 		vertexIndex += 3;
 		indexIndex += 3;
@@ -256,7 +271,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	// Create the index buffer
 	memset(&desc,0,sizeof(desc));
 	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.ByteWidth = m_numIndices * 3;
+	desc.ByteWidth = dataSize;
 	desc.BindFlags = D3D10_BIND_INDEX_BUFFER;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
@@ -291,7 +306,7 @@ void Mesh::Render(int pass)
 	unsigned int stride = shader->GetDecl().VertexSize();
 	unsigned int offset = 0;
 	dev->IASetVertexBuffers(0,1,&m_vertexBuffer,&stride,&offset);
-	dev->IASetIndexBuffer(m_indexBuffer,DXGI_FORMAT_R16_UINT,0);
+	dev->IASetIndexBuffer(m_indexBuffer,m_32bitIndices ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT,0);
 
 	// Set our prim type
 	dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
