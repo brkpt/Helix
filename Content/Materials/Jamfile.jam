@@ -9,7 +9,7 @@ IncludeModule CopyFile ;
 		FunnyFace.lua
 		Grid.lua
 		lambert3.lua
-		lambert2.lua
+		woodterrain.lua
 		Quad.lua
 		;
 		
