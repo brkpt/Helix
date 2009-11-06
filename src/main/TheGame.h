@@ -35,7 +35,7 @@ public:
 	bool		Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdLine,int nCmdShow,bool fullScreen,int width,int height,LPTSTR windowName);
 	void		Update(void);
 	void		Render(void);
-	void		LoadScene(void);
+	void		LoadScene(const std::string &levelName);
 	void		UnloadScene(void);
 	Camera *	CurrentCamera(void) { return m_camera; }
 

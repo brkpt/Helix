@@ -89,7 +89,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 
 // ****************************************************************************
 // ****************************************************************************
-void TheGame::LoadScene(void)
+void TheGame::LoadScene(const std::string &levelName)
 {
 	//Foo test;
 
@@ -128,8 +128,8 @@ void TheGame::LoadScene(void)
 	Helix::SetAmbientColor( tempColor );
 
 	m_world = new Helix::Instance;
-	m_world->SetMeshName("holodeck");
-	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load("holodeck");
+	m_world->SetMeshName(levelName.c_str());
+	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load(levelName.c_str());
 
 }
 
