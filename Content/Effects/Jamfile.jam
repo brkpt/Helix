@@ -11,7 +11,7 @@ IncludeModule CopyFile ;
 	STANDARD_FX = 
 		diffuse.fx
 		texture.fx
-		quad.fx
+		dirlight.fx
 		;
 	EFFECT_POOL_FX =
 		shared.fx 

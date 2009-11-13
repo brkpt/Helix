@@ -11,7 +11,7 @@ IncludeModule CopyFile ;
 		pos4_tex1.lua
 		shared.lua
 		texture.lua
-		quad.lua
+		dirlight.lua
 		;
 		
 	local sources = [ FGristFiles $(SHADER_FILES) ] ;

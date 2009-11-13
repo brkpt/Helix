@@ -17,8 +17,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C3D03-5020-439A-864E-0692CC8CA51A}"
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
+		..\Content\Effects\dirlight.fx = ..\Content\Effects\dirlight.fx
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
-		..\Content\Effects\Quad.fx = ..\Content\Effects\Quad.fx
 		..\Content\Effects\shared.fx = ..\Content\Effects\shared.fx
 		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
 	EndProjectSection
@@ -26,12 +26,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{A125B020-FAAF-4E6C-A4DE-2C9D89A7D3BE}"
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Materials\Carsen.lua = ..\Content\Materials\Carsen.lua
+		..\Content\Materials\dirlight.lua = ..\Content\Materials\dirlight.lua
 		..\Content\Materials\FunnyFace.lua = ..\Content\Materials\FunnyFace.lua
 		..\Content\Materials\Grid.lua = ..\Content\Materials\Grid.lua
 		..\Content\Materials\Jamfile.jam = ..\Content\Materials\Jamfile.jam
 		..\Content\Materials\lambert3.lua = ..\Content\Materials\lambert3.lua
-		..\Content\Materials\Quad.lua = ..\Content\Materials\Quad.lua
 		..\Content\Materials\Triangle.lua = ..\Content\Materials\Triangle.lua
+		..\Content\Materials\woodterrain.lua = ..\Content\Materials\woodterrain.lua
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Meshes", "Meshes", "{63E3C2B0-7838-49B3-867D-682BA68177CE}"
@@ -51,12 +52,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2CFEE-0AC3-4C02-9050-2A45057F3408}"
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Shaders\diffuse.lua = ..\Content\Shaders\diffuse.lua
+		..\Content\Shaders\dirlight.lua = ..\Content\Shaders\dirlight.lua
 		..\Content\Shaders\Jamfile.jam = ..\Content\Shaders\Jamfile.jam
 		..\Content\Shaders\pos3.lua = ..\Content\Shaders\pos3.lua
 		..\Content\Shaders\pos3_norm3_tex1.lua = ..\Content\Shaders\pos3_norm3_tex1.lua
 		..\Content\Shaders\pos3_tex1.lua = ..\Content\Shaders\pos3_tex1.lua
 		..\Content\Shaders\pos4_tex1.lua = ..\Content\Shaders\pos4_tex1.lua
-		..\Content\Shaders\quad.lua = ..\Content\Shaders\quad.lua
 		..\Content\Shaders\shared.lua = ..\Content\Shaders\shared.lua
 		..\Content\Shaders\texture.lua = ..\Content\Shaders\texture.lua
 	EndProjectSection

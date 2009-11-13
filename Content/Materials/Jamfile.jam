@@ -10,7 +10,7 @@ IncludeModule CopyFile ;
 		Grid.lua
 		lambert3.lua
 		woodterrain.lua
-		Quad.lua
+		dirlight.lua
 		;
 		
 	local sources = [ FGristFiles $(MATERIAL_FILES) ] ;

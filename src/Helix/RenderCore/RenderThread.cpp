@@ -31,7 +31,7 @@ ID3D10Texture2D *			m_Texture[MAX_TARGETS];
 ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-Material *					m_albedoMaterial = NULL;
+Material *					m_dirLightMat = NULL;
 ID3D10Texture2D *			m_depthStencilTexture = NULL;
 ID3D10DepthStencilView *	m_depthStencilDSView = NULL;
 ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
@@ -343,12 +343,17 @@ void CreateViews()
 }
 // ****************************************************************************
 // ****************************************************************************
+void LoadLightShaders()
+{
+	// Load our directional light 
+	m_dirLightMat = MaterialManager::GetInstance().Load("dirlight");
+	_ASSERT( m_dirLightMat != NULL);
+
+}
+// ****************************************************************************
+// ****************************************************************************
 void CreateQuad()
 {
-	// Load our quad shader
-	m_albedoMaterial = MaterialManager::GetInstance().Load("Quad");
-	_ASSERT( m_albedoMaterial != NULL);
-
 	// Vertex buffer descriptor
 	int vertexSize = 3*sizeof(float) + 2*sizeof(float);
 	QuadVert quadVerts[4];
@@ -447,6 +452,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	m_swapChain = swapChain;
 
 	CreateViews();
+	LoadLightShaders();
 	CreateQuad();
 	CreateRasterizerState();
 
@@ -715,7 +721,7 @@ void RenderThreadFunc(void *data)
 		device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
 
 		// Set our textures as inputs
-		Shader *shader = ShaderManager::GetInstance().GetShader(m_albedoMaterial->GetShaderName());
+		Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
 		ID3D10Effect *effect = shader->GetEffect();
 
 		// Albedo texture
