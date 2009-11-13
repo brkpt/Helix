@@ -20,11 +20,13 @@ Material::Material(const std::string &name, LuaObject &object)
 	Shader *shader = ShaderManager::GetInstance().Load(m_shaderName);
 	
 	// Make sure we can load the associated texture
-	if(m_textureName.compare("albedo"))
-	{
-		Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
-		_ASSERT(tex != NULL);
-	}
+	// Texture names wrapped in []'s signify a render target or other
+	// system texture
+	if(m_textureName[0] == '[' && m_textureName[m_textureName.length()-1] == ']')
+		return;
+
+	Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
+	_ASSERT(tex != NULL);
 }
 
 // ****************************************************************************
