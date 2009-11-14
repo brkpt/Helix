@@ -50,12 +50,12 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	if(normLen > 0)
 	{
 		// Get a vector from the position to the point light
-		float3 lightVecWorld = pointLoc - pos;
+		float3 lightVecWorld = pointLoc - inVert.pos;
 		float lightDist = length(lightVecWorld);
 		if(lightDist > 0)
 		{
 			float rcpSqrtLen = rsqrt(lightDist);
-			float3 lightVecWorldNorm = normalize(lightVec);
+			float3 lightVecWorldNorm = normalize(lightVecWorld);
 			
 			// Compare with point vector
 			float3 lightVecView = mul( float4(lightVecWorldNorm,1), View3x3);
