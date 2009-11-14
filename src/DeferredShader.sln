@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
 		..\Content\Effects\dirlight.fx = ..\Content\Effects\dirlight.fx
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
+		..\Content\Effects\pointlight.fx = ..\Content\Effects\pointlight.fx
 		..\Content\Effects\shared.fx = ..\Content\Effects\shared.fx
 		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
 	EndProjectSection
@@ -31,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{
 		..\Content\Materials\Grid.lua = ..\Content\Materials\Grid.lua
 		..\Content\Materials\Jamfile.jam = ..\Content\Materials\Jamfile.jam
 		..\Content\Materials\lambert3.lua = ..\Content\Materials\lambert3.lua
+		..\Content\Materials\pointlight.lua = ..\Content\Materials\pointlight.lua
 		..\Content\Materials\Triangle.lua = ..\Content\Materials\Triangle.lua
 		..\Content\Materials\woodterrain.lua = ..\Content\Materials\woodterrain.lua
 	EndProjectSection
@@ -54,6 +56,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2
 		..\Content\Shaders\diffuse.lua = ..\Content\Shaders\diffuse.lua
 		..\Content\Shaders\dirlight.lua = ..\Content\Shaders\dirlight.lua
 		..\Content\Shaders\Jamfile.jam = ..\Content\Shaders\Jamfile.jam
+		..\Content\Shaders\pointlight.lua = ..\Content\Shaders\pointlight.lua
 		..\Content\Shaders\pos3.lua = ..\Content\Shaders\pos3.lua
 		..\Content\Shaders\pos3_norm3_tex1.lua = ..\Content\Shaders\pos3_norm3_tex1.lua
 		..\Content\Shaders\pos3_tex1.lua = ..\Content\Shaders\pos3_tex1.lua

@@ -12,6 +12,7 @@ IncludeModule CopyFile ;
 		shared.lua
 		texture.lua
 		dirlight.lua
+		pointlight.lua
 		;
 		
 	local sources = [ FGristFiles $(SHADER_FILES) ] ;
