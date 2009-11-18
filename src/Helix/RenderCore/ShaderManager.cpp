@@ -48,10 +48,10 @@ Shader * ShaderManager::Load(const std::string &shaderName)
 	LuaState *state = LuaState::Create();
 	_ASSERT(state != NULL);
 	
-	LoadLuaFileAsync<ShaderManager>(fullPath, *this, &ShaderManager::LuaLoadCallback);
-
 	int retVal = state->DoFile(fullPath.c_str());
 	_ASSERT(retVal == 0);
+
+	LoadFileAsync(fullPath, &ShaderManager::ShaderLoadCallback, NULL);
 
 	LuaObject shaderObj = state->GetGlobals()["Shader"];
 	_ASSERT(shaderObj.IsTable());
@@ -85,9 +85,9 @@ void ShaderManager::SetSharedParameter(const std::string &paramName, D3DXMATRIX 
 
 // ****************************************************************************
 // ****************************************************************************
-void ShaderManager::LuaLoadCallback(LuaState *state)
+void ShaderManager::ShaderLoadCallback(void *buffer, void *userData)
 {
-	LuaState::Destroy(state);
+	delete [] buffer;
 }
 
 } // namespace Helix

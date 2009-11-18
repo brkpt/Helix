@@ -53,6 +53,41 @@ void ShutdownLoadThread()
 
 // ****************************************************************************
 // ****************************************************************************
+bool LoadFileAsync(const std::string &file, void (*callbackFn)(void *,void *), void *data)
+{
+	LoadObject *loadObject = new LoadObject;
+	loadObject->filename = file;
+	
+	loadObject->callback = new Helix::StaticCallback2<void *,void *>(callbackFn);
+	loadObject->userData = data;
+	loadObject->next = NULL;
+
+	DWORD result = WaitForSingleObject(m_hLoadList,INFINITE);
+	_ASSERT(result == WAIT_OBJECT_0);
+	LoadObject *scan = m_loadList;
+
+	if(scan == NULL)
+	{
+		m_loadList = loadObject;
+	}
+	else
+	{
+		while(scan->next != NULL)
+			scan = scan->next;
+		scan->next = loadObject;
+	}
+
+	result = ReleaseMutex(m_hLoadList);
+	_ASSERT(result != 0);
+
+	// Signal the thread to start loading
+	SetEvent(m_hStartLoading);
+
+	return true;
+}
+
+// ****************************************************************************
+// ****************************************************************************
 void LoadThreadFunc(void *data)
 {
 	while(!GetLoadThreadShutdown())
@@ -72,7 +107,27 @@ void LoadThreadFunc(void *data)
 			result = ReleaseMutex(m_hLoadList);
 			_ASSERT(result != 0);
 
-			loadObject->callback->Call();
+			HANDLE hFile = CreateFile(loadObject->filename.c_str(),0,GENERIC_READ | FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+			if(hFile != INVALID_HANDLE_VALUE)
+			{
+				// Read in the data
+				DWORD fileSize = GetFileSize(hFile,NULL);
+				_ASSERT(fileSize != INVALID_FILE_SIZE);
+				char *buffer = new char[fileSize];
+				BOOL retVal = ReadFile(hFile, buffer, fileSize, NULL, NULL);
+				if(retVal == 0)
+				{
+					DWORD errval = GetLastError();
+					int a =1;
+				}
+				_ASSERT(retVal != 0);
+				CloseHandle(hFile);
+				(*loadObject->callback)(buffer,loadObject->userData);
+			}
+			else
+			{
+				(*loadObject->callback)(NULL,loadObject->userData);
+			}
 			delete loadObject;
 		}
 
