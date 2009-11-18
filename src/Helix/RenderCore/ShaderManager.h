@@ -34,12 +34,23 @@ private:
 	ShaderManager(const ShaderManager &other);
 	ShaderManager &	operator=(const ShaderManager &other);
 
-	static void	ShaderLoadCallback(void *buffer, void *userData);
+	static void	ShaderLoadCallback(void *buffer, long bufferSize, void *userData);
 
 	typedef std::map<const std::string, Shader *>	ShaderMap;
 	ShaderMap	m_shaderMap;
 
 	ID3D10EffectPool *	m_effectPool;
+
+	struct AsyncData
+	{
+		AsyncData(Shader *shader, ID3D10EffectPool *effectPool) 
+		: m_shader(shader)
+		, m_effectPool(effectPool) 
+		{}
+
+		Shader *			m_shader;
+		ID3D10EffectPool *	m_effectPool;
+	};
 };
 
 } // namespace Helix
