@@ -12,5 +12,3 @@ Temp/
 *.swatches
 *.bak
 
-src/debug
-src/release
