@@ -27,10 +27,10 @@ Shader * ShaderManager::GetShader(const std::string &name)
 	ShaderMap::const_iterator iter = m_shaderMap.find(name);
 	if(iter != m_shaderMap.end())
 	{
-		while(iter->second->IsLoading())
-		{
-			Sleep(1);
-		}
+		//while(iter->second->IsLoading())
+		//{
+		//	Sleep(1);
+		//}
 		return iter->second;
 	}
 
