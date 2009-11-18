@@ -13,9 +13,9 @@ namespace Helix {
 	//template <class T>
 	//bool	LoadFileAsync(const std::string &file, T &object, void (T::*callbackFn)(void *), void *data);
 	//bool	LoadLuaFileAsync(const std::string &file, void (*callbackFn)(LuaState *), void *data);
-	bool	LoadFileAsync(const std::string &file, void (*callbackFn)(void *,void*), void *data);
+	bool	LoadFileAsync(const std::string &file, void (*callbackFn)(void *,long,void*), void *data);
 
-	typedef Helix::StaticCallback2<void *, void *> ThreadLoadCallback;
+	typedef Helix::StaticCallback3<void *, long, void *> ThreadLoadCallback;
 
 	struct LoadObject
 	{

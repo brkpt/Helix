@@ -30,6 +30,15 @@ public:
 };
 
 // ****************************************************************************
+// ****************************************************************************
+template<typename P1, typename P2, typename P3>
+class Callback3
+{
+public:
+	virtual void operator()(P1 param1, P2 param2, P3 param3) const = 0;
+};
+
+// ****************************************************************************
 // MemberCallback0
 // 
 // Holds a callback to a class member function that takes no parameters
@@ -103,6 +112,30 @@ private:
 };
 
 // ****************************************************************************
+// MemberCallback2
+// 
+// Holds a callback to a class member function that takes 2 parameters
+// ****************************************************************************
+template<class T, typename P1, typename P2, typename P3> 
+class MemberCallback3 : public Callback3<P1,P2,P3>
+{
+public:
+	MemberCallback3(T &object,void (T::*callbackFn)(P1,P2,P3)) :
+	m_object(object),
+	m_callbackFn(callbackFn)
+	{}
+
+	void operator()(P1 param1, P2 param2, P3 param3) const
+	{
+		(m_object.*m_callbackFn)(param1, param2, param3);
+	}
+
+private:
+	T &	m_object;
+	void (T::*m_callbackFn)(P1,P2,P3);
+};
+
+// ****************************************************************************
 // StaticCallback0
 // 
 // Holds a callback to a function that isn't a class member (static member or
@@ -170,6 +203,28 @@ private:
 	void (*m_callbackFn) (P1,P2);
 };
 
+// ****************************************************************************
+// StaticCallback3
+// 
+// Holds a callback to a function that isn't a class member (static member or
+// regular C function) that takes 2 parameter.
+// ****************************************************************************
+template<typename P1, typename P2, typename P3>
+class StaticCallback3 : public Callback3<P1,P2,P3>
+{
+public:
+	StaticCallback3(void (*callbackFn)(P1,P2,P3)) :
+	m_callbackFn(callbackFn)
+	{}
+
+	void operator()(P1 param1, P2 param2, P3 param3) const
+	{
+		m_callbackFn(param1, param2, param3);
+	}
+	
+private:
+	void (*m_callbackFn) (P1,P2,P3);
+};
 
 } // namespace Helix
 #endif // CALLBACK_H

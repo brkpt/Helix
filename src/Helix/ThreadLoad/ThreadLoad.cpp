@@ -53,12 +53,12 @@ void ShutdownLoadThread()
 
 // ****************************************************************************
 // ****************************************************************************
-bool LoadFileAsync(const std::string &file, void (*callbackFn)(void *,void *), void *data)
+bool LoadFileAsync(const std::string &file, void (*callbackFn)(void *,long,void *), void *data)
 {
 	LoadObject *loadObject = new LoadObject;
 	loadObject->filename = file;
 	
-	loadObject->callback = new Helix::StaticCallback2<void *,void *>(callbackFn);
+	loadObject->callback = new Helix::StaticCallback3<void *,long,void *>(callbackFn);
 	loadObject->userData = data;
 	loadObject->next = NULL;
 
@@ -107,14 +107,17 @@ void LoadThreadFunc(void *data)
 			result = ReleaseMutex(m_hLoadList);
 			_ASSERT(result != 0);
 
-			HANDLE hFile = CreateFile(loadObject->filename.c_str(),0,GENERIC_READ | FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+			HANDLE hFile = CreateFile(loadObject->filename.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 			if(hFile != INVALID_HANDLE_VALUE)
 			{
 				// Read in the data
 				DWORD fileSize = GetFileSize(hFile,NULL);
 				_ASSERT(fileSize != INVALID_FILE_SIZE);
 				char *buffer = new char[fileSize];
-				BOOL retVal = ReadFile(hFile, buffer, fileSize, NULL, NULL);
+				memset(buffer,0,fileSize);
+				SetFilePointer(hFile,0,NULL,FILE_BEGIN);
+				DWORD bytesRead;
+				BOOL retVal = ReadFile(hFile, buffer, fileSize, &bytesRead, NULL);
 				if(retVal == 0)
 				{
 					DWORD errval = GetLastError();
@@ -122,11 +125,11 @@ void LoadThreadFunc(void *data)
 				}
 				_ASSERT(retVal != 0);
 				CloseHandle(hFile);
-				(*loadObject->callback)(buffer,loadObject->userData);
+				(*loadObject->callback)(buffer,bytesRead,loadObject->userData);
 			}
 			else
 			{
-				(*loadObject->callback)(NULL,loadObject->userData);
+				(*loadObject->callback)(NULL,0,loadObject->userData);
 			}
 			delete loadObject;
 		}

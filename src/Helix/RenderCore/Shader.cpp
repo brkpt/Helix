@@ -3,16 +3,39 @@
 #include "DeclManager.h"
 
 namespace Helix {
+
 // ****************************************************************************
 // ****************************************************************************
-Shader::Shader(const std::string &shaderName, LuaObject &shader, ID3D10EffectPool *effectPool)
+Shader::Shader(const std::string &shaderName) 
 : m_pEffect(NULL)
 , m_decl(NULL)
+, m_shaderName(shaderName)
+, m_loading(false)
+, m_needsProcessing(false)
 {
-	m_shaderName = shaderName;
+}
 
+// ****************************************************************************
+// ****************************************************************************
+Shader::Shader(const std::string &shaderName, LuaObject &shaderObj, ID3D10EffectPool *effectPool)
+: m_pEffect(NULL)
+, m_decl(NULL)
+, m_shaderName(shaderName)
+, m_loading(false)
+{
+	Load(shaderObj,effectPool);
+}
+
+Shader::~Shader()
+{
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void Shader::Load(LuaPlus::LuaObject &shaderObj, ID3D10EffectPool *effectPool)
+{
 	// Load our vertex declaration
-	LuaObject obj = shader["Declaration"];
+	LuaObject obj = shaderObj["Declaration"];
 	_ASSERT(obj.IsString());
 	std::string name = obj.GetString();
 
@@ -20,7 +43,7 @@ Shader::Shader(const std::string &shaderName, LuaObject &shader, ID3D10EffectPoo
 	_ASSERT(m_decl);
 
 	// Load our effect
-	obj = shader["FX"];
+	obj = shaderObj["FX"];
 	_ASSERT(obj.IsString());
 	std::string fxName = obj.GetString();
 	std::string fxPath = "Effects/";
@@ -37,11 +60,6 @@ Shader::Shader(const std::string &shaderName, LuaObject &shader, ID3D10EffectPoo
 	// Now create the layout if it hasn't been created already
 	m_decl->BuildLayout(this);
 }
-
-Shader::~Shader()
-{
-}
-
 // ****************************************************************************
 // ****************************************************************************
 void Shader::SetShaderParameter(const std::string &paramName, D3DXMATRIX &value)
