@@ -10,20 +10,19 @@ namespace Helix {
 	bool	GetLoadThreadShutdown();
 	void	ShutdownLoadThread();
 
-	template <class T>
-	bool	LoadFileAsync(const std::string &file, T &object, void (T::*callbackFn)(void *), void *data);
+	//template <class T>
+	//bool	LoadFileAsync(const std::string &file, T &object, void (T::*callbackFn)(void *), void *data);
+	//bool	LoadLuaFileAsync(const std::string &file, void (*callbackFn)(LuaState *), void *data);
+	bool	LoadFileAsync(const std::string &file, void (*callbackFn)(void *,void*), void *data);
 
-	template <class T>
-	bool	LoadLuaFileAsync(const std::string &file, T &object, void (T::*callbackFn)(LuaState *));
-
-	bool	LoadFileAsync(const std::string &file, void (*callbackFn)(void *), void *data);
+	typedef Helix::StaticCallback2<void *, void *> ThreadLoadCallback;
 
 	struct LoadObject
 	{
 		std::string			filename;
-		Helix::Callback *	callback;
-		LuaState *			state;
+		ThreadLoadCallback *callback;
 		LoadObject *		next;
+		void *				userData;
 	};
 
 	extern bool			m_threadLoaderInitialized;

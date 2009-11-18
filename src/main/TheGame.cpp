@@ -85,6 +85,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 //		int a = foo;
 //		char *test = whee;
 //	}
+//
+//	typedef Helix::MemberCallback0<Foo> MemCallback0;
+//	typedef Helix::MemberCallback1<Foo,int> MemCallback1;
+//	typedef Helix::MemberCallback2<Foo,int,int> MemCallback2;
 //};
 
 // ****************************************************************************
@@ -93,20 +97,25 @@ void TheGame::LoadScene(const std::string &levelName)
 {
 	//Foo test;
 
-	//Helix::Callback *cb0 = new Helix::MemberCallback0<Foo>(test, &Foo::MyCallback);
-	//Helix::Callback *cb1 = new Helix::MemberCallback1<Foo,int>(test,&Foo::MyCallback1,5);
-	//Helix::Callback *cb2 = new Helix::MemberCallback2<Foo,int,int>(test,&Foo::MyCallback2,10,20);
-	//Helix::Callback *scb0 = new Helix::StaticCallback0(&Foo::MyCallbackS0);
-	//Helix::Callback *scb1 = new Helix::StaticCallback1<int>(&Foo::MyCallbackS1,10);
-	//Helix::Callback *scb2 = new Helix::StaticCallback2<int, char *>(&Foo::MyCallbackS2,10,"Hello");
+	////Helix::MemberCallback0<Foo> cb0(test, &Foo::MyCallback);
+	////Helix::MemberCallback1<Foo,int> cb1(test,&Foo::MyCallback1);
+	////Helix::MemberCallback2<Foo,int,int> cb2(test,&Foo::MyCallback2);
 
-	//cb0->Call();
-	//cb1->Call();
-	//cb2->Call();
+	//Foo::MemCallback0 cb0(test, &Foo::MyCallback);
+	//Foo::MemCallback1 cb1(test,&Foo::MyCallback1);
+	//Foo::MemCallback2 cb2(test,&Foo::MyCallback2);
 
-	//scb0->Call();
-	//scb1->Call();
-	//scb2->Call();
+	//Helix::StaticCallback0 scb0(&Foo::MyCallbackS0);
+	//Helix::StaticCallback1<int> scb1(&Foo::MyCallbackS1,10);
+	//Helix::StaticCallback2<int,char*> scb2(&Foo::MyCallbackS2,10,"Hello");
+
+	//cb0();
+	//cb1(5);
+	//cb2(10,20);
+
+	//scb0();
+	//scb1(10);
+	//scb2(10,"Hello");
 
 	m_camera = new Camera;
 

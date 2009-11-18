@@ -5,14 +5,29 @@ namespace Helix {
 
 // ****************************************************************************
 // ****************************************************************************
-class Callback
+class Callback0
 {
 public:
-	virtual ~Callback() = 0;
-	virtual void Call() = 0;
+	virtual void operator()() const = 0;
 };
 
-inline Callback::~Callback() {}
+// ****************************************************************************
+// ****************************************************************************
+template<typename P1>
+class Callback1
+{
+public:
+	virtual void operator()(P1 param) const = 0;
+};
+
+// ****************************************************************************
+// ****************************************************************************
+template<typename P1, typename P2>
+class Callback2
+{
+public:
+	virtual void operator()(P1 param1, P2 param2) const = 0;
+};
 
 // ****************************************************************************
 // MemberCallback0
@@ -20,7 +35,7 @@ inline Callback::~Callback() {}
 // Holds a callback to a class member function that takes no parameters
 // ****************************************************************************
 template<class T> 
-class MemberCallback0 : public Callback
+class MemberCallback0 : public Callback0
 {
 public:
 	MemberCallback0(T &object,void (T::*callbackFn)()) :
@@ -28,7 +43,7 @@ public:
 	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()() const
 	{
 		(m_object.*m_callbackFn)();
 	}
@@ -43,26 +58,24 @@ private:
 // 
 // Holds a callback to a class member function that takes 1 parameter
 // ****************************************************************************
-template<class T, typename P> 
-class MemberCallback1 : public Callback
+template<class T, typename P1> 
+class MemberCallback1 : public Callback1<P1>
 {
 public:
-	MemberCallback1(T &object,void (T::*callbackFn)(P), P param) :
+	MemberCallback1(T &object,void (T::*callbackFn)(P1)) :
 	m_object(object),
-	m_callbackFn(callbackFn),
-	m_param(param)
+	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()(P1 param) const
 	{
-		(m_object.*m_callbackFn)(m_param);
+		(m_object.*m_callbackFn)(param);
 	}
 
 private:
 	T &	m_object;
-	P	m_param;
 
-	void (T::*m_callbackFn)(P);
+	void (T::*m_callbackFn)(P1);
 };
 
 // ****************************************************************************
@@ -71,25 +84,21 @@ private:
 // Holds a callback to a class member function that takes 2 parameters
 // ****************************************************************************
 template<class T, typename P1, typename P2> 
-class MemberCallback2 : public Callback
+class MemberCallback2 : public Callback2<P1,P2>
 {
 public:
-	MemberCallback2(T &object,void (T::*callbackFn)(P1,P2),P1 p1, P2 p2) :
+	MemberCallback2(T &object,void (T::*callbackFn)(P1,P2)) :
 	m_object(object),
-	m_callbackFn(callbackFn),
-	m_param1(p1),
-	m_param2(p2)
+	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()(P1 param1, P2 param2) const
 	{
-		(m_object.*m_callbackFn)(m_param1, m_param2);
+		(m_object.*m_callbackFn)(param1, param2);
 	}
 
 private:
 	T &	m_object;
-	P1	m_param1;
-	P2	m_param2;
 	void (T::*m_callbackFn)(P1,P2);
 };
 
@@ -99,14 +108,14 @@ private:
 // Holds a callback to a function that isn't a class member (static member or
 // regular C function) that takes 0 parameters.
 // ****************************************************************************
-class StaticCallback0 : public Callback
+class StaticCallback0 : public Callback0
 {
 public:
 	StaticCallback0(void (*callbackFn)()) :
 	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()() const
 	{
 		m_callbackFn();
 	}
@@ -122,21 +131,19 @@ private:
 // regular C function) that takes 1 parameter.
 // ****************************************************************************
 template<typename P>
-class StaticCallback1 : public Callback
+class StaticCallback1 : public Callback1<P>
 {
 public:
-	StaticCallback1(void (*callbackFn)(P), P param) :
-	m_callbackFn(callbackFn),
-	m_param(param)
+	StaticCallback1(void (*callbackFn)(P)) :
+	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()(P param) const
 	{
-		m_callbackFn(m_param);
+		m_callbackFn(param);
 	}
 	
 private:
-	P	m_param;
 	void (*m_callbackFn) (P);
 };
 
@@ -147,23 +154,19 @@ private:
 // regular C function) that takes 2 parameter.
 // ****************************************************************************
 template<typename P1, typename P2>
-class StaticCallback2 : public Callback
+class StaticCallback2 : public Callback2<P1,P2>
 {
 public:
-	StaticCallback2(void (*callbackFn)(P1,P2),P1 param1, P2 param2) :
-	m_callbackFn(callbackFn),
-	m_param1(param1),
-	m_param2(param2)
+	StaticCallback2(void (*callbackFn)(P1,P2)) :
+	m_callbackFn(callbackFn)
 	{}
 
-	void Call()
+	void operator()(P1 param1, P2 param2) const
 	{
-		m_callbackFn(m_param1, m_param2);
+		m_callbackFn(param1, param2);
 	}
 	
 private:
-	P1	m_param1;
-	P2	m_param2;
 	void (*m_callbackFn) (P1,P2);
 };
 
