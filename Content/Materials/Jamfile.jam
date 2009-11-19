@@ -8,7 +8,7 @@ IncludeModule CopyFile ;
 		Triangle.lua
 		FunnyFace.lua
 		Grid.lua
-		lambert3.lua
+		woodgrain.lua
 		woodterrain.lua
 		dirlight.lua
 		pointlight.lua
