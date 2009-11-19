@@ -46,7 +46,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scenes", "Scenes", "{4944259D-82C2-4BEA-B586-F2CF6CF05955}"
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Scenes\giant\giant.lua = ..\Content\Scenes\giant\giant.lua
-		..\Content\Scenes\holodeck\holodeck.lua = ..\Content\Scenes\holodeck\holodeck.lua
 		..\Content\Scenes\jamfile.jam = ..\Content\Scenes\jamfile.jam
 	EndProjectSection
 EndProject

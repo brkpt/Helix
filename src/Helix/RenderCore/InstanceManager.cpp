@@ -1,10 +1,25 @@
 #include "stdafx.h"
+#include "RenderThread.h"
 
 namespace Helix {
 // ****************************************************************************
 // ****************************************************************************
 InstanceManager::InstanceManager()
 {
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Instance * InstanceManager::CreateInstance(const std::string &instanceName)
+{
+	Instance *inst = Get(instanceName);
+	_ASSERT(inst == NULL);
+
+	inst = new Instance;
+	inst->SetName(instanceName);
+	
+	m_database[instanceName] = inst;
+	return inst;
 }
 
 // ****************************************************************************
@@ -45,6 +60,20 @@ Instance * InstanceManager::Load(const std::string &name)
 	m_database[name] = inst;
 	return inst;
 
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void InstanceManager::SubmitInstances()
+{
+	InstanceMap::iterator iter = m_database.begin();
+
+	while(iter != m_database.end())
+	{
+		Instance *inst = iter->second;
+		SubmitInstance(*inst);
+		++iter;
+	}
 }
 
 } // namespace Helix

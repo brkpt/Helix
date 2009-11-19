@@ -8,7 +8,7 @@ IncludeModule CopyFile ;
 		holodeck
 		;
 	
-	local targetDir = $(AppRoot)Build/Meshes ;
+	local targetDir = $(AppRoot)Build/Scenes ;
 	Depends content : scenes ;
 	
 	for dir in $(sceneDirs)

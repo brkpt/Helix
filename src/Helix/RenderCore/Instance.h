@@ -17,9 +17,10 @@ public:
 	~Instance();
 
 	bool				Load(const std::string &name, LuaObject &obj);
+	void				SetName(const std::string &name) { m_name = name; }
+	const std::string &	GetName() const { return m_name; }
 	void				SetMeshName(const std::string &name) { m_meshName = name; }
 	const std::string &	GetMeshName() const { return m_meshName; }
-	const std::string &	GetName() const { return m_name; }
 	const D3DXMATRIX &	GetWorldMatrix() const { return m_worldMatrix; }
 	void				Render(int pass);
 

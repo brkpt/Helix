@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 namespace Helix {
+
 // ****************************************************************************
 // ****************************************************************************
 Mesh * MeshManager::GetMesh(const std::string &meshName)
@@ -24,6 +25,23 @@ Mesh * MeshManager::Load(const std::string &meshName)
 
 	mesh = new Mesh;
 	mesh->Load(meshName);
+	m_database[meshName] = mesh;
+
+	return mesh;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Mesh * MeshManager::Load(const std::string &meshName, LuaObject &meshObj)
+{
+	Mesh *mesh = GetMesh(meshName);
+	if(mesh != NULL)
+	{
+		return mesh;
+	}
+
+	mesh = new Mesh;
+	mesh->Load(meshObj);
 	m_database[meshName] = mesh;
 
 	return mesh;
