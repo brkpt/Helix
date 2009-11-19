@@ -8,6 +8,7 @@
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"
+#include "RenderCore/SceneLoader.h"
 #include "Kernel/Callback.h"
 #include "Camera.h"
 
@@ -136,10 +137,7 @@ void TheGame::LoadScene(const std::string &levelName)
 	tempColor.Blue = 0.25f;
 	Helix::SetAmbientColor( tempColor );
 
-	m_world = new Helix::Instance;
-	m_world->SetMeshName(levelName.c_str());
-	Helix::Mesh *mesh = Helix::MeshManager::GetInstance().Load(levelName.c_str());
-
+	Helix::LoadScene(levelName.c_str());
 }
 
 // ****************************************************************************
@@ -235,8 +233,6 @@ void TheGame::Update(void)
 	GetCursorPos( &ptCursor );
 //	m_pD3DDevice->SetCursorPosition(ptCursor.x,ptCursor.y,0);
 
-	Helix::SubmitInstance(*m_world);
-
 	m_camera->Update();
 
 	m_mouseState.mouseDeltaX = 0;
@@ -247,6 +243,7 @@ void TheGame::Update(void)
 // ****************************************************************************
 void TheGame::Render(void)
 {
+	Helix::InstanceManager::GetInstance().SubmitInstances();
 	Helix::RenderThreadReady();
 
 	WinApp::Render();

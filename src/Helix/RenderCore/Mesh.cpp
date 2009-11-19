@@ -44,12 +44,21 @@ bool Mesh::Load(const std::string &name)
 
 	LuaObject meshObj = meshList[1];
 
+	return Load(meshObj);
+}
+// ****************************************************************************
+// ****************************************************************************
+bool Mesh::Load(LuaObject &meshObj)
+{
 	LuaObject matObj = meshObj["Material"];
 	_ASSERT(matObj.IsString());
 	m_materialName = matObj.GetString();
 
-	m_meshName = name;
-	return CreatePlatformData(name,meshObj);
+	LuaObject nameObj = meshObj["Name"];
+	_ASSERT(nameObj.IsString());
+	m_meshName = nameObj.GetString();
+
+	return CreatePlatformData(m_meshName,meshObj);
 }
 // ****************************************************************************
 // ****************************************************************************

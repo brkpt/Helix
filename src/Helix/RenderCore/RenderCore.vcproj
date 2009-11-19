@@ -216,6 +216,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\SceneLoader.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\SceneLoader.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Shader.cpp"
 			>
 		</File>

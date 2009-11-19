@@ -26,6 +26,7 @@ public:
 
 	Mesh *	GetMesh(const std::string &meshName);
 	Mesh *	Load(const std::string &meshName);
+	Mesh *	Load(const std::string &meshname, LuaObject &meshObj);
 
 private:
 	MeshManager() {}

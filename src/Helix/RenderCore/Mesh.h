@@ -12,6 +12,7 @@ public:
 	~Mesh();
 
 	bool	Load(const std::string &path);
+	bool	Load(LuaObject &meshObj);
 
 	void			Render(int pass);
 	std::string &	GetMaterialName() { return m_materialName; }

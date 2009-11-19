@@ -13,6 +13,8 @@ public:
 		GetInstance();
 	}
 
+	Instance * CreateInstance(const std::string &instanceName);
+
 	static InstanceManager & GetInstance()
 	{
 		static InstanceManager	instance;
@@ -21,6 +23,8 @@ public:
 
 	Instance *	Get(const std::string &name);
 	Instance *	Load(const std::string &name);
+
+	void	SubmitInstances();
 
 private:
 	InstanceManager();
