@@ -16,7 +16,7 @@ IncludeModule CopyFile ;
 		# Assumes scene name is the same name as dir
 		local srcFile = [ FGristFiles $(dir)/$(dir:S=.lua) ] ;
 		
-		echo srcFile - $(srcFile) ;
+		#echo srcFile - $(srcFile) ;
 		local targetFile = $(dir:S=.lua) ;
 		CopyFile scenes : $(targetDir)/$(targetFile) : $(srcFile) ;
 	}
