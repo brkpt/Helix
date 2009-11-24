@@ -17,12 +17,14 @@ struct TexturePS_in
 	float4 pos : POSITION;
 	float3 normal : NORMAL;
 	float2 texuv : TEXCOORD0;
+	float depth : TEXCOORD1;
 };
 
 struct TexturePS_out
 {
 	float4 color : SV_TARGET0;
 	float4 normal : SV_TARGET1;
+	float depth : SV_TARGET2;
 };
 
 SamplerState texSampler
@@ -40,6 +42,7 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 	Out.texuv = In.texuv;
 	float3 P = mul( float4(In.pos,1), WorldView );
 	Out.pos = mul( float4(P,1), Projection );
+	Out.depth = length(P);
 	return Out;
 }
 
@@ -48,6 +51,7 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 	TexturePS_out outValue;
 	outValue.color = textureImage.Sample(texSampler, In.texuv);
 	outValue.normal = float4(In.normal.xyz,1);
+	outValue.depth = In.depth.x;
 	return outValue;
 }
 

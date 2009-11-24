@@ -1,10 +1,18 @@
-// Use:
+//Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-
 #include "shared.fx"
 
+float3		pointLoc;			// Point light location
+float3		pointColor;			// Point light color
+float		cameraNear;
+float		cameraFar;
+float		imageWidth;
+float		imageHeight;
+float		viewAspect;
+float		invTanHalfFOV;
 Texture2D	albedoTexture;
 Texture2D	normalTexture;
+Texture2D	depthTexture;
 
 struct QuadVS_in
 {
@@ -16,6 +24,7 @@ struct QuadPS_in
 {
 	float4 pos : SV_Position;
 	float2 texuv : TEXCOORD0;
+	float3 vEyeToScreen: TEXCOORD1;
 };
 
 SamplerState texSampler
@@ -31,46 +40,36 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 
 	outVert.pos = float4(inVert.pos,1.0);
 	outVert.texuv = inVert.texuv;
+	//out.vEyetoScreen= float3(Input.ScreenPos.x * ViewAspect, Input.ScreenPos.y, invTanHalfFOV)
+	outVert.vEyeToScreen = float3(inVert.pos.x*viewAspect, inVert.pos.y, invTanHalfFOV);
 	return outVert;
 }
 
 float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 {
-	// Get our albedo color
-	float3 color = albedoTexture.Sample(texSampler,inVert.texuv);
+	float4 outColor;
 	
-	// Start with ambient
-	float3 outColor = color*ambientColor;
+	// float3 pixelPos = normalize(Input.vEyeToScreen) * G_Buffer.z;
 	
-	// Get our pixel normal
-	float3 normal = normalTexture.Sample(texSampler,inVert.texuv);
-	float normLen = length(normal);
+	// Get our depth value
+	float clipX = inVert.pos.x / imageWidth;
+	float clipY = inVert.pos.y / imageHeight;
+	float depthValue = depthTexture.Sample(texSampler,float2(clipX,clipY));
+	float3 viewPos = normalize(inVert.vEyeToScreen) * depthValue;
+	
+	// Transform the light into view space
+	float3 pointLocView = mul( float4(pointLoc,1), WorldView );
+	float3 posToLight = pointLocView - viewPos;
+	float3 posToLightNorm = normalize(posToLight);
+	
+	float3 posNorm = normalTexture.Sample(texSampler,float2(clipX,clipY));
+	float distToLight = length(posToLight);
 
-	// If we have a normal (ie: something was rendered at this pixel)
-	if(normLen > 0)
-	{
-		// Get a vector from the position to the point light
-		float3 lightVecWorld = pointLoc - inVert.pos;
-		float lightDist = length(lightVecWorld);
-		if(lightDist > 0)
-		{
-			float rcpSqrtLen = rsqrt(lightDist);
-			float3 lightVecWorldNorm = normalize(lightVecWorld);
-			
-			// Compare with point vector
-			float3 lightVecView = mul( float4(lightVecWorldNorm,1), View3x3);
-			float dotProd = dot(normal,lightVecView);
+	float dotVal = dot(posNorm,posToLightNorm)/distToLight;
 
-			// Clamp (0..1)		
-			dotProd = clamp(dotProd,0, 1);
-			
-			// Add in color due to sunlight
-			float3 lightVal = color*pointColor*rcpSqrtLen*dotProd;
-			outColor = outColor + lightVal;
-		}
-	}
+	float3 albedoColor = albedoTexture.Sample(texSampler,float2(clipX,clipY));
+	return outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
 	
-	return float4(outColor,1);	
 }
 
 technique10 FullScreenQuad

@@ -25,13 +25,14 @@ ID3D10RenderTargetView *	m_backBufferView = NULL;
 ID3D10Texture2D *			m_backDepthStencil = NULL;
 ID3D10DepthStencilView *	m_backDepthStencilView = NULL;
 
-enum { ALBEDO = 0, NORMAL, MAX_TARGETS };
+enum { ALBEDO = 0, NORMAL, DEPTH, MAX_TARGETS };
 
 ID3D10Texture2D *			m_Texture[MAX_TARGETS];
 ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
 
 Material *					m_dirLightMat = NULL;
+Material *					m_pointLightMat = NULL;
 ID3D10Texture2D *			m_depthStencilTexture = NULL;
 ID3D10DepthStencilView *	m_depthStencilDSView = NULL;
 ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
@@ -39,9 +40,11 @@ ID3D10Buffer *				m_quadVB = NULL;
 ID3D10Buffer *				m_quadIB = NULL;
 ID3D10RasterizerState *		m_RState = NULL;
 
-D3DXVECTOR3					m_sunlightDir(0.0f, 1.0f, 0.0f);		// Points to sun
+D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
 DXGI_RGB					m_ambientColor = {1.0f, 1.0f, 1.0f};	// Ambient color
+D3DXVECTOR3					m_pointLightLoc(-8.85f, -9.25f, 8.706f);	// Point light location
+DXGI_RGB					m_pointLightColor = {0.0f, 0.0f, 1.0f};		// Point light color
 
 struct RenderData
 {
@@ -57,6 +60,15 @@ RenderData *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_viewMatrix[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_projMatrix[NUM_SUBMISSION_BUFFERS];
 
+float			m_cameraNear = 0;
+float			m_cameraFar = 0;
+float			m_imageWidth = 0;
+float			m_imageHeight = 0;
+float			m_fovY = 0;
+float			m_fov = 0;
+float			m_viewAspect;
+float			m_invTanHalfFOV = 0;
+
 struct QuadVert {
 	float	pos[3];
 	float	uv[2];
@@ -65,6 +77,7 @@ struct QuadVert {
 void	CreateViews();
 void	CreateBackbufferViews();
 void	CreateColorTarget();
+void	CreateDepthTarget();
 void	CreateDepthStencilTarget();
 void	CreateNormalTarget();
 void	CreateQuad();
@@ -239,6 +252,49 @@ void CreateColorTarget()
 }
 
 // ****************************************************************************
+// ****************************************************************************
+void CreateDepthTarget()
+{
+	// Create some empty render targets
+	D3D10_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R32_FLOAT;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D10_USAGE_DEFAULT;
+	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+
+	// Create the texture
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Create the render target view
+	D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+	rtDesc.Format = desc.Format;
+	rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2D;
+	rtDesc.Texture2D.MipSlice = 0;
+
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[DEPTH], &rtDesc, &m_RTView[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[DEPTH]), "[depthtarget]");
+
+	// Create the shader input view
+	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
+	srDesc.Format = desc.Format;
+	srDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
+
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[DEPTH], &srDesc, &m_SRView[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
+
+	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[DEPTH]), "[depthshader]");
+}
+// ****************************************************************************
 // - Create a depth/stencil target texture (DXGI_FORMAT_R16_TYPELESS)
 // - Create a depth/stencil view
 // - Create a shader resource view for our depth/stencil 
@@ -338,6 +394,7 @@ void CreateViews()
 {
 	CreateBackbufferViews();
 	CreateColorTarget();
+	CreateDepthTarget();
 	CreateDepthStencilTarget();
 	CreateNormalTarget();
 }
@@ -348,6 +405,9 @@ void LoadLightShaders()
 	// Load our directional light 
 	m_dirLightMat = MaterialManager::GetInstance().Load("dirlight");
 	_ASSERT( m_dirLightMat != NULL);
+
+	m_pointLightMat = MaterialManager::GetInstance().Load("pointlight");
+	_ASSERT( m_pointLightMat != NULL);
 
 }
 // ****************************************************************************
@@ -429,7 +489,7 @@ void CreateRasterizerState()
 	D3D10_RASTERIZER_DESC rDesc;
 	memset(&rDesc,0,sizeof(rDesc));
 	rDesc.FillMode = D3D10_FILL_SOLID;
-	rDesc.CullMode = D3D10_CULL_NONE;
+	rDesc.CullMode = D3D10_CULL_BACK;
 	rDesc.FrontCounterClockwise = false;
 	rDesc.DepthBias = 0;
 	rDesc.DepthBiasClamp = 0.0f;
@@ -583,6 +643,20 @@ void SubmitViewMatrix(D3DXMATRIX &mat)
 	AcquireMutex();
 	m_viewMatrix[m_submissionIndex] = mat;
 	ReleaseMutex();
+
+	m_cameraNear = 1.0f;
+	m_cameraFar = 200.0f;
+	m_imageWidth = 1024.0f;
+	m_imageHeight = 768.0f;
+	m_fovY = (float)D3DX_PI/4.0f; //D3DXToRadian(45);
+	m_viewAspect = m_imageWidth/m_imageHeight;
+
+	float d = .5f * m_imageHeight * 1.0f/tan(m_fovY/2.0f);
+	float fov = 2 * atan(0.5f*m_imageWidth/d);
+	//float deg =	static_cast<float>(D3DXToDegree(fov));
+	//deg = static_cast<float>(D3DXToDegree(m_fovY));
+	m_fov = fov;
+	m_invTanHalfFOV = 1.0f/tan(fov/2.0f);
 }
 
 // ****************************************************************************
@@ -592,6 +666,223 @@ void SubmitProjMatrix(D3DXMATRIX &mat)
 	AcquireMutex();
 	m_projMatrix[m_submissionIndex] = mat;
 	ReleaseMutex();
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void RenderSunlight()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Set our textures as inputs
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
+	ID3D10Effect *effect = shader->GetEffect();
+
+	// Albedo texture
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Normal texture
+	shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	hr = shaderResource->SetResource(m_SRView[NORMAL]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// *************
+	// Setup sunlight vector
+	// *************
+
+	// Reverse the direction so that it points towards the sun. 
+	// This makes it easier in the shader since the light vector
+	// and the normal will be in the same direction.
+	D3DXVECTOR3 vecData = -m_sunlightDir;
+
+	// Make sure vector is normalized
+	D3DXVec3Normalize(&vecData, &vecData);
+
+	// Store
+	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("sunDir")->AsVector();
+	_ASSERT( vecVar != NULL );
+	vecVar->SetFloatVector(vecData);
+
+	// Setup sunlight color
+	vecData.x = m_sunlightColor.Red;
+	vecData.y = m_sunlightColor.Green;
+	vecData.z = m_sunlightColor.Blue;
+
+	// Store
+	vecVar = effect->GetVariableByName("sunColor")->AsVector();
+	_ASSERT( vecVar != NULL);
+	vecVar->SetFloatVector(vecData);
+
+	// *************
+	// Setup ambient color
+	// *************
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+
+	// Make sure it is normalized
+	D3DXVec3Normalize(&vecData, &vecData);
+
+	vecVar = effect->GetVariableByName("ambientColor")->AsVector();
+	_ASSERT( vecVar != NULL );
+	vecVar->SetFloatVector(vecData);
+	
+	// Set our IB/VB
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+
+	// Set our prim type
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+	// Set our states
+	device->RSSetState(m_RState);
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( 4, 0, 0 );
+	}
+	hr = shaderResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void RenderPointLight()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Set our textures as inputs
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_pointLightMat->GetShaderName());
+	ID3D10Effect *effect = shader->GetEffect();
+
+	// Albedo texture
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Normal texture
+	shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	hr = shaderResource->SetResource(m_SRView[NORMAL]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Depth texture
+	shaderResource = effect->GetVariableByName("depthTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	hr = shaderResource->SetResource(m_SRView[DEPTH]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	ID3D10EffectScalarVariable *scalarVar = effect->GetVariableByName("cameraNear")->AsScalar();
+	hr = scalarVar->SetFloat(m_cameraNear);
+
+	scalarVar = effect->GetVariableByName("cameraFar")->AsScalar();
+	hr = scalarVar->SetFloat(m_cameraFar);
+
+	scalarVar = effect->GetVariableByName("imageWidth")->AsScalar();
+	hr = scalarVar->SetFloat(m_imageWidth);
+
+	scalarVar = effect->GetVariableByName("imageHeight")->AsScalar();
+	hr = scalarVar->SetFloat(m_imageHeight);
+
+	scalarVar = effect->GetVariableByName("fovY")->AsScalar();
+	hr = scalarVar->SetFloat(m_fovY);
+
+	scalarVar = effect->GetVariableByName("viewAspect")->AsScalar();
+	hr = scalarVar->SetFloat(m_viewAspect);
+
+	scalarVar = effect->GetVariableByName("invTanHalfFOV")->AsScalar();
+	hr = scalarVar->SetFloat(m_invTanHalfFOV);
+
+	// *************
+	// Setup our point light
+	// *************
+	static __int64 qpcStart = 0;
+	static double freq = 0.0;
+	static bool firstTime = true;
+	if(firstTime)
+	{
+		__int64 qpcFreq;
+		QueryPerformanceFrequency((LARGE_INTEGER *)&qpcFreq);
+		freq = 1.0/(double)qpcFreq;
+		QueryPerformanceCounter((LARGE_INTEGER *)&qpcStart);
+		firstTime = false;
+	}
+
+	__int64 qpcNow = 0;
+	QueryPerformanceCounter((LARGE_INTEGER *)&qpcNow);
+	double timeInSec = (qpcNow - qpcStart) * freq;
+	double timeInMS = timeInSec * 1000.0;
+	float scale = static_cast<float>((2.0 * D3DX_PI)/2000.0);
+	float rot = static_cast<float>(timeInMS * scale);
+
+
+	D3DXMATRIX rotY;
+	D3DXMatrixRotationY(&rotY,rot);
+	D3DXVECTOR4 temp;
+	D3DXVec3Transform(&temp,&m_pointLightLoc,&rotY);
+	D3DXVECTOR3 newPos = temp;
+
+	// Position
+	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
+	_ASSERT( vecVar != NULL);
+	vecVar->SetFloatVector(newPos);
+
+	// Color
+	D3DXVECTOR3 vecData;
+	vecData.x = m_pointLightColor.Red;
+	vecData.y = m_pointLightColor.Green;
+	vecData.z = m_pointLightColor.Blue;
+	vecVar = effect->GetVariableByName("pointColor")->AsVector();
+	_ASSERT( vecVar != NULL);
+	vecVar->SetFloatVector(vecData);
+
+	// *************
+	// Setup ambient color
+	// *************
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+
+	// Make sure it is normalized
+	D3DXVec3Normalize(&vecData, &vecData);
+
+	vecVar = effect->GetVariableByName("ambientColor")->AsVector();
+	_ASSERT( vecVar != NULL );
+	vecVar->SetFloatVector(vecData);
+	
+	// Set our IB/VB
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+
+	// Set our prim type
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+	// Set our states
+	device->RSSetState(m_RState);
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( 4, 0, 0 );
+	}
+	hr = shaderResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
 }
 
 // ****************************************************************************
@@ -618,13 +909,15 @@ void RenderThreadFunc(void *data)
 		//
 		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
 		float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
+		float ClearDepth[1] = { 0.0f };
 		device->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
 		device->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
+		device->ClearRenderTargetView( m_RTView[DEPTH], ClearDepth) ;
 		device->ClearDepthStencilView( m_depthStencilDSView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 		//device->ClearRenderTargetView( m_backBufferView, ClearColor );
 
 		// Set our render targets
-		device->OMSetRenderTargets(2, m_RTView, m_depthStencilDSView);
+		device->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
 		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
 		// Setup camera parameters
@@ -648,11 +941,11 @@ void RenderThreadFunc(void *data)
 		// We don't use any non uniform scaling, so we can just send down the 
 		// upper 3x3 of the world view matrix
 		D3DXMATRIX worldViewIT;
+		float det = 0;
 		worldViewIT = worldView;
 		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
 		worldViewIT._44 = 1;
 		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
-		float det = 0;
 		D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
 		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
 
@@ -720,77 +1013,10 @@ void RenderThreadFunc(void *data)
 		// Switch to final backbuffer/depth/stencil
 		device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
 
-		// Set our textures as inputs
-		Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
-		ID3D10Effect *effect = shader->GetEffect();
+		//RenderSunlight();
+		//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
+		RenderPointLight();
 
-		// Albedo texture
-		ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-		_ASSERT(shaderResource != NULL);
-		HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
-		_ASSERT( SUCCEEDED(hr) );
-
-		// Normal texture
-		shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-		_ASSERT(shaderResource != NULL);
-		hr = shaderResource->SetResource(m_SRView[NORMAL]);
-		_ASSERT( SUCCEEDED(hr) );
-
-		// Setup sunlight vector
-		D3DXVECTOR3 vecData = m_sunlightDir;
-
-		// Make sure vector is normalized
-		D3DXVec3Normalize(&vecData, &vecData);
-
-		// Store
-		ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("sunDir")->AsVector();
-		_ASSERT( vecVar != NULL );
-		vecVar->SetFloatVector(vecData);
-
-		// Setup sunlight color
-		vecData.x = m_sunlightColor.Red;
-		vecData.y = m_sunlightColor.Green;
-		vecData.z = m_sunlightColor.Blue;
-
-		// Store
-		vecVar = effect->GetVariableByName("sunColor")->AsVector();
-		_ASSERT( vecVar != NULL);
-		vecVar->SetFloatVector(vecData);
-
-		// Setup ambient color
-		vecData.x = m_ambientColor.Red;
-		vecData.y = m_ambientColor.Green;
-		vecData.z = m_ambientColor.Blue;
-
-		// Make sure it is normalized
-		D3DXVec3Normalize(&vecData, &vecData);
-
-		vecVar = effect->GetVariableByName("ambientColor")->AsVector();
-		_ASSERT( vecVar != NULL );
-		vecVar->SetFloatVector(vecData);
-		
-		// Set our IB/VB
-		unsigned int stride = shader->GetDecl().VertexSize();
-		unsigned int offset = 0;
-		device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-		device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
-
-		// Set our prim type
-		device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-
-		// Set our states
-		device->RSSetState(m_RState);
-
-		D3D10_TECHNIQUE_DESC techDesc;
-		ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-		technique->GetDesc(&techDesc);
-		for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-		{
-			technique->GetPassByIndex( passIndex )->Apply( 0 );
-			device->DrawIndexed( 4, 0, 0 );
-		}
-		hr = shaderResource->SetResource(NULL);
-		_ASSERT(SUCCEEDED(hr));
 		m_swapChain->Present(0,0);
 
 		// Delete all our render objects
