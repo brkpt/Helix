@@ -410,6 +410,14 @@ void LoadLightShaders()
 	_ASSERT( m_pointLightMat != NULL);
 
 }
+
+// ****************************************************************************
+// ****************************************************************************
+void LoadShapes()
+{
+	MeshManager::GetInstance().Load("[lightsphere]","lightsphere");
+}
+
 // ****************************************************************************
 // ****************************************************************************
 void CreateQuad()
@@ -513,6 +521,7 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 
 	CreateViews();
 	LoadLightShaders();
+	LoadShapes();
 	CreateQuad();
 	CreateRasterizerState();
 
@@ -807,36 +816,36 @@ void RenderPointLight()
 	// *************
 	// Setup our point light
 	// *************
-	static __int64 qpcStart = 0;
-	static double freq = 0.0;
-	static bool firstTime = true;
-	if(firstTime)
-	{
-		__int64 qpcFreq;
-		QueryPerformanceFrequency((LARGE_INTEGER *)&qpcFreq);
-		freq = 1.0/(double)qpcFreq;
-		QueryPerformanceCounter((LARGE_INTEGER *)&qpcStart);
-		firstTime = false;
-	}
+	//static __int64 qpcStart = 0;
+	//static double freq = 0.0;
+	//static bool firstTime = true;
+	//if(firstTime)
+	//{
+	//	__int64 qpcFreq;
+	//	QueryPerformanceFrequency((LARGE_INTEGER *)&qpcFreq);
+	//	freq = 1.0/(double)qpcFreq;
+	//	QueryPerformanceCounter((LARGE_INTEGER *)&qpcStart);
+	//	firstTime = false;
+	//}
 
-	__int64 qpcNow = 0;
-	QueryPerformanceCounter((LARGE_INTEGER *)&qpcNow);
-	double timeInSec = (qpcNow - qpcStart) * freq;
-	double timeInMS = timeInSec * 1000.0;
-	float scale = static_cast<float>((2.0 * D3DX_PI)/2000.0);
-	float rot = static_cast<float>(timeInMS * scale);
+	//__int64 qpcNow = 0;
+	//QueryPerformanceCounter((LARGE_INTEGER *)&qpcNow);
+	//double timeInSec = (qpcNow - qpcStart) * freq;
+	//double timeInMS = timeInSec * 1000.0;
+	//float scale = static_cast<float>((2.0 * D3DX_PI)/2000.0);
+	//float rot = static_cast<float>(timeInMS * scale);
 
 
-	D3DXMATRIX rotY;
-	D3DXMatrixRotationY(&rotY,rot);
-	D3DXVECTOR4 temp;
-	D3DXVec3Transform(&temp,&m_pointLightLoc,&rotY);
-	D3DXVECTOR3 newPos = temp;
+	//D3DXMATRIX rotY;
+	//D3DXMatrixRotationY(&rotY,rot);
+	//D3DXVECTOR4 temp;
+	//D3DXVec3Transform(&temp,&m_pointLightLoc,&rotY);
+	//D3DXVECTOR3 newPos = temp;
 
 	// Position
 	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
 	_ASSERT( vecVar != NULL);
-	vecVar->SetFloatVector(newPos);
+	vecVar->SetFloatVector(m_pointLightLoc);
 
 	// Color
 	D3DXVECTOR3 vecData;
