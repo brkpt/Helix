@@ -12,6 +12,7 @@ IncludeModule CopyFile ;
 		woodterrain.lua
 		dirlight.lua
 		pointlight.lua
+		lightsphere.lua
 		;
 		
 	local sources = [ FGristFiles $(MATERIAL_FILES) ] ;

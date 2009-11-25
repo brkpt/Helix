@@ -1,0 +1,5 @@
+Material =
+{
+	Shader = "lightsphere",
+}
+

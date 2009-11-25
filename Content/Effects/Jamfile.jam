@@ -13,6 +13,7 @@ IncludeModule CopyFile ;
 		texture.fx
 		dirlight.fx
 		pointlight.fx
+		lightsphere.fx
 		;
 	EFFECT_POOL_FX =
 		shared.fx 

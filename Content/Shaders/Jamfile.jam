@@ -13,6 +13,7 @@ IncludeModule CopyFile ;
 		texture.lua
 		dirlight.lua
 		pointlight.lua
+		lightsphere.lua
 		;
 		
 	local sources = [ FGristFiles $(SHADER_FILES) ] ;
