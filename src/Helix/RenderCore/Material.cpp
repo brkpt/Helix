@@ -13,8 +13,10 @@ Material::Material(const std::string &name, LuaObject &object)
 	m_shaderName = obj.GetString();
 
 	obj = object["Texture"];
-	_ASSERT(obj.IsString());
-	m_textureName = obj.GetString();
+	if(!obj.IsNil())
+	{
+		m_textureName = obj.GetString();
+	}
 
 	// Load the shader
 	Shader *shader = ShaderManager::GetInstance().Load(m_shaderName);
@@ -22,7 +24,7 @@ Material::Material(const std::string &name, LuaObject &object)
 	// Make sure we can load the associated texture
 	// Texture names wrapped in []'s signify a render target or other
 	// system texture
-	if(m_textureName[0] == '[' && m_textureName[m_textureName.length()-1] == ']')
+	if(m_textureName.empty() || (m_textureName[0] == '[' && m_textureName[m_textureName.length()-1] == ']') )
 		return;
 
 	Texture *tex = TextureManager::GetInstance().LoadTexture(m_textureName);
