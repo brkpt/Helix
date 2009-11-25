@@ -165,6 +165,21 @@ bool VertexDecl::Load(const std::string &path)
 }
 // ****************************************************************************
 // ****************************************************************************
+bool VertexDecl::HasSemantic(const char *semanticName, int &offset)
+{
+	for(int elementIndex=0;elementIndex < m_numElements; elementIndex++)
+	{
+		const D3D10_INPUT_ELEMENT_DESC const &element = m_desc[elementIndex];
+		if( stricmp(semanticName,element.SemanticName) == 0)
+		{
+			offset = element.AlignedByteOffset;
+			return true;
+		}
+	}
+	return false;
+}
+// ****************************************************************************
+// ****************************************************************************
 bool VertexDecl::Load(LuaObject &declObj)
 {
 	int numElements	= declObj.GetTableCount();

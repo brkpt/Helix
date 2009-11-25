@@ -24,6 +24,7 @@ public:
 	ID3D10InputLayout *			GetLayout() { return m_layout; }
 	D3D10_INPUT_ELEMENT_DESC *	GetDecl() { return m_desc; }
 	int							VertexSize() { return m_vertexSize; }
+	bool						HasSemantic(const char *semanticName, int &offset);
 
 private:
 

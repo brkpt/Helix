@@ -11,7 +11,7 @@ public:
 	Mesh();
 	~Mesh();
 
-	bool	Load(const std::string &path);
+	bool	Load(const std::string &filename);
 	bool	Load(LuaObject &meshObj);
 
 	void			Render(int pass);

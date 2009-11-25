@@ -26,11 +26,11 @@ Mesh::~Mesh()
 
 // ****************************************************************************
 // ****************************************************************************
-bool Mesh::Load(const std::string &name)
+bool Mesh::Load(const std::string &filename)
 {
 	std::string fullPath;
 	fullPath = "Meshes/";
-	fullPath += name;
+	fullPath += filename;
 	fullPath += ".lua";
 
 	LuaState *state = LuaState::Create();
@@ -120,12 +120,16 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 		_ASSERT( SUCCEEDED(hr) );
 	}
 
-	bool havePosData = true;
-	bool haveNormData = true;
-	bool haveTex1Data = true;
+	int posOffset = 0;
+	int normOffset = 0;
+	int tex1Offset = 0;
 
 	VertexDecl &decl = shader->GetDecl();
 	int vertexSize = decl.VertexSize();
+	bool havePosData = decl.HasSemantic("POSITION",posOffset);
+	bool haveNormData = decl.HasSemantic("NORMAL",normOffset);
+	bool haveTex1Data = decl.HasSemantic("TEXCOORD",tex1Offset);
+
 	m_numTriangles = faceListObj.GetTableCount();
 	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)
 	{
