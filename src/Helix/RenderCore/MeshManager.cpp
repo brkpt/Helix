@@ -32,6 +32,19 @@ Mesh * MeshManager::Load(const std::string &meshName)
 
 // ****************************************************************************
 // ****************************************************************************
+Mesh * MeshManager::Load(const std::string &meshName, const std::string &filename)
+{
+	Mesh *mesh = GetMesh(meshName);
+	_ASSERT(mesh == NULL);
+
+	mesh = new Mesh;
+	mesh->Load(filename);
+	m_database[meshName] = mesh;
+
+	return mesh;
+}
+// ****************************************************************************
+// ****************************************************************************
 Mesh * MeshManager::Load(const std::string &meshName, LuaObject &meshObj)
 {
 	Mesh *mesh = GetMesh(meshName);
