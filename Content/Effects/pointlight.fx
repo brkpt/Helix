@@ -68,8 +68,8 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float dotVal = dot(posNorm,posToLightNorm)/distToLight;
 
 	float3 albedoColor = albedoTexture.Sample(texSampler,float2(clipX,clipY));
-	return outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
-	
+	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
+	return outColor;
 }
 
 technique10 FullScreenQuad

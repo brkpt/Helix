@@ -408,7 +408,6 @@ void LoadLightShaders()
 
 	m_pointLightMat = MaterialManager::GetInstance().Load("pointlight");
 	_ASSERT( m_pointLightMat != NULL);
-
 }
 
 // ****************************************************************************
@@ -771,8 +770,28 @@ void RenderPointLight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_pointLightMat->GetShaderName());
+	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
+	Material *lightSphereMat = MaterialManager::GetInstance().GetMaterial(lightSphere->GetMaterialName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->GetShaderName());
 	ID3D10Effect *effect = shader->GetEffect();
+
+	// Set the world*view matrix for the point light
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+
+	// TODO: Get the world matrix from the object.  
+	// Use I for now
+	D3DXMATRIX scaleMat;
+	D3DXMatrixScaling(&scaleMat,10.0f, 10.0f, 10.0f);
+	D3DXMATRIX transMat;
+	D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
+
+	D3DXMATRIX worldMat;
+	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+
+	// Calculate the WorldView matrix
+	D3DXMATRIX worldView;
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
 	// Albedo texture
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
@@ -873,11 +892,13 @@ void RenderPointLight()
 	// Set our IB/VB
 	unsigned int stride = shader->GetDecl().VertexSize();
 	unsigned int offset = 0;
-	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+	ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
+	ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
+	device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+	device->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
 
 	// Set our prim type
-	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
 	// Set our states
 	device->RSSetState(m_RState);
@@ -888,7 +909,7 @@ void RenderPointLight()
 	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
 	{
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
-		device->DrawIndexed( 4, 0, 0 );
+		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
 	}
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
