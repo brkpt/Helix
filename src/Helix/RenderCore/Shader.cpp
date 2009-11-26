@@ -54,7 +54,13 @@ void Shader::Load(LuaPlus::LuaObject &shaderObj, ID3D10EffectPool *effectPool)
 
 	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
 	HRESULT hr;
-	hr = D3DX10CreateEffectFromFile(fxPath.c_str(), NULL,NULL,"fx_4_0",dwShaderFlags,D3D10_EFFECT_COMPILE_CHILD_EFFECT, pDevice, effectPool, NULL, &m_pEffect, NULL, NULL);
+	ID3D10Blob *errorBlob;
+	D3D10CreateBlob(1024,&errorBlob);
+	hr = D3DX10CreateEffectFromFile(fxPath.c_str(), NULL,NULL,"fx_4_0",dwShaderFlags,D3D10_EFFECT_COMPILE_CHILD_EFFECT, pDevice, effectPool, NULL, &m_pEffect, &errorBlob, NULL);
+	if(hr != D3D_OK)
+	{
+		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
+	}
 	_ASSERT(hr == D3D_OK);
 
 	// Now create the layout if it hasn't been created already
