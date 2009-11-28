@@ -39,6 +39,10 @@ ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
 ID3D10Buffer *				m_quadVB = NULL;
 ID3D10Buffer *				m_quadIB = NULL;
 ID3D10RasterizerState *		m_RState = NULL;
+ID3D10BlendState *			m_GBufferBlendState = NULL;
+ID3D10DepthStencilState *	m_GBufferDSState = NULL;
+ID3D10BlendState *			m_lightingBlendState = NULL;
+ID3D10DepthStencilState *	m_lightingDSState = NULL;
 
 D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
@@ -81,7 +85,7 @@ void	CreateDepthTarget();
 void	CreateDepthStencilTarget();
 void	CreateNormalTarget();
 void	CreateQuad();
-void	CreateRasterizerState();
+void	CreateRenderStates();
 
 // ****************************************************************************
 // Thread function
@@ -490,7 +494,7 @@ void CreateQuad()
 
 // ****************************************************************************
 // ****************************************************************************
-void CreateRasterizerState()
+void CreateRenderStates()
 {
 	// Setup our rasterizer state
 	D3D10_RASTERIZER_DESC rDesc;
@@ -507,6 +511,88 @@ void CreateRasterizerState()
 	rDesc.AntialiasedLineEnable = false;
 	HRESULT hr = m_D3DDevice->CreateRasterizerState(&rDesc, &m_RState);
 	_ASSERT( SUCCEEDED(hr) );
+
+	// Create a blend state for creating GBuffer
+	D3D10_BLEND_DESC blendStateDesc;
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+	for(int i=0;i<8;i++)
+		blendStateDesc.BlendEnable[i] = FALSE;
+	blendStateDesc.SrcBlend = D3D10_BLEND_SRC_COLOR;
+	blendStateDesc.DestBlend = D3D10_BLEND_DEST_COLOR;
+	blendStateDesc.BlendOp = D3D10_BLEND_OP_ADD;
+	blendStateDesc.SrcBlendAlpha = D3D10_BLEND_SRC_ALPHA;
+	blendStateDesc.DestBlendAlpha = D3D10_BLEND_DEST_ALPHA;
+	blendStateDesc.BlendOpAlpha = D3D10_BLEND_OP_ADD;
+	for(int i=0;i<8;i++)
+		blendStateDesc.RenderTargetWriteMask[i] = D3D10_COLOR_WRITE_ENABLE_ALL ;
+
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_GBufferBlendState);
+	_ASSERT(hr == S_OK);
+	
+	// Depth/stencil for creating GBuffer
+	D3D10_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
+
+	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
+	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ALL;		// Don't write to depth/stencil
+	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_LESS_EQUAL;			// Pass if closer
+	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
+	depthStencilStateDesc.StencilReadMask = D3D10_DEFAULT_STENCIL_WRITE_MASK; 
+	depthStencilStateDesc.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
+
+	D3D10_DEPTH_STENCILOP_DESC stencilOp;
+	memset(&blendStateDesc,0,sizeof(stencilOp));
+	stencilOp.StencilFailOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilDepthFailOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilPassOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilFunc = D3D10_COMPARISON_ALWAYS;
+
+	depthStencilStateDesc.FrontFace = stencilOp;
+	depthStencilStateDesc.BackFace = stencilOp;
+
+	ID3D10DepthStencilState *depthStencilState = NULL;
+	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_GBufferDSState);
+	_ASSERT(hr == S_OK);
+
+	// Depth/stencil for light blending
+	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
+	depthStencilStateDesc.DepthEnable = false;								// Enable depth testing
+	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ZERO;		// Don't write to depth/stencil
+	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_LESS_EQUAL;			// Pass if closer
+	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
+	depthStencilStateDesc.StencilReadMask = D3D10_DEFAULT_STENCIL_WRITE_MASK; 
+	depthStencilStateDesc.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
+
+	memset(&blendStateDesc,0,sizeof(stencilOp));
+	stencilOp.StencilFailOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilDepthFailOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilPassOp = D3D10_STENCIL_OP_KEEP;
+	stencilOp.StencilFunc = D3D10_COMPARISON_ALWAYS;
+
+	depthStencilStateDesc.FrontFace = stencilOp;
+	depthStencilStateDesc.BackFace = stencilOp;
+
+	depthStencilState = NULL;
+	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
+	_ASSERT(hr == S_OK);
+
+	// Create a blend state for light blending
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+	blendStateDesc.BlendEnable[0] = TRUE;
+	blendStateDesc.SrcBlend = D3D10_BLEND_ONE;
+	blendStateDesc.DestBlend = D3D10_BLEND_ONE;
+	blendStateDesc.BlendOp = D3D10_BLEND_OP_ADD;
+	blendStateDesc.SrcBlendAlpha = D3D10_BLEND_SRC_ALPHA;
+	blendStateDesc.DestBlendAlpha = D3D10_BLEND_DEST_ALPHA;
+	blendStateDesc.BlendOpAlpha = D3D10_BLEND_OP_ADD;
+	for(int i=0;i<8;i++)
+		blendStateDesc.RenderTargetWriteMask[i] = D3D10_COLOR_WRITE_ENABLE_ALL ;
+
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
+	_ASSERT(hr == S_OK);
+
 }
 
 // ****************************************************************************
@@ -522,7 +608,8 @@ void SetDevice(ID3D10Device* dev, IDXGISwapChain *swapChain)
 	LoadLightShaders();
 	LoadShapes();
 	CreateQuad();
-	CreateRasterizerState();
+	CreateRenderStates();
+
 
 	// Set our viewport
 	D3D10_VIEWPORT vp;
@@ -762,6 +849,60 @@ void RenderSunlight()
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
 }
+// ****************************************************************************
+// ****************************************************************************
+void RenderAmbientLight()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Set our textures as inputs
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
+	ID3D10Effect *effect = shader->GetEffect();
+
+	// Albedo texture
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// *************
+	// Setup ambient color
+	// *************
+	D3DXVECTOR3 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+
+	// Make sure it is normalized
+	D3DXVec3Normalize(&vecData, &vecData);
+
+	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("ambientColor")->AsVector();
+	_ASSERT( vecVar != NULL );
+	vecVar->SetFloatVector(vecData);
+	
+	// Set our IB/VB
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+
+	// Set our prim type
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+	// Set our states
+	device->RSSetState(m_RState);
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( 4, 0, 0 );
+	}
+	hr = shaderResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+}
 
 // ****************************************************************************
 // ****************************************************************************
@@ -946,6 +1087,10 @@ void RenderThreadFunc(void *data)
 		device->ClearDepthStencilView( m_depthStencilDSView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 		//device->ClearRenderTargetView( m_backBufferView, ClearColor );
 
+		device->OMSetDepthStencilState(m_GBufferDSState,0);
+		FLOAT blendFactor[4] = {0,0,0,0};
+		device->OMSetBlendState(m_GBufferBlendState,blendFactor,0xffffffff);
+
 		// Set our render targets
 		device->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
 		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
@@ -1042,6 +1187,12 @@ void RenderThreadFunc(void *data)
 
 		// Switch to final backbuffer/depth/stencil
 		device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
+
+		// Render the scene with ambient into the backbuffer
+		RenderAmbientLight();
+
+		device->OMSetDepthStencilState(m_lightingDSState,0);
+		device->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
 
 		//RenderSunlight();
 		//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
