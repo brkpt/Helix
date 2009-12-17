@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		..\Content\Effects\lightsphere.fx = ..\Content\Effects\lightsphere.fx
 		..\Content\Effects\pointlight.fx = ..\Content\Effects\pointlight.fx
 		..\Content\Effects\shared.fx = ..\Content\Effects\shared.fx
+		..\Content\Effects\showlightloc.fx = ..\Content\Effects\showlightloc.fx
+		..\Content\Effects\shownormals.fx = ..\Content\Effects\shownormals.fx
 		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
 	EndProjectSection
 EndProject
@@ -54,6 +56,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{
 		..\Content\Materials\Jamfile.jam = ..\Content\Materials\Jamfile.jam
 		..\Content\Materials\lightsphere.lua = ..\Content\Materials\lightsphere.lua
 		..\Content\Materials\pointlight.lua = ..\Content\Materials\pointlight.lua
+		..\Content\Materials\showlightloc.lua = ..\Content\Materials\showlightloc.lua
+		..\Content\Materials\shownormals.lua = ..\Content\Materials\shownormals.lua
 		..\Content\Materials\Triangle.lua = ..\Content\Materials\Triangle.lua
 		..\Content\Materials\woodgrain.lua = ..\Content\Materials\woodgrain.lua
 		..\Content\Materials\woodterrain.lua = ..\Content\Materials\woodterrain.lua
@@ -97,6 +101,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2
 		..\Content\Shaders\pos3_tex1.lua = ..\Content\Shaders\pos3_tex1.lua
 		..\Content\Shaders\pos4_tex1.lua = ..\Content\Shaders\pos4_tex1.lua
 		..\Content\Shaders\shared.lua = ..\Content\Shaders\shared.lua
+		..\Content\Shaders\showlightloc.lua = ..\Content\Shaders\showlightloc.lua
 		..\Content\Shaders\texture.lua = ..\Content\Shaders\texture.lua
 	EndProjectSection
 EndProject

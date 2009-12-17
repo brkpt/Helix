@@ -65,10 +65,10 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float3 posNorm = normalTexture.Sample(texSampler,float2(clipX,clipY));
 	float distToLight = length(posToLight);
 
-	float dotVal = dot(posNorm,posToLightNorm)/distToLight;
+	float dotVal = dot(posNorm,posToLightNorm);
 
 	float3 albedoColor = albedoTexture.Sample(texSampler,float2(clipX,clipY));
-	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
+	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1)/distToLight;
 	return outColor;
 }
 

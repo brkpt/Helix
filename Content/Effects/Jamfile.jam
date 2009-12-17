@@ -14,6 +14,8 @@ IncludeModule CopyFile ;
 		dirlight.fx
 		pointlight.fx
 		lightsphere.fx
+		shownormals.fx
+		showlightloc.fx
 		;
 	EFFECT_POOL_FX =
 		shared.fx 

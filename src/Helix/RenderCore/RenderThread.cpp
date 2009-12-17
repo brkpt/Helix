@@ -33,6 +33,8 @@ ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
 
 Material *					m_dirLightMat = NULL;
 Material *					m_pointLightMat = NULL;
+Material *					m_showNormalMat = NULL;
+Material *					m_showLightLocMat = NULL;
 ID3D10Texture2D *			m_depthStencilTexture = NULL;
 ID3D10DepthStencilView *	m_depthStencilDSView = NULL;
 ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
@@ -73,6 +75,9 @@ float			m_fov = 0;
 float			m_viewAspect;
 float			m_invTanHalfFOV = 0;
 
+bool			m_showNormals = false;
+bool			m_showLightLocs = false;
+
 struct QuadVert {
 	float	pos[3];
 	float	uv[2];
@@ -86,6 +91,10 @@ void	CreateDepthStencilTarget();
 void	CreateNormalTarget();
 void	CreateQuad();
 void	CreateRenderStates();
+
+void	FillGBuffer();
+void	DoLighting();
+void	ShowNormals();
 
 // ****************************************************************************
 // Thread function
@@ -412,6 +421,12 @@ void LoadLightShaders()
 
 	m_pointLightMat = MaterialManager::GetInstance().Load("pointlight");
 	_ASSERT( m_pointLightMat != NULL);
+
+	m_showNormalMat = MaterialManager::GetInstance().Load("shownormals");
+	_ASSERT(m_showNormalMat != NULL);
+
+	m_showLightLocMat = MaterialManager::GetInstance().Load("showlightloc");
+	_ASSERT(m_showLightLocMat != NULL);
 }
 
 // ****************************************************************************
@@ -765,6 +780,111 @@ void SubmitProjMatrix(D3DXMATRIX &mat)
 
 // ****************************************************************************
 // ****************************************************************************
+void ShowLightLocations()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Set our textures as inputs
+	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_showLightLocMat->GetShaderName());
+	ID3D10Effect *effect = shader->GetEffect();
+
+	// Set the world*view matrix for the point light
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+
+	// TODO: Get the world matrix from the object.  
+	// Use I for now
+	D3DXMATRIX scaleMat;
+	D3DXMatrixScaling(&scaleMat,1.0f, 1.0f, 1.0f);
+	D3DXMATRIX transMat;
+	D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
+
+	D3DXMATRIX worldMat;
+	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+
+	// Calculate the WorldView matrix
+	D3DXMATRIX worldView;
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+
+	// Position
+	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
+	_ASSERT( vecVar != NULL);
+	vecVar->SetFloatVector(m_pointLightLoc);
+
+	// Set our IB/VB
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
+	ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
+	device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+	device->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
+
+	// Set our prim type
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+	// Set our states
+	device->RSSetState(m_RState);
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
+	}
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void ShowNormals()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Clear the backbuffer/depth/stencil
+	float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // red, green, blue, alpha
+	device->ClearRenderTargetView( m_backBufferView, ClearColor );
+	device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
+
+	// Switch to final backbuffer/depth/stencil
+	device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
+
+	// Set our textures as inputs
+	Shader *shader = ShaderManager::GetInstance().GetShader("shownormals");
+	ID3D10Effect *effect = shader->GetEffect();
+
+	// Normal texture
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	_ASSERT(shaderResource != NULL);
+	HRESULT hr = shaderResource->SetResource(m_SRView[NORMAL]);
+	_ASSERT( SUCCEEDED(hr) );
+
+	// Set our IB/VB
+	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int offset = 0;
+	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+
+	// Set our prim type
+	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+	// Set our states
+	device->RSSetState(m_RState);
+
+	D3D10_TECHNIQUE_DESC techDesc;
+	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	technique->GetDesc(&techDesc);
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( 4, 0, 0 );
+	}
+	hr = shaderResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+}
+// ****************************************************************************
+// ****************************************************************************
 void RenderSunlight()
 {
 	ID3D10Device *device = m_D3DDevice;
@@ -922,7 +1042,7 @@ void RenderPointLight()
 	// TODO: Get the world matrix from the object.  
 	// Use I for now
 	D3DXMATRIX scaleMat;
-	D3DXMatrixScaling(&scaleMat,10.0f, 10.0f, 10.0f);
+	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
 	D3DXMATRIX transMat;
 	D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
 
@@ -1058,6 +1178,151 @@ void RenderPointLight()
 
 // ****************************************************************************
 // ****************************************************************************
+void FillGBuffer()
+{
+	ID3D10Device *device = m_D3DDevice;
+	_ASSERT(device);
+
+	// Reset our view
+	ID3D10ShaderResourceView*const pSRV[2] = { NULL,NULL };
+	device->PSSetShaderResources( 0, 2, pSRV );
+
+	//
+	// Clear the render targets
+	//
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
+	float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
+	float ClearDepth[1] = { 0.0f };
+	device->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
+	device->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
+	device->ClearRenderTargetView( m_RTView[DEPTH], ClearDepth) ;
+	device->ClearDepthStencilView( m_depthStencilDSView, D3D10_CLEAR_DEPTH, 1.0f, 0);
+	//device->ClearRenderTargetView( m_backBufferView, ClearColor );
+
+	device->OMSetDepthStencilState(m_GBufferDSState,0);
+	FLOAT blendFactor[4] = {0,0,0,0};
+	device->OMSetBlendState(m_GBufferBlendState,blendFactor,0xffffffff);
+
+	// Set our render targets
+	device->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
+	//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
+
+	// Setup camera parameters
+	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[m_renderIndex]);
+
+	// Get the view matrix
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
+
+	// TODO: Get the world matrix from the object.  
+	// Use I for now
+	D3DXMATRIX worldMat;
+	D3DXMatrixIdentity(&worldMat);
+
+	// Calculate the WorldView matrix
+	D3DXMATRIX worldView;
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+
+	// Generate the inverse transpose of the WorldView matrix
+	// We don't use any non uniform scaling, so we can just send down the 
+	// upper 3x3 of the world view matrix
+	D3DXMATRIX worldViewIT;
+	float det = 0;
+	worldViewIT = worldView;
+	worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
+	worldViewIT._44 = 1;
+	D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
+	D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
+
+	// The upper 3x3 of the view matrx
+	// Used to transform directional lights
+	D3DXMATRIX view3x3 = viewMat;
+	view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
+	view3x3._44 = 1;
+	Helix::ShaderManager::GetInstance().SetSharedParameter("View3x3",view3x3);
+
+	// Go through all of our render objects
+	RenderData *obj = m_submissionBuffers[m_renderIndex];
+	if (obj == NULL)
+	{
+		int a =1;
+	}
+	while(obj)
+	{
+		// Set the parameters
+		Material *mat = MaterialManager::GetInstance().GetMaterial(obj->materialName);
+		mat->SetParameters();
+
+		// Set our input assembly buffers
+		Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
+		Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+
+		// Set the input layout 
+		device->IASetInputLayout(shader->GetDecl().GetLayout());
+
+		// Set our vertex/index buffers
+		unsigned int stride = shader->GetDecl().VertexSize();
+		unsigned int offset = 0;
+		ID3D10Buffer *vb = mesh->GetVertexBuffer();
+		device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+		device->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
+
+		// Set our prim type
+		device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+		// Start rendering
+		ID3D10Effect *effect = shader->GetEffect();
+		D3D10_TECHNIQUE_DESC techDesc;
+		ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+		technique->GetDesc(&techDesc);
+		for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+		{
+			technique->GetPassByIndex( passIndex )->Apply( 0 );
+			device->DrawIndexed( mesh->NumIndices(), 0, 0 );
+		}
+
+		// Next
+		obj=obj->next;
+	}
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void DoLighting()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Clear the backbuffer/depth/stencil
+	float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // red, green, blue, alpha
+	device->ClearRenderTargetView( m_backBufferView, ClearColor );
+	device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
+
+	// Copy the albedo texture to the backbuffer
+
+	// Switch to final backbuffer/depth/stencil
+	device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
+
+	// Render the scene with ambient into the backbuffer
+	RenderAmbientLight();
+
+	device->OMSetDepthStencilState(m_lightingDSState,0);
+	FLOAT blendFactor[4] = {0,0,0,0};
+	device->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
+
+	//RenderSunlight();
+	//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
+
+	RenderPointLight();
+	if(m_showLightLocs)
+	{
+		ShowLightLocations();
+	}
+
+}
+// ****************************************************************************
+// ****************************************************************************
 void RenderThreadFunc(void *data)
 {
 	while(!GetRenderThreadShutdown())
@@ -1068,140 +1333,22 @@ void RenderThreadFunc(void *data)
 		result = WaitForSingleObject(m_startRenderEvent,INFINITE);
 		_ASSERT(result == WAIT_OBJECT_0);
 
-		ID3D10Device *device = m_D3DDevice;
-		_ASSERT(device);
+		FillGBuffer();
 
-		// Reset our view
-		ID3D10ShaderResourceView*const pSRV[2] = { NULL,NULL };
-		device->PSSetShaderResources( 0, 2, pSRV );
-
-		//
-		// Clear the render targets
-		//
-		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-		float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
-		float ClearDepth[1] = { 0.0f };
-		device->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
-		device->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
-		device->ClearRenderTargetView( m_RTView[DEPTH], ClearDepth) ;
-		device->ClearDepthStencilView( m_depthStencilDSView, D3D10_CLEAR_DEPTH, 1.0f, 0);
-		//device->ClearRenderTargetView( m_backBufferView, ClearColor );
-
-		device->OMSetDepthStencilState(m_GBufferDSState,0);
-		FLOAT blendFactor[4] = {0,0,0,0};
-		device->OMSetBlendState(m_GBufferBlendState,blendFactor,0xffffffff);
-
-		// Set our render targets
-		device->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
-		//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
-
-		// Setup camera parameters
-		Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[m_renderIndex]);
-
-		// Get the view matrix
-		D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-		Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
-
-		// TODO: Get the world matrix from the object.  
-		// Use I for now
-		D3DXMATRIX worldMat;
-		D3DXMatrixIdentity(&worldMat);
-
-		// Calculate the WorldView matrix
-		D3DXMATRIX worldView;
-		D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
-
-		// Generate the inverse transpose of the WorldView matrix
-		// We don't use any non uniform scaling, so we can just send down the 
-		// upper 3x3 of the world view matrix
-		D3DXMATRIX worldViewIT;
-		float det = 0;
-		worldViewIT = worldView;
-		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
-		worldViewIT._44 = 1;
-		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
-		D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
-		Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
-
-		// The upper 3x3 of the view matrx
-		// Used to transform directional lights
-		D3DXMATRIX view3x3 = viewMat;
-		view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
-		view3x3._44 = 1;
-		Helix::ShaderManager::GetInstance().SetSharedParameter("View3x3",view3x3);
-
-		// Go through all of our render objects
-		RenderData *obj = m_submissionBuffers[m_renderIndex];
-		if (obj == NULL)
+		if(m_showNormals)
 		{
-			int a =1;
+			ShowNormals();
 		}
-		while(obj)
+		else
 		{
-			// Set the parameters
-			Material *mat = MaterialManager::GetInstance().GetMaterial(obj->materialName);
-			mat->SetParameters();
-
-			// Set our input assembly buffers
-			Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
-			Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
-
-			// Set the input layout 
-			device->IASetInputLayout(shader->GetDecl().GetLayout());
-
-			// Set our vertex/index buffers
-			unsigned int stride = shader->GetDecl().VertexSize();
-			unsigned int offset = 0;
-			ID3D10Buffer *vb = mesh->GetVertexBuffer();
-			device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-			device->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
-
-			// Set our prim type
-			device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-			// Start rendering
-			ID3D10Effect *effect = shader->GetEffect();
-			D3D10_TECHNIQUE_DESC techDesc;
-			ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-			technique->GetDesc(&techDesc);
-			for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-			{
-				technique->GetPassByIndex( passIndex )->Apply( 0 );
-				device->DrawIndexed( mesh->NumIndices(), 0, 0 );
-			}
-
-			// Next
-			obj=obj->next;
+			DoLighting();
 		}
 
-		// Clear the backbuffer/depth/stencil
-		ClearColor[0] = 0.0f;
-		ClearColor[1] = 0.0f;
-		ClearColor[2] = 0.0f;
-		ClearColor[3] = 1.0f;
-		device->ClearRenderTargetView( m_backBufferView, ClearColor );
-		device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
-
-		// Copy the albedo texture to the backbuffer
-
-		// Switch to final backbuffer/depth/stencil
-		device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
-
-		// Render the scene with ambient into the backbuffer
-		RenderAmbientLight();
-
-		device->OMSetDepthStencilState(m_lightingDSState,0);
-		device->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
-
-		//RenderSunlight();
-		//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
-		RenderPointLight();
 
 		m_swapChain->Present(0,0);
 
 		// Delete all our render objects
-		obj = m_submissionBuffers[m_renderIndex];
+		RenderData *obj = m_submissionBuffers[m_renderIndex];
 		while(obj != NULL)
 		{
 			RenderData *nextObj = obj->next;

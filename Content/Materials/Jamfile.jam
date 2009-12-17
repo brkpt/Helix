@@ -13,6 +13,8 @@ IncludeModule CopyFile ;
 		dirlight.lua
 		pointlight.lua
 		lightsphere.lua
+		shownormals.lua
+		showlightloc.lua
 		;
 		
 	local sources = [ FGristFiles $(MATERIAL_FILES) ] ;
