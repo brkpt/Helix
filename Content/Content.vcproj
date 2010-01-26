@@ -22,9 +22,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/"
-				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ -a"
-				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ clean"
+				BuildCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/"
+				ReBuildCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ -a"
+				CleanCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ clean"
 				Output=""
 				PreprocessorDefinitions="WIN32;_DEBUG"
 				IncludeSearchPath=""
@@ -42,9 +42,9 @@
 			>
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/"
-				ReBuildCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ -a"
-				CleanCommandLine="c:\jamplus\bin\jam -Cc:/Projects/DeferredShader/ clean"
+				BuildCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/"
+				ReBuildCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ -a"
+				CleanCommandLine="C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ clean"
 				Output=""
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				IncludeSearchPath=""

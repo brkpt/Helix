@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3d10.lib d3dx10d.lib LuaPlusLibD_1100.lib"
+				AdditionalDependencies="d3d10.lib d3dx10d.lib LuaPlus_1100.debug.lib"
 				OutputFile="$(OutDir)\$(ProjectName).$(ConfigurationName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:/Projects/LuaPlus/work51/Lib/win32;&quot;C:\program files\Microsoft DirectX SDK (March 2009)/lib/x86&quot;"
+				AdditionalLibraryDirectories="C:\Projects\LuaPlus\work51\bin.vs2005.win32;&quot;C:\program files\Microsoft DirectX SDK (March 2009)/lib/x86&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
