@@ -880,8 +880,16 @@ void ShowNormals()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( 4, 0, 0 );
 	}
+
+	// Clear the inputs on the shader
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+	}
+
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -966,8 +974,15 @@ void RenderSunlight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( 4, 0, 0 );
 	}
+
+	// Clear inputs on the shader
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+	}
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -1026,6 +1041,8 @@ void RenderAmbientLight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( 4, 0, 0 );
 	}
+
+	// Clear the inputs on the shader
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
 
@@ -1186,12 +1203,17 @@ void RenderPointLight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
 	}
+
+	// Clear the inputs on the shader
 	hr = albedoResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
 	hr = normalResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
 	hr = depthResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
 	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
 	{
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
