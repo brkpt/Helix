@@ -985,6 +985,12 @@ void RenderAmbientLight()
 	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
 	_ASSERT( SUCCEEDED(hr) );
 
+	// Normal texture
+	ID3D10EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	_ASSERT(normalResource != NULL);
+	hr = normalResource->SetResource(m_SRView[NORMAL]);
+	_ASSERT( SUCCEEDED(hr) );
+
 	// *************
 	// Setup ambient color
 	// *************
@@ -1022,6 +1028,14 @@ void RenderAmbientLight()
 	}
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+
+	hr = normalResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+	}
 }
 
 // ****************************************************************************
@@ -1055,21 +1069,21 @@ void RenderPointLight()
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
 	// Albedo texture
-	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-	_ASSERT(shaderResource != NULL);
-	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
+	ID3D10EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+	_ASSERT(albedoResource != NULL);
+	HRESULT hr = albedoResource->SetResource(m_SRView[ALBEDO]);
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Normal texture
-	shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	_ASSERT(shaderResource != NULL);
-	hr = shaderResource->SetResource(m_SRView[NORMAL]);
+	ID3D10EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	_ASSERT(normalResource != NULL);
+	hr = normalResource->SetResource(m_SRView[NORMAL]);
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Depth texture
-	shaderResource = effect->GetVariableByName("depthTexture")->AsShaderResource();
-	_ASSERT(shaderResource != NULL);
-	hr = shaderResource->SetResource(m_SRView[DEPTH]);
+	ID3D10EffectShaderResourceVariable *depthResource= effect->GetVariableByName("depthTexture")->AsShaderResource();
+	_ASSERT(depthResource != NULL);
+	hr = depthResource->SetResource(m_SRView[DEPTH]);
 	_ASSERT( SUCCEEDED(hr) );
 
 	ID3D10EffectScalarVariable *scalarVar = effect->GetVariableByName("cameraNear")->AsScalar();
@@ -1172,8 +1186,16 @@ void RenderPointLight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
 	}
-	hr = shaderResource->SetResource(NULL);
+	hr = albedoResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
+	hr = normalResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+	hr = depthResource->SetResource(NULL);
+	_ASSERT(SUCCEEDED(hr));
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+	}
 }
 
 // ****************************************************************************
@@ -1184,7 +1206,7 @@ void FillGBuffer()
 	_ASSERT(device);
 
 	// Reset our view
-	ID3D10ShaderResourceView*const pSRV[2] = { NULL,NULL };
+	ID3D10ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
 	device->PSSetShaderResources( 0, 2, pSRV );
 
 	//
