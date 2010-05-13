@@ -4,6 +4,7 @@ IncludeModule CopyFile ;
 
 {
 	local SHADER_FILES =
+		ambient.lua
 		diffuse.lua
 		pos3.lua
 		pos3_tex1.lua

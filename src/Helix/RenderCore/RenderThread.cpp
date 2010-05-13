@@ -31,6 +31,7 @@ ID3D10Texture2D *			m_Texture[MAX_TARGETS];
 ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
 
+Material *					m_ambientMat = NULL;
 Material *					m_dirLightMat = NULL;
 Material *					m_pointLightMat = NULL;
 Material *					m_showNormalMat = NULL;
@@ -415,6 +416,10 @@ void CreateViews()
 // ****************************************************************************
 void LoadLightShaders()
 {
+	// Load our ambient light
+	m_ambientMat = MaterialManager::GetInstance().Load("ambient");
+	_ASSERT( m_ambientMat != NULL); 
+
 	// Load our directional light 
 	m_dirLightMat = MaterialManager::GetInstance().Load("dirlight");
 	_ASSERT( m_dirLightMat != NULL);
@@ -1000,11 +1005,11 @@ void RenderAmbientLight()
 	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
 	_ASSERT( SUCCEEDED(hr) );
 
-	// Normal texture
-	ID3D10EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	_ASSERT(normalResource != NULL);
-	hr = normalResource->SetResource(m_SRView[NORMAL]);
-	_ASSERT( SUCCEEDED(hr) );
+	//// Normal texture
+	//ID3D10EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
+	//_ASSERT(normalResource != NULL);
+	//hr = normalResource->SetResource(m_SRView[NORMAL]);
+	//_ASSERT( SUCCEEDED(hr) );
 
 	// *************
 	// Setup ambient color
@@ -1046,8 +1051,8 @@ void RenderAmbientLight()
 	hr = shaderResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
 
-	hr = normalResource->SetResource(NULL);
-	_ASSERT(SUCCEEDED(hr));
+	//hr = normalResource->SetResource(NULL);
+	//_ASSERT(SUCCEEDED(hr));
 
 	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
 	{
