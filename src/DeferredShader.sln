@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 	ProjectSection(SolutionItems) = preProject
+		..\Content\Effects\ambient.fx = ..\Content\Effects\ambient.fx
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
 		..\Content\Effects\dirlight.fx = ..\Content\Effects\dirlight.fx
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
@@ -49,6 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 	ProjectSection(SolutionItems) = preProject
+		..\Content\Materials\ambient.lua = ..\Content\Materials\ambient.lua
 		..\Content\Materials\Carsen.lua = ..\Content\Materials\Carsen.lua
 		..\Content\Materials\dirlight.lua = ..\Content\Materials\dirlight.lua
 		..\Content\Materials\FunnyFace.lua = ..\Content\Materials\FunnyFace.lua
@@ -91,6 +93,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 	ProjectSection(SolutionItems) = preProject
+		..\Content\Shaders\ambient.lua = ..\Content\Shaders\ambient.lua
 		..\Content\Shaders\diffuse.lua = ..\Content\Shaders\diffuse.lua
 		..\Content\Shaders\dirlight.lua = ..\Content\Shaders\dirlight.lua
 		..\Content\Shaders\Jamfile.jam = ..\Content\Shaders\Jamfile.jam
