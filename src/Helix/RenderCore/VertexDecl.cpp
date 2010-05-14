@@ -170,7 +170,7 @@ bool VertexDecl::HasSemantic(const char *semanticName, int &offset)
 	for(int elementIndex=0;elementIndex < m_numElements; elementIndex++)
 	{
 		const D3D10_INPUT_ELEMENT_DESC const &element = m_desc[elementIndex];
-		if( stricmp(semanticName,element.SemanticName) == 0)
+		if( _stricmp(semanticName,element.SemanticName) == 0)
 		{
 			offset = element.AlignedByteOffset;
 			return true;

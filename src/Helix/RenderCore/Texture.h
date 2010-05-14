@@ -28,6 +28,7 @@ private:
 		ID3D10ShaderResourceView *	m_shaderView;
 		ID3D10RenderTargetView *	m_targetView;
 		ID3D10DepthStencilView *	m_depthStencilView;
+		void *						m_raw;
 	};
 };
 
