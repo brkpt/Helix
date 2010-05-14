@@ -50,7 +50,7 @@ void Shader::Load(LuaPlus::LuaObject &shaderObj, ID3D10EffectPool *effectPool)
 	fxPath += fxName;
 	fxPath += ".fx";
 
-	DWORD dwShaderFlags = D3D10_SHADER_DEBUG | D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
+	DWORD dwShaderFlags = D3D10_SHADER_SKIP_OPTIMIZATION | D3D10_SHADER_DEBUG | D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
 
 	ID3D10Device *pDevice = RenderMgr::GetInstance().GetDevice();
 	HRESULT hr;
