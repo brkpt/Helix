@@ -996,7 +996,7 @@ void RenderAmbientLight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_ambientMat->GetShaderName());
 	ID3D10Effect *effect = shader->GetEffect();
 
 	// Albedo texture
