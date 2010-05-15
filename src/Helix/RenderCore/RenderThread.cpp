@@ -999,17 +999,12 @@ void RenderAmbientLight()
 	Shader *shader = ShaderManager::GetInstance().GetShader(m_ambientMat->GetShaderName());
 	ID3D10Effect *effect = shader->GetEffect();
 
-	// Albedo texture
-	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-	_ASSERT(shaderResource != NULL);
-	HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
-	_ASSERT( SUCCEEDED(hr) );
+	// Set albedo texture as input
+	ID3D10EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
+	_ASSERT(albedoResource != NULL);
 
-	//// Normal texture
-	//ID3D10EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	//_ASSERT(normalResource != NULL);
-	//hr = normalResource->SetResource(m_SRView[NORMAL]);
-	//_ASSERT( SUCCEEDED(hr) );
+	HRESULT hr = albedoResource->SetResource(m_SRView[ALBEDO]);
+	_ASSERT( SUCCEEDED(hr) );
 
 	// *************
 	// Setup ambient color
@@ -1026,6 +1021,9 @@ void RenderAmbientLight()
 	_ASSERT( vecVar != NULL );
 	vecVar->SetFloatVector(vecData);
 	
+	// Set the input layout 
+	device->IASetInputLayout(shader->GetDecl().GetLayout());
+
 	// Set our IB/VB
 	unsigned int stride = shader->GetDecl().VertexSize();
 	unsigned int offset = 0;
@@ -1048,11 +1046,8 @@ void RenderAmbientLight()
 	}
 
 	// Clear the inputs on the shader
-	hr = shaderResource->SetResource(NULL);
+	hr = albedoResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
-
-	//hr = normalResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
 
 	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
 	{

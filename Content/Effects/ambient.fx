@@ -12,8 +12,8 @@ struct AmbientVS_in
 
 struct AmbientPS_in
 {
-	float4 pos : SV_Position;
-	float2 texuv : TEXCOORD;
+	float4 pos : POSITION;
+	float2 texuv : TEXCOORD0;
 };
 
 SamplerState texSampler
@@ -32,10 +32,10 @@ AmbientPS_in AmbientVShader(AmbientVS_in inVert)
 	return outVert;
 }
 
-float4 AmbientPShader(AmbientPS_in inVert) : SV_Target
+float4 AmbientPShader(AmbientPS_in inVert) : SV_TARGET0
 {
 	// Get our depth value
-	float albedoColor = albedoTexture.Sample(texSampler,inVert.texuv);
+	float3 albedoColor = albedoTexture.Sample(texSampler,inVert.texuv);
 	
 	float4 outColor = float4(albedoColor * ambientColor,1.0);
 	return outColor;
