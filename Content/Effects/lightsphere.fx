@@ -22,7 +22,7 @@ struct LightSphereVertex_in
 struct LightSpherePixel_in
 {
 	float4 pos : POSITION;
-	float3 vEyeToScreen: TEXCOORD0;
+	//float3 vEyeToScreen: TEXCOORD0;
 };
 
 SamplerState texSampler
@@ -40,10 +40,11 @@ LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 	float4 projPos = mul( float4(viewPos,1), Projection );
 	outVert.pos = projPos;
 	
-	float invW = 1.0/projPos.w;
-	float4 wVal = float4(invW,invW,invW,invW);
-	float4 clipPos = projPos * wVal;
-	outVert.vEyeToScreen = float3(clipPos.x*viewAspect, clipPos.y, invTanHalfFOV);
+//	float2 clipPos = projPos.xy / projPos.ww;
+//	float2 screenPos;
+//	screenPos.x = (1024.0/2.0) * clipPos.x + (1024.0/2.0);
+//	screenPos.y = (768.0/2.0) * clipPos.y + (768.0/2.0);
+//	outVert.vEyeToScreen = float3(screenPos.x*viewAspect, screenPos.y, invTanHalfFOV);
 	return outVert;
 }
 
@@ -58,8 +59,10 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float clipX = inVert.pos.x / imageWidth;
 	float clipY = inVert.pos.y / imageHeight;
 	float depthValue = depthTexture.Sample(texSampler,float2(clipX,clipY));
-	float3 viewPos = normalize(inVert.vEyeToScreen) * depthValue;
-	
+//	float3 eyeToScreenNorm = normalize(inVert.vEyeToScreen);
+//	float3 viewPos = eyeToScreenNorm * depthValue;
+	float3 viewPos = mul( float4(inVert.pos.xy,depthValue,1.0), InvWorldViewProj);
+		
 	// Transform the light into view space
 	float3 pointLocView = mul( float4(0,0,0,1), WorldView );
 	float3 posToLight = pointLocView - viewPos;
