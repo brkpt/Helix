@@ -555,12 +555,13 @@ void CreateRenderStates()
 	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
 
 	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
-	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ALL;		// Don't write to depth/stencil
+	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ALL;		// Write to depth/stencil
 	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_LESS_EQUAL;			// Pass if closer
 	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
 	depthStencilStateDesc.StencilReadMask = D3D10_DEFAULT_STENCIL_WRITE_MASK; 
 	depthStencilStateDesc.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
 
+	// Dummy structures for the front/back stencil operations
 	D3D10_DEPTH_STENCILOP_DESC stencilOp;
 	memset(&blendStateDesc,0,sizeof(stencilOp));
 	stencilOp.StencilFailOp = D3D10_STENCIL_OP_KEEP;
@@ -577,9 +578,9 @@ void CreateRenderStates()
 
 	// Depth/stencil for light blending
 	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
-	depthStencilStateDesc.DepthEnable = false;								// Enable depth testing
+	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
 	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ZERO;		// Don't write to depth/stencil
-	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_LESS_EQUAL;			// Pass if closer
+	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_ALWAYS ;			// Pass if closer
 	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
 	depthStencilStateDesc.StencilReadMask = D3D10_DEFAULT_STENCIL_WRITE_MASK; 
 	depthStencilStateDesc.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
@@ -1181,6 +1182,9 @@ void RenderPointLight()
 	_ASSERT( vecVar != NULL );
 	vecVar->SetFloatVector(vecData);
 	
+	// Set the input layout 
+	device->IASetInputLayout(shader->GetDecl().GetLayout());
+
 	// Set our IB/VB
 	unsigned int stride = shader->GetDecl().VertexSize();
 	unsigned int offset = 0;
@@ -1252,7 +1256,8 @@ void FillGBuffer()
 	//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
 	// Setup camera parameters
-	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",m_projMatrix[m_renderIndex]);
+	D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
+	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",projMat);
 
 	// Get the view matrix
 	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
@@ -1268,16 +1273,26 @@ void FillGBuffer()
 	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
+	D3DXMATRIX worldViewProj;
+	D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
+
+	D3DXMATRIX invWorldViewProj;
+	D3DXMATRIX *invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
+	_ASSERT(invRet == &invWorldViewProj);
+
+	Helix::ShaderManager::GetInstance().SetSharedParameter("InvWorldViewProj",invWorldViewProj);
+
 	// Generate the inverse transpose of the WorldView matrix
 	// We don't use any non uniform scaling, so we can just send down the 
 	// upper 3x3 of the world view matrix
 	D3DXMATRIX worldViewIT;
-	float det = 0;
 	worldViewIT = worldView;
 	worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
 	worldViewIT._44 = 1;
 	D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
-	D3DXMatrixInverse(&worldViewIT,&det,&worldViewIT);
+	invRet = D3DXMatrixInverse(&worldViewIT,NULL,&worldViewIT);
+	_ASSERT(invRet == &worldViewIT);
+
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
 
 	// The upper 3x3 of the view matrx
@@ -1355,9 +1370,11 @@ void DoLighting()
 	FLOAT blendFactor[4] = {0,0,0,0};
 	device->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
 
+	// Render with a directional sunlight vector
 	//RenderSunlight();
 	//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 
+	// Render point light into scene
 	RenderPointLight();
 	if(m_showLightLocs)
 	{
