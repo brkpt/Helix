@@ -27,13 +27,27 @@ struct QuadPS_in
 	float3 vEyeToScreen: TEXCOORD1;
 };
 
-SamplerState texSampler
+SamplerState colorSampler
 {
 	Filter = MIN_MAG_MIP_LINEAR;
 	AddressU = Wrap;
 	AddressV = Wrap;
 };
-	
+
+SamplerState depthSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
+SamplerState normalSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
 QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {
 	QuadPS_in outVert;
@@ -54,7 +68,7 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	// Get our depth value
 	float clipX = inVert.pos.x / imageWidth;
 	float clipY = inVert.pos.y / imageHeight;
-	float depthValue = depthTexture.Sample(texSampler,float2(clipX,clipY));
+	float depthValue = depthTexture.Sample(depthSampler,float2(clipX,clipY)).x;
 	float3 viewPos = normalize(inVert.vEyeToScreen) * depthValue;
 	
 	// Transform the light into view space
@@ -62,12 +76,12 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float3 posToLight = pointLocView - viewPos;
 	float3 posToLightNorm = normalize(posToLight);
 	
-	float3 posNorm = normalTexture.Sample(texSampler,float2(clipX,clipY));
+	float3 posNorm = normalTexture.Sample(normalSampler,float2(clipX,clipY)).xyz;
 	float distToLight = length(posToLight);
 
 	float dotVal = dot(posNorm,posToLightNorm);
 
-	float3 albedoColor = albedoTexture.Sample(texSampler,float2(clipX,clipY));
+	float3 albedoColor = albedoTexture.Sample(colorSampler,float2(clipX,clipY)).xyz;
 	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1)/distToLight;
 	return outColor;
 }
