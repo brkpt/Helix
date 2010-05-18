@@ -52,28 +52,37 @@ LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 {
 	float4 outColor;// = float4(1.0f,1.0f,1.0f,1.0f);
+
+	// Convert back to NDC
+	float halfWidth = imageWidth/2.0;
+	float halfHeight = imageHeight/2.0;
+	float4 clipPos = float4((inVert.pos.x-halfWidth)/halfWidth, (inVert.pos.y-halfHeight)/-halfHeight, 0, 1.0);
 	
-	// float3 pixelPos = normalize(Input.vEyeToScreen) * G_Buffer.z;
+	// Back into post-projected space
+	float4 postProj = clipPos * inVert.pos.wwww;
+	
+	// Back into view space
+	float4 viewPos4 = mul(postProj,InvProj);
 	
 	// Get our depth value
-	float clipX = inVert.pos.x / imageWidth;
-	float clipY = inVert.pos.y / imageHeight;
-	float depthValue = depthTexture.Sample(texSampler,float2(clipX,clipY));
-//	float3 eyeToScreenNorm = normalize(inVert.vEyeToScreen);
-//	float3 viewPos = eyeToScreenNorm * depthValue;
-	float3 viewPos = mul( float4(inVert.pos.xy,depthValue,1.0), InvWorldViewProj);
+	float2 samplePos = float2(inVert.pos.x / imageWidth, inVert.pos.y / imageHeight);
+	float depthValue = depthTexture.Sample(texSampler,samplePos).x;
+//	depthValue = depthValue; // * inVert.pos.w;
+//	float4 clipPos4 = float4(clipPos,depthValue,inVert.pos.w);
+	
+	float3 viewPos = float3(viewPos4.xy,depthValue);
 		
 	// Transform the light into view space
 	float3 pointLocView = mul( float4(0,0,0,1), WorldView );
 	float3 posToLight = pointLocView - viewPos;
 	float3 posToLightNorm = normalize(posToLight);
 	
-	float3 posNorm = normalTexture.Sample(texSampler,float2(clipX,clipY));
+	float3 posNorm = normalTexture.Sample(texSampler,clipPos.xy);
 	float distToLight = length(posToLight);
 
 	float dotVal = dot(posNorm,posToLightNorm)/distToLight;
 
-	float3 albedoColor = albedoTexture.Sample(texSampler,float2(clipX,clipY));
+	float3 albedoColor = albedoTexture.Sample(texSampler,clipPos.xy);
 	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
 	return outColor;
 }

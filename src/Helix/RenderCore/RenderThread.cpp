@@ -1295,6 +1295,12 @@ void FillGBuffer()
 
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
 
+	// Inverse projection
+	D3DXMATRIX invProj;
+	D3DXMatrixInverse(&invProj,NULL,&projMat);
+	_ASSERT(invRet = &invProj);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("InvProj",invProj);
+
 	// The upper 3x3 of the view matrx
 	// Used to transform directional lights
 	D3DXMATRIX view3x3 = viewMat;
