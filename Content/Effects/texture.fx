@@ -42,7 +42,7 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 	Out.texuv = In.texuv;
 	float3 P = mul( float4(In.pos,1), WorldView );
 	Out.pos = mul( float4(P,1), Projection );
-	Out.depth = length(P);
+	Out.depth = P.z;
 	return Out;
 }
 
