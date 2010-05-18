@@ -35,7 +35,7 @@ QuadPS_in ShowNormalsVS(QuadVS_in inVert)
 float4 ShowNormalsPS(QuadPS_in inVert) : SV_Target
 {
 	// Get our depth value
-	float3 normValue = normalTexture.Sample(texSampler,inVert.texuv);
+	float3 normValue = normalTexture.Sample(texSampler,inVert.texuv).xyz;
 	
 	float4 outColor = float4(abs(normValue),1);
 	return outColor;
