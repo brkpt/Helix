@@ -66,7 +66,7 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	
 	// Get our depth value
 	float2 samplePos = float2(inVert.pos.x / imageWidth, inVert.pos.y / imageHeight);
-	float depthValue = depthTexture.Sample(texSampler,samplePos).x;
+	float depthValue = depthTexture.Load(int3((int2)inVert.pos.xy,0)).x;
 
 	// Build full view pos of pixel	
 	float3 viewPos = float3(viewPos4.xy,depthValue);
@@ -75,14 +75,12 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float3 pointLocView = mul( float4(0,0,0,1), WorldView );
 	float3 posToLight = pointLocView - viewPos;
 	float3 posToLightNorm = normalize(posToLight);
-	
-	float3 posNorm = normalTexture.Sample(texSampler,samplePos).xyz;
-	float distToLight = length(posToLight);
-
+	float3 posNorm = normalTexture.Load(int3((int2)samplePos.xy,0)).xyz;
 	float dotVal = dot(posNorm,posToLightNorm);
 
 	float3 albedoColor = albedoTexture.Sample(texSampler,samplePos).xyz;
 	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1);
+	//outColor = float4(1.0,1.0,1.0,1.0);
 	return outColor;
 }
 
