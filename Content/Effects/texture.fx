@@ -17,7 +17,7 @@ struct TexturePS_in
 	float4 pos : POSITION;
 	float3 normal : NORMAL;
 	float2 texuv : TEXCOORD0;
-	float depth : TEXCOORD1;
+	float2 depth : TEXCOORD1;
 };
 
 struct TexturePS_out
@@ -38,11 +38,11 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 {
 	TexturePS_in Out;
 
-	Out.normal = mul( float4(In.normal,1), WorldViewIT );
+	Out.normal = In.normal;
 	Out.texuv = In.texuv;
 	float3 P = mul( float4(In.pos,1), WorldView );
 	Out.pos = mul( float4(P,1), Projection );
-	Out.depth = P.z;
+	Out.depth.xy = Out.pos.zw;						// Send z and w separately to the pixel shader
 	return Out;
 }
 
@@ -50,8 +50,8 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 {
 	TexturePS_out outValue;
 	outValue.color = textureImage.Sample(texSampler, In.texuv);
-	outValue.normal = float4(In.normal.xyz,1);
-	outValue.depth = In.depth.x;
+	outValue.normal = float4(In.normal.xyz,0);
+	outValue.depth = In.depth.x/In.depth.y;			// Store z/w in the depth buffer
 	return outValue;
 }
 

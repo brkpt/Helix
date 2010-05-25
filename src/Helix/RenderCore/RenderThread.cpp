@@ -580,7 +580,7 @@ void CreateRenderStates()
 	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
 	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
 	depthStencilStateDesc.DepthWriteMask = D3D10_DEPTH_WRITE_MASK_ZERO;		// Don't write to depth/stencil
-	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_ALWAYS ;			// Pass if closer
+	depthStencilStateDesc.DepthFunc = D3D10_COMPARISON_LESS_EQUAL ;			// Pass if closer
 	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
 	depthStencilStateDesc.StencilReadMask = D3D10_DEFAULT_STENCIL_WRITE_MASK; 
 	depthStencilStateDesc.StencilWriteMask = D3D10_DEFAULT_STENCIL_WRITE_MASK;
@@ -1168,6 +1168,10 @@ void RenderPointLight()
 	_ASSERT( vecVar != NULL);
 	vecVar->SetFloatVector(vecData);
 
+	// Radius
+	scalarVar = effect->GetVariableByName("pointRadius")->AsScalar();
+	hr = scalarVar->SetFloat(5.0f);
+
 	// *************
 	// Setup ambient color
 	// *************
@@ -1263,6 +1267,12 @@ void FillGBuffer()
 	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
 	Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
 
+	// View inverse
+	D3DXMATRIX invView;
+	D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
+	_ASSERT(invRet = &invView);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("InvView",invView);
+
 	// TODO: Get the world matrix from the object.  
 	// Use I for now
 	D3DXMATRIX worldMat;
@@ -1277,7 +1287,7 @@ void FillGBuffer()
 	D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
 
 	D3DXMATRIX invWorldViewProj;
-	D3DXMATRIX *invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
+	invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
 	_ASSERT(invRet == &invWorldViewProj);
 
 	Helix::ShaderManager::GetInstance().SetSharedParameter("InvWorldViewProj",invWorldViewProj);
@@ -1294,6 +1304,14 @@ void FillGBuffer()
 	_ASSERT(invRet == &worldViewIT);
 
 	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
+
+	// Inverse view/proj
+	D3DXMATRIX viewProj;
+	D3DXMatrixMultiply(&viewProj,&viewMat,&projMat);
+	D3DXMATRIX invViewProj;
+	invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
+	_ASSERT(invRet == &invViewProj);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("InvViewProj",invViewProj);
 
 	// Inverse projection
 	D3DXMATRIX invProj;
@@ -1367,14 +1385,14 @@ void DoLighting()
 	// Copy the albedo texture to the backbuffer
 
 	// Switch to final backbuffer/depth/stencil
-	device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
-
-	// Render the scene with ambient into the backbuffer
-	RenderAmbientLight();
+	device->OMSetRenderTargets(1,&m_backBufferView, m_depthStencilDSView/*m_backDepthStencilView*/);
 
 	device->OMSetDepthStencilState(m_lightingDSState,0);
 	FLOAT blendFactor[4] = {0,0,0,0};
 	device->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
+
+	// Render the scene with ambient into the backbuffer
+	RenderAmbientLight();
 
 	// Render with a directional sunlight vector
 	//RenderSunlight();
