@@ -1125,35 +1125,6 @@ void RenderPointLight()
 	scalarVar = effect->GetVariableByName("invTanHalfFOV")->AsScalar();
 	hr = scalarVar->SetFloat(m_invTanHalfFOV);
 
-	// *************
-	// Setup our point light
-	// *************
-	//static __int64 qpcStart = 0;
-	//static double freq = 0.0;
-	//static bool firstTime = true;
-	//if(firstTime)
-	//{
-	//	__int64 qpcFreq;
-	//	QueryPerformanceFrequency((LARGE_INTEGER *)&qpcFreq);
-	//	freq = 1.0/(double)qpcFreq;
-	//	QueryPerformanceCounter((LARGE_INTEGER *)&qpcStart);
-	//	firstTime = false;
-	//}
-
-	//__int64 qpcNow = 0;
-	//QueryPerformanceCounter((LARGE_INTEGER *)&qpcNow);
-	//double timeInSec = (qpcNow - qpcStart) * freq;
-	//double timeInMS = timeInSec * 1000.0;
-	//float scale = static_cast<float>((2.0 * D3DX_PI)/2000.0);
-	//float rot = static_cast<float>(timeInMS * scale);
-
-
-	//D3DXMATRIX rotY;
-	//D3DXMatrixRotationY(&rotY,rot);
-	//D3DXVECTOR4 temp;
-	//D3DXVec3Transform(&temp,&m_pointLightLoc,&rotY);
-	//D3DXVECTOR3 newPos = temp;
-
 	// Position
 	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
 	_ASSERT( vecVar != NULL);
@@ -1211,6 +1182,44 @@ void RenderPointLight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
 	}
+
+	// ============================
+	// Second point light
+	// ============================
+
+	// Position
+	vecVar = effect->GetVariableByName("pointLoc")->AsVector();
+	_ASSERT( vecVar != NULL);
+	D3DXVECTOR3 other = m_pointLightLoc;
+	other.y += 1.5f;
+	vecVar->SetFloatVector(other);
+
+	// TODO: Get the world matrix from the object.  
+	// Use I for now
+	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
+	D3DXMatrixTranslation(&transMat,other.x, other.y, other.z);
+
+	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+
+	// Calculate the WorldView matrix
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+
+	// Color
+	vecData.x = 1.0f;
+	vecData.y = 1.0f;
+	vecData.z = 0.0f;
+	vecVar = effect->GetVariableByName("pointColor")->AsVector();
+	_ASSERT( vecVar != NULL);
+	vecVar->SetFloatVector(vecData);
+
+	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	{
+		technique->GetPassByIndex( passIndex )->Apply( 0 );
+		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
+	}
+
+	// ======================
 
 	// Clear the inputs on the shader
 	hr = albedoResource->SetResource(NULL);
