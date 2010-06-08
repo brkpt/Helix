@@ -168,6 +168,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Light.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Light.h"
+			>
+		</File>
+		<File
 			RelativePath=".\LightManager.h"
 			>
 		</File>
