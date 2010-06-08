@@ -1,7 +1,20 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
-struct D3DXMATRIX;
+/*
+struct Flags
+{
+	union {
+		struct {
+			bool	flag1 : 1;
+			bool	flag2 : 2;
+		};
+		unsigned long	flagData;
+	};
+}
+*/
+
+//struct D3DXMATRIX;
 
 namespace Helix {
 
