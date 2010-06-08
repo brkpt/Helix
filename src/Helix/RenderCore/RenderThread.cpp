@@ -50,9 +50,10 @@ ID3D10DepthStencilState *	m_lightingDSState = NULL;
 
 D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
-DXGI_RGB					m_ambientColor = {1.0f, 1.0f, 1.0f};	// Ambient color
+DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
 D3DXVECTOR3					m_pointLightLoc(-8.85f, -9.25f, 8.706f);	// Point light location
 DXGI_RGB					m_pointLightColor = {0.0f, 0.0f, 1.0f};		// Point light color
+
 
 struct RenderData
 {
