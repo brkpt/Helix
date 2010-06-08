@@ -14,6 +14,8 @@ class Instance;
 	bool	RenderThreadReady();
 	void	SetDevice(ID3D10Device *dev, IDXGISwapChain *swapChain);
 
+	int		SubmissionIndex();
+
 	// Set sunlight 
 	void	SetSunlightDir(const D3DXVECTOR3 &dir);
 	void	SetSunlightColor(const DXGI_RGB &color);
