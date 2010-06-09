@@ -51,9 +51,6 @@ ID3D10DepthStencilState *	m_lightingDSState = NULL;
 D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
 DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
-D3DXVECTOR3					m_pointLightLoc(-8.85f, -9.25f, 8.706f);	// Point light location
-DXGI_RGB					m_pointLightColor = {0.0f, 0.0f, 1.0f};		// Point light color
-
 
 struct RenderData
 {
@@ -68,6 +65,9 @@ int				m_renderIndex = 0;
 RenderData *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_viewMatrix[NUM_SUBMISSION_BUFFERS];
 D3DXMATRIX		m_projMatrix[NUM_SUBMISSION_BUFFERS];
+
+Light			m_renderLights[MAX_LIGHTS];
+int				m_numRenderLights = 0;
 
 float			m_cameraNear = 0;
 float			m_cameraFar = 0;
@@ -721,6 +721,15 @@ void ShutDownRenderThread()
 // ****************************************************************************
 void RenderScene()
 {
+	// Copy light information
+	AquireLightMutex();
+	Light *submittedLights = SubmittedLights();
+	int lightCount = SubmittedLightCount();
+	memcpy(m_renderLights, submittedLights, lightCount * sizeof(Light));
+	m_numRenderLights = lightCount;
+	ResetLights();
+	ReleaseLightMutex();
+
 	// This call happens from the main thread.  Setup our render/submission
 	// indices before kicking off the renderer
 	m_renderIndex = m_submissionIndex;
@@ -798,58 +807,58 @@ void SubmitProjMatrix(D3DXMATRIX &mat)
 // ****************************************************************************
 void ShowLightLocations()
 {
-	ID3D10Device *device = m_D3DDevice;
+	//ID3D10Device *device = m_D3DDevice;
 
-	// Set our textures as inputs
-	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_showLightLocMat->GetShaderName());
-	ID3D10Effect *effect = shader->GetEffect();
+	//// Set our textures as inputs
+	//Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
+	//Shader *shader = ShaderManager::GetInstance().GetShader(m_showLightLocMat->GetShaderName());
+	//ID3D10Effect *effect = shader->GetEffect();
 
-	// Set the world*view matrix for the point light
-	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	//// Set the world*view matrix for the point light
+	//D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
 
-	// TODO: Get the world matrix from the object.  
-	// Use I for now
-	D3DXMATRIX scaleMat;
-	D3DXMatrixScaling(&scaleMat,1.0f, 1.0f, 1.0f);
-	D3DXMATRIX transMat;
-	D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
+	//// TODO: Get the world matrix from the object.  
+	//// Use I for now
+	//D3DXMATRIX scaleMat;
+	//D3DXMatrixScaling(&scaleMat,1.0f, 1.0f, 1.0f);
+	//D3DXMATRIX transMat;
+	//D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
 
-	D3DXMATRIX worldMat;
-	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+	//D3DXMATRIX worldMat;
+	//D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
 
-	// Calculate the WorldView matrix
-	D3DXMATRIX worldView;
-	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+	//// Calculate the WorldView matrix
+	//D3DXMATRIX worldView;
+	//D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	//Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
-	// Position
-	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
-	_ASSERT( vecVar != NULL);
-	vecVar->SetFloatVector(m_pointLightLoc);
+	//// Position
+	//ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
+	//_ASSERT( vecVar != NULL);
+	//vecVar->SetFloatVector(m_pointLightLoc);
 
-	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().VertexSize();
-	unsigned int offset = 0;
-	ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
-	ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
-	device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-	device->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
+	//// Set our IB/VB
+	//unsigned int stride = shader->GetDecl().VertexSize();
+	//unsigned int offset = 0;
+	//ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
+	//ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
+	//device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+	//device->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
 
-	// Set our prim type
-	device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+	//// Set our prim type
+	//device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-	// Set our states
-	device->RSSetState(m_RState);
+	//// Set our states
+	//device->RSSetState(m_RState);
 
-	D3D10_TECHNIQUE_DESC techDesc;
-	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	technique->GetDesc(&techDesc);
-	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	{
-		technique->GetPassByIndex( passIndex )->Apply( 0 );
-		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
-	}
+	//D3D10_TECHNIQUE_DESC techDesc;
+	//ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+	//technique->GetDesc(&techDesc);
+	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+	//{
+	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
+	//	device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
+	//}
 }
 
 // ****************************************************************************
@@ -1065,36 +1074,17 @@ void RenderAmbientLight()
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 	}
 }
-
 // ****************************************************************************
 // ****************************************************************************
-void RenderPointLight()
+void RenderPointLight(Light &light)
 {
 	ID3D10Device *device = m_D3DDevice;
 
-	// Set our textures as inputs
+	// Get the mesh/material/shader/effect
 	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
 	Material *lightSphereMat = MaterialManager::GetInstance().GetMaterial(lightSphere->GetMaterialName());
 	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->GetShaderName());
 	ID3D10Effect *effect = shader->GetEffect();
-
-	// Set the world*view matrix for the point light
-	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-
-	// TODO: Get the world matrix from the object.  
-	// Use I for now
-	D3DXMATRIX scaleMat;
-	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
-	D3DXMATRIX transMat;
-	D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
-
-	D3DXMATRIX worldMat;
-	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
-
-	// Calculate the WorldView matrix
-	D3DXMATRIX worldView;
-	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
 	// Albedo texture
 	ID3D10EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
@@ -1114,6 +1104,7 @@ void RenderPointLight()
 	hr = depthResource->SetResource(m_SRView[DEPTH]);
 	_ASSERT( SUCCEEDED(hr) );
 
+	// Set common parameters
 	ID3D10EffectScalarVariable *scalarVar = effect->GetVariableByName("cameraNear")->AsScalar();
 	hr = scalarVar->SetFloat(m_cameraNear);
 
@@ -1135,16 +1126,26 @@ void RenderPointLight()
 	scalarVar = effect->GetVariableByName("invTanHalfFOV")->AsScalar();
 	hr = scalarVar->SetFloat(m_invTanHalfFOV);
 
+	// Setup a world matrix for the light position and size
+	D3DXMATRIX scaleMat,transMat, worldMat;
+	D3DXVECTOR3 lightPos(light.point.m_position);
+	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
+	D3DXMatrixTranslation(&transMat,lightPos.x, lightPos.y, lightPos.z);
+	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+
+	// Set the world*view matrix for the point light
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	D3DXMATRIX worldView;
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+
 	// Position
 	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
 	_ASSERT( vecVar != NULL);
-	vecVar->SetFloatVector(m_pointLightLoc);
+	vecVar->SetFloatVector(lightPos);
 
 	// Color
-	D3DXVECTOR3 vecData;
-	vecData.x = m_pointLightColor.Red;
-	vecData.y = m_pointLightColor.Green;
-	vecData.z = m_pointLightColor.Blue;
+	D3DXVECTOR3 vecData(light.m_color.a,light.m_color.g,light.m_color.b);
 	vecVar = effect->GetVariableByName("pointColor")->AsVector();
 	_ASSERT( vecVar != NULL);
 	vecVar->SetFloatVector(vecData);
@@ -1153,20 +1154,6 @@ void RenderPointLight()
 	scalarVar = effect->GetVariableByName("pointRadius")->AsScalar();
 	hr = scalarVar->SetFloat(5.0f);
 
-	// *************
-	// Setup ambient color
-	// *************
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-
-	// Make sure it is normalized
-	D3DXVec3Normalize(&vecData, &vecData);
-
-	vecVar = effect->GetVariableByName("ambientColor")->AsVector();
-	_ASSERT( vecVar != NULL );
-	vecVar->SetFloatVector(vecData);
-	
 	// Set the input layout 
 	device->IASetInputLayout(shader->GetDecl().GetLayout());
 
@@ -1193,44 +1180,6 @@ void RenderPointLight()
 		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
 	}
 
-	// ============================
-	// Second point light
-	// ============================
-
-	// Position
-	vecVar = effect->GetVariableByName("pointLoc")->AsVector();
-	_ASSERT( vecVar != NULL);
-	D3DXVECTOR3 other = m_pointLightLoc;
-	other.y += 1.5f;
-	vecVar->SetFloatVector(other);
-
-	// TODO: Get the world matrix from the object.  
-	// Use I for now
-	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
-	D3DXMatrixTranslation(&transMat,other.x, other.y, other.z);
-
-	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
-
-	// Calculate the WorldView matrix
-	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
-
-	// Color
-	vecData.x = 1.0f;
-	vecData.y = 1.0f;
-	vecData.z = 0.0f;
-	vecVar = effect->GetVariableByName("pointColor")->AsVector();
-	_ASSERT( vecVar != NULL);
-	vecVar->SetFloatVector(vecData);
-
-	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	{
-		technique->GetPassByIndex( passIndex )->Apply( 0 );
-		device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
-	}
-
-	// ======================
-
 	// Clear the inputs on the shader
 	hr = albedoResource->SetResource(NULL);
 	_ASSERT(SUCCEEDED(hr));
@@ -1245,6 +1194,29 @@ void RenderPointLight()
 	{
 		technique->GetPassByIndex( passIndex )->Apply( 0 );
 	}
+}
+
+// ****************************************************************************
+// ****************************************************************************
+void RenderLights()
+{
+	ID3D10Device *device = m_D3DDevice;
+
+	// Set our textures as inputs
+	// Go render all lights
+	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
+	{
+		Light &light = m_renderLights[iLightIndex];
+
+		switch(light.m_type)
+		{
+			case Light::POINT: 
+				RenderPointLight(light);
+				break;
+		}
+
+	}
+
 }
 
 // ****************************************************************************
@@ -1417,8 +1389,8 @@ void DoLighting()
 	//RenderSunlight();
 	//device->ClearDepthStencilView( m_backDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0);
 
-	// Render point light into scene
-	RenderPointLight();
+	// Render our lights
+	RenderLights();
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();

@@ -9,6 +9,7 @@
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"
 #include "RenderCore/SceneLoader.h"
+#include "RenderCore/Light.h"
 #include "Kernel/Callback.h"
 #include "Camera.h"
 
@@ -49,6 +50,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	Helix::MaterialManager::Create();
 	Helix::MeshManager::Create();
 	Helix::InstanceManager::GetInstance();
+	Helix::InitializeLights();
 
 	return retVal;
 }
@@ -138,6 +140,7 @@ void TheGame::LoadScene(const std::string &levelName)
 	Helix::SetAmbientColor( tempColor );
 
 	Helix::LoadScene(levelName.c_str());
+
 }
 
 // ****************************************************************************
@@ -237,6 +240,18 @@ void TheGame::Update(void)
 
 	m_mouseState.mouseDeltaX = 0;
 	m_mouseState.mouseDeltaY = 0;
+
+	D3DXVECTOR3 pointLightLoc(-8.85f, -9.25f, 8.706f);
+	D3DXCOLOR pointLightColor(0.0f, 0.0f, 1.0f, 1.0f);
+	Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
+
+	pointLightColor.r = 1.0f;
+	pointLightColor.g = 1.0f;
+	pointLightColor.b = 0.0f;
+
+	pointLightLoc.y += 1.5f;
+	Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
+
 }
 
 // ****************************************************************************

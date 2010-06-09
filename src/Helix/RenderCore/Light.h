@@ -3,6 +3,8 @@
 
 namespace Helix {
 
+const int	MAX_LIGHTS = 100;
+
 struct Light
 {
 	typedef enum {POINT, DIRECTIONAL, SPOT} LightType;
@@ -28,11 +30,14 @@ struct Light
 	D3DXCOLOR		m_color;
 };
 
-const int					MAX_LIGHTS = 100;
-Light						m_lights[2][MAX_LIGHTS];
-
-void	ResetFrame();
+void	InitializeLights();
+void	ResetLights();
 void	AddPointLight(const D3DXVECTOR3 &position, const D3DXCOLOR &color, const float innerRadius, const float outerRadius);
+bool	AquireLightMutex();
+bool	ReleaseLightMutex();
+Light *	SubmittedLights();
+int		SubmittedLightCount();
+
 } // namespace Helix
 
 #endif LIGHT_H
