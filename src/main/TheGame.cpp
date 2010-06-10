@@ -1,6 +1,7 @@
 // ****************************************************************************
 // ****************************************************************************
 #include "stdafx.h"
+#include <time.h>
 #include "TheGame.h"
 #include "RenderCore/DeclManager.h"
 #include "RenderCore/ShaderManager.h"
@@ -12,6 +13,7 @@
 #include "RenderCore/Light.h"
 #include "Kernel/Callback.h"
 #include "Camera.h"
+#include "LightManager.h"
 
 // ****************************************************************************
 // ****************************************************************************
@@ -52,6 +54,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	Helix::InstanceManager::GetInstance();
 	Helix::InitializeLights();
 
+	LightManager::Create();
+
+	time_t	ltime;
+	srand(static_cast<unsigned int>(time(&ltime)));
 	return retVal;
 }
 
@@ -232,6 +238,8 @@ void TheGame::Update(void)
 {
 	WinApp::Update();
 
+	LightManager::GetInstance().Update();
+
 	POINT ptCursor;
 	GetCursorPos( &ptCursor );
 //	m_pD3DDevice->SetCursorPosition(ptCursor.x,ptCursor.y,0);
@@ -241,16 +249,16 @@ void TheGame::Update(void)
 	m_mouseState.mouseDeltaX = 0;
 	m_mouseState.mouseDeltaY = 0;
 
-	D3DXVECTOR3 pointLightLoc(-8.85f, -9.25f, 8.706f);
-	D3DXCOLOR pointLightColor(0.0f, 0.0f, 1.0f, 1.0f);
-	Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
+	//D3DXVECTOR3 pointLightLoc(-8.85f, -9.25f, 8.706f);
+	//D3DXCOLOR pointLightColor(0.0f, 0.0f, 1.0f, 1.0f);
+	//Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
 
-	pointLightColor.r = 1.0f;
-	pointLightColor.g = 1.0f;
-	pointLightColor.b = 0.0f;
+	//pointLightColor.r = 1.0f;
+	//pointLightColor.g = 1.0f;
+	//pointLightColor.b = 0.0f;
 
-	pointLightLoc.y += 1.5f;
-	Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
+	//pointLightLoc.y += 1.5f;
+	//Helix::AddPointLight(pointLightLoc,pointLightColor,1.0f,5.0f);
 
 }
 
@@ -258,6 +266,7 @@ void TheGame::Update(void)
 // ****************************************************************************
 void TheGame::Render(void)
 {
+	LightManager::GetInstance().SubmitLights();
 	Helix::InstanceManager::GetInstance().SubmitInstances();
 	Helix::RenderThreadReady();
 

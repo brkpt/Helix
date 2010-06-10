@@ -186,6 +186,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\main\LightManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\main\LightManager.h"
+			>
+		</File>
+		<File
 			RelativePath=".\main\main.cpp"
 			>
 		</File>
