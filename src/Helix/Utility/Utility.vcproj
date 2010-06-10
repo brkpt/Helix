@@ -192,6 +192,14 @@
 			RelativePath=".\pstdint.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Timer.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Timer.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
