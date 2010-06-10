@@ -176,10 +176,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\LightManager.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Material.cpp"
 			>
 		</File>
