@@ -1,22 +1,24 @@
 #include "stdafx.h"
 
-namespace Helix {
-// ****************************************************************************
-// ****************************************************************************
-MaterialManager::MaterialManager()
-{
-}
+using namespace Helix;
 
-MaterialManager::~MaterialManager()
-{
-}
+typedef std::map<const std::string, Material *>	MaterialMap;
+MaterialMap		*m_database;
 
 // ****************************************************************************
 // ****************************************************************************
-Material * MaterialManager::GetMaterial(const std::string &name)
+void HXInitializeMaterials()
 {
-	MaterialMap::const_iterator iter = m_database.find(name);
-	if(iter != m_database.end())
+	m_database = new MaterialMap;
+}
+
+
+// ****************************************************************************
+// ****************************************************************************
+Material * HXGetMaterial(const std::string &name)
+{
+	MaterialMap::const_iterator iter = m_database->find(name);
+	if(iter != m_database->end())
 		return iter->second;
 
 	return NULL;
@@ -24,9 +26,9 @@ Material * MaterialManager::GetMaterial(const std::string &name)
 
 // ****************************************************************************
 // ****************************************************************************
-Material * MaterialManager::Load(const std::string &name)
+Material * HXLoadMaterial(const std::string &name)
 {
-	Material *mat = GetMaterial(name);
+	Material *mat = HXGetMaterial(name);
 	if(mat != NULL)
 		return mat;
 
@@ -46,8 +48,6 @@ Material * MaterialManager::Load(const std::string &name)
 	mat = new Material(name,shaderObj);
 	_ASSERT(mat != NULL);
 
-	m_database[name] = mat;
+	(*m_database)[name] = mat;
 	return mat;
 }
-
-} // namespace Helix

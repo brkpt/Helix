@@ -3,39 +3,11 @@
 
 #include <map>
 #include <string>
+#include "RenderCore/Material.h"
 
-namespace Helix {
+void				HXInitializeMaterials();
+Helix::Material *	HXGetMaterial(const std::string &name);
+Helix::Material *	HXLoadMaterial(const std::string &name);
 
-class Material;
-
-class MaterialManager
-{
-public:
-	static void Create()
-	{
-		GetInstance();
-	}
-
-	static MaterialManager & GetInstance()
-	{
-		static MaterialManager	instance;
-		return instance;
-	}
-	
-	~MaterialManager();
-
-	Material *	GetMaterial(const std::string &name);
-	Material *	Load(const std::string &name);
-
-private:
-	MaterialManager();
-	MaterialManager(const MaterialManager &other) {}
-	MaterialManager & operator=(const MaterialManager &other) {}
-
-	typedef std::map<const std::string, Material *>	MaterialMap;
-	MaterialMap		m_database;
-};
-
-} // namespace Helix
 
 #endif // MATERIALMANAGER_H

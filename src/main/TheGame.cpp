@@ -49,7 +49,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	Helix::SetDevice(dev,sc);
 	Helix::DeclManager::Create();
 	Helix::ShaderManager::Create();
-	Helix::MaterialManager::Create();
+	HXInitializeMaterials();
 	Helix::MeshManager::Create();
 	Helix::InstanceManager::GetInstance();
 	Helix::InitializeLights();

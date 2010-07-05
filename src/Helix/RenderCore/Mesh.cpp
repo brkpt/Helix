@@ -82,7 +82,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	_ASSERT(nameObj.IsString());
 
 	// Fill in the vertex buffer
-	Material *mat = MaterialManager::GetInstance().Load(m_materialName);
+	Material *mat = HXLoadMaterial(m_materialName);
 	_ASSERT(mat != NULL);
 
 	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
@@ -309,7 +309,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 void Mesh::Render(int pass)
 {
 	// Set the parameters
-	Material *mat = MaterialManager::GetInstance().GetMaterial(m_materialName);
+	Material *mat = HXGetMaterial(m_materialName);
 	mat->SetParameters();
 
 	ID3D10Device *dev = RenderMgr::GetInstance().GetDevice();

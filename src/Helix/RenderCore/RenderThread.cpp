@@ -427,20 +427,20 @@ void CreateViews()
 void LoadLightShaders()
 {
 	// Load our ambient light
-	m_ambientMat = MaterialManager::GetInstance().Load("ambient");
+	m_ambientMat = HXLoadMaterial("ambient");
 	_ASSERT( m_ambientMat != NULL); 
 
 	// Load our directional light 
-	m_dirLightMat = MaterialManager::GetInstance().Load("dirlight");
+	m_dirLightMat = HXLoadMaterial("dirlight");
 	_ASSERT( m_dirLightMat != NULL);
 
-	m_pointLightMat = MaterialManager::GetInstance().Load("pointlight");
+	m_pointLightMat = HXLoadMaterial("pointlight");
 	_ASSERT( m_pointLightMat != NULL);
 
-	m_showNormalMat = MaterialManager::GetInstance().Load("shownormals");
+	m_showNormalMat = HXLoadMaterial("shownormals");
 	_ASSERT(m_showNormalMat != NULL);
 
-	m_showLightLocMat = MaterialManager::GetInstance().Load("showlightloc");
+	m_showLightLocMat = HXLoadMaterial("showlightloc");
 	_ASSERT(m_showLightLocMat != NULL);
 }
 
@@ -1082,7 +1082,7 @@ void RenderPointLight(Light &light)
 
 	// Get the mesh/material/shader/effect
 	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	Material *lightSphereMat = MaterialManager::GetInstance().GetMaterial(lightSphere->GetMaterialName());
+	Material *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
 	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->GetShaderName());
 	ID3D10Effect *effect = shader->GetEffect();
 
@@ -1326,7 +1326,7 @@ void FillGBuffer()
 	while(obj)
 	{
 		// Set the parameters
-		Material *mat = MaterialManager::GetInstance().GetMaterial(obj->materialName);
+		Material *mat = HXGetMaterial(obj->materialName);
 		mat->SetParameters();
 
 		// Set our input assembly buffers
