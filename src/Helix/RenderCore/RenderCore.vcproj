@@ -176,19 +176,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Material.cpp"
+			RelativePath=".\Materials.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Material.h"
-			>
-		</File>
-		<File
-			RelativePath=".\MaterialManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\MaterialManager.h"
+			RelativePath=".\Materials.h"
 			>
 		</File>
 		<File

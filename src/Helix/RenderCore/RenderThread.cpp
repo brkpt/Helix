@@ -5,6 +5,7 @@
 #include "RenderMgr.h"
 #include "VertexDecl.h"
 #include "Light.h"
+#include "Materials.h"
 
 namespace Helix {
 
@@ -32,11 +33,11 @@ ID3D10Texture2D *			m_Texture[MAX_TARGETS];
 ID3D10RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D10ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-Material *					m_ambientMat = NULL;
-Material *					m_dirLightMat = NULL;
-Material *					m_pointLightMat = NULL;
-Material *					m_showNormalMat = NULL;
-Material *					m_showLightLocMat = NULL;
+HXMaterial *				m_ambientMat = NULL;
+HXMaterial *				m_dirLightMat = NULL;
+HXMaterial *				m_pointLightMat = NULL;
+HXMaterial *				m_showNormalMat = NULL;
+HXMaterial *				m_showLightLocMat = NULL;
 ID3D10Texture2D *			m_depthStencilTexture = NULL;
 ID3D10DepthStencilView *	m_depthStencilDSView = NULL;
 ID3D10ShaderResourceView *	m_depthStencilSRView = NULL;
@@ -923,7 +924,7 @@ void RenderSunlight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->GetShaderName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->m_shaderName);
 	ID3D10Effect *effect = shader->GetEffect();
 
 	// Albedo texture
@@ -1016,7 +1017,7 @@ void RenderAmbientLight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_ambientMat->GetShaderName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(m_ambientMat->m_shaderName);
 	ID3D10Effect *effect = shader->GetEffect();
 
 	// Set albedo texture as input
@@ -1082,8 +1083,8 @@ void RenderPointLight(Light &light)
 
 	// Get the mesh/material/shader/effect
 	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	Material *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
-	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->GetShaderName());
+	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->m_shaderName);
 	ID3D10Effect *effect = shader->GetEffect();
 
 	// Albedo texture
@@ -1221,6 +1222,28 @@ void RenderLights()
 
 // ****************************************************************************
 // ****************************************************************************
+void SetMaterialParameters(HXMaterial *mat)
+{
+	Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
+	_ASSERT(shader != NULL);
+
+	ID3D10Effect *effect = shader->GetEffect();
+
+	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
+
+	Texture *tex = TextureManager::GetInstance().GetTexture(mat->m_textureName);
+
+	if( tex != NULL)
+	{
+		// Mesh that only uses render targets as input textures 
+		// may not have a texture 
+		ID3D10ShaderResourceView *textureRV = tex->GetShaderView();
+		HRESULT hr = shaderResource->SetResource(textureRV);
+		_ASSERT(SUCCEEDED(hr));
+	}
+}
+// ****************************************************************************
+// ****************************************************************************
 void FillGBuffer()
 {
 	ID3D10Device *device = m_D3DDevice;
@@ -1326,12 +1349,12 @@ void FillGBuffer()
 	while(obj)
 	{
 		// Set the parameters
-		Material *mat = HXGetMaterial(obj->materialName);
-		mat->SetParameters();
+		HXMaterial *mat = HXGetMaterial(obj->materialName);
+		SetMaterialParameters(mat);
 
 		// Set our input assembly buffers
 		Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
-		Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+		Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
 
 		// Set the input layout 
 		device->IASetInputLayout(shader->GetDecl().GetLayout());

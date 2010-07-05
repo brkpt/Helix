@@ -22,7 +22,7 @@ public:
 	void				SetMeshName(const std::string &name) { m_meshName = name; }
 	const std::string &	GetMeshName() const { return m_meshName; }
 	const D3DXMATRIX &	GetWorldMatrix() const { return m_worldMatrix; }
-	void				Render(int pass);
+//	void				Render(int pass);
 
 private:
 	std::string		m_name;

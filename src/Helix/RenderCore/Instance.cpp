@@ -18,10 +18,10 @@ Instance::~Instance()
 
 // ****************************************************************************
 // ****************************************************************************
-void Instance::Render(int pass)
-{
-	Mesh *mesh = MeshManager::GetInstance().GetMesh(m_meshName);
-	mesh->Render(pass);
-}
+//void Instance::Render(int pass)
+//{
+//	Mesh *mesh = MeshManager::GetInstance().GetMesh(m_meshName);
+//	mesh->Render(pass);
+//}
 
 } // namespace Helix

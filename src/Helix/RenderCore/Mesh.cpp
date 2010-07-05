@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "VertexDecl.h"
 #include "RenderMgr.h"
+#include "Materials.h"
 
 namespace Helix {
 // ****************************************************************************
@@ -82,10 +83,10 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	_ASSERT(nameObj.IsString());
 
 	// Fill in the vertex buffer
-	Material *mat = HXLoadMaterial(m_materialName);
+	HXMaterial *mat = HXLoadMaterial(m_materialName);
 	_ASSERT(mat != NULL);
 
-	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
+	Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
 	_ASSERT(shader != NULL);
 
 	// TODO: Setup vertex format based off of annotation
@@ -303,36 +304,36 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 
 	return true;
 }
-
-// ****************************************************************************
-// ****************************************************************************
-void Mesh::Render(int pass)
-{
-	// Set the parameters
-	Material *mat = HXGetMaterial(m_materialName);
-	mat->SetParameters();
-
-	ID3D10Device *dev = RenderMgr::GetInstance().GetDevice();
-
-	// Set our input assembly buffers
-	Shader *shader = ShaderManager::GetInstance().GetShader(mat->GetShaderName());
-	unsigned int stride = shader->GetDecl().VertexSize();
-	unsigned int offset = 0;
-	dev->IASetVertexBuffers(0,1,&m_vertexBuffer,&stride,&offset);
-	dev->IASetIndexBuffer(m_indexBuffer,m_32bitIndices ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT,0);
-
-	// Set our prim type
-	dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-	ID3D10Effect *effect = shader->GetEffect();
-	D3D10_TECHNIQUE_DESC techDesc;
-	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	technique->GetDesc(&techDesc);
-	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	{
-		technique->GetPassByIndex( passIndex )->Apply( 0 );
-		dev->DrawIndexed( m_numIndices, 0, 0 );
-	}
-}
+//
+//// ****************************************************************************
+//// ****************************************************************************
+//void Mesh::Render(int pass)
+//{
+//	// Set the parameters
+//	HXMaterial *mat = HXGetMaterial(m_materialName);
+//	mat->SetParameters();
+//
+//	ID3D10Device *dev = RenderMgr::GetInstance().GetDevice();
+//
+//	// Set our input assembly buffers
+//	Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
+//	unsigned int stride = shader->GetDecl().VertexSize();
+//	unsigned int offset = 0;
+//	dev->IASetVertexBuffers(0,1,&m_vertexBuffer,&stride,&offset);
+//	dev->IASetIndexBuffer(m_indexBuffer,m_32bitIndices ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT,0);
+//
+//	// Set our prim type
+//	dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+//
+//	ID3D10Effect *effect = shader->GetEffect();
+//	D3D10_TECHNIQUE_DESC techDesc;
+//	ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+//	technique->GetDesc(&techDesc);
+//	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+//	{
+//		technique->GetPassByIndex( passIndex )->Apply( 0 );
+//		dev->DrawIndexed( m_numIndices, 0, 0 );
+//	}
+//}
 
 } // namespace Helix

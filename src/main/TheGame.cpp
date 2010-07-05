@@ -5,7 +5,6 @@
 #include "TheGame.h"
 #include "RenderCore/DeclManager.h"
 #include "RenderCore/ShaderManager.h"
-#include "RenderCore/MaterialManager.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"

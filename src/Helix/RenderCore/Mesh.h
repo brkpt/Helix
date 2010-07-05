@@ -14,7 +14,7 @@ public:
 	bool	Load(const std::string &filename);
 	bool	Load(LuaObject &meshObj);
 
-	void			Render(int pass);
+//	void			Render(int pass);
 	std::string &	GetMaterialName() { return m_materialName; }
 	ID3D10Buffer *	GetVertexBuffer() { return m_vertexBuffer; }
 	ID3D10Buffer *	GetIndexBuffer()  { return m_indexBuffer; }
