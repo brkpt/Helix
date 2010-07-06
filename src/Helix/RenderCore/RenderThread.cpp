@@ -877,8 +877,8 @@ void ShowNormals()
 	device->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader("shownormals");
-	ID3D10Effect *effect = shader->GetEffect();
+	HXShader *shader = HXGetShaderByName("shownormals");
+	ID3D10Effect *effect = shader->m_pEffect;
 
 	// Normal texture
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
@@ -887,7 +887,7 @@ void ShowNormals()
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().m_vertexSize;
+	unsigned int stride = shader->m_decl->m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -924,8 +924,8 @@ void RenderSunlight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_dirLightMat->m_shaderName);
-	ID3D10Effect *effect = shader->GetEffect();
+	HXShader *shader = HXGetShaderByName(m_dirLightMat->m_shaderName);
+	ID3D10Effect *effect = shader->m_pEffect;
 
 	// Albedo texture
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
@@ -981,7 +981,7 @@ void RenderSunlight()
 	vecVar->SetFloatVector(vecData);
 	
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().m_vertexSize;
+	unsigned int stride = shader->m_decl->m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -1017,8 +1017,8 @@ void RenderAmbientLight()
 	ID3D10Device *device = m_D3DDevice;
 
 	// Set our textures as inputs
-	Shader *shader = ShaderManager::GetInstance().GetShader(m_ambientMat->m_shaderName);
-	ID3D10Effect *effect = shader->GetEffect();
+	HXShader *shader = HXGetShaderByName(m_ambientMat->m_shaderName);
+	ID3D10Effect *effect = shader->m_pEffect;
 
 	// Set albedo texture as input
 	ID3D10EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
@@ -1043,10 +1043,10 @@ void RenderAmbientLight()
 	vecVar->SetFloatVector(vecData);
 	
 	// Set the input layout 
-	device->IASetInputLayout(shader->GetDecl().m_layout);
+	device->IASetInputLayout(shader->m_decl->m_layout);
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().m_vertexSize;
+	unsigned int stride = shader->m_decl->m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -1084,8 +1084,8 @@ void RenderPointLight(Light &light)
 	// Get the mesh/material/shader/effect
 	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
 	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
-	Shader *shader = ShaderManager::GetInstance().GetShader(lightSphereMat->m_shaderName);
-	ID3D10Effect *effect = shader->GetEffect();
+	HXShader *shader = HXGetShaderByName(lightSphereMat->m_shaderName);
+	ID3D10Effect *effect = shader->m_pEffect;
 
 	// Albedo texture
 	ID3D10EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
@@ -1138,7 +1138,7 @@ void RenderPointLight(Light &light)
 	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
 	D3DXMATRIX worldView;
 	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+	HXSetSharedParameter("WorldView",worldView);
 
 	// Position
 	ID3D10EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
@@ -1156,10 +1156,10 @@ void RenderPointLight(Light &light)
 	hr = scalarVar->SetFloat(5.0f);
 
 	// Set the input layout 
-	device->IASetInputLayout(shader->GetDecl().m_layout);
+	device->IASetInputLayout(shader->m_decl->m_layout);
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().m_vertexSize;
+	unsigned int stride = shader->m_decl->m_vertexSize;
 	unsigned int offset = 0;
 	ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
 	ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
@@ -1224,10 +1224,10 @@ void RenderLights()
 // ****************************************************************************
 void SetMaterialParameters(HXMaterial *mat)
 {
-	Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
+	HXShader *shader = HXGetShaderByName(mat->m_shaderName);
 	_ASSERT(shader != NULL);
 
-	ID3D10Effect *effect = shader->GetEffect();
+	ID3D10Effect *effect = shader->m_pEffect;
 
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
 
@@ -1275,17 +1275,17 @@ void FillGBuffer()
 
 	// Setup camera parameters
 	D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
-	Helix::ShaderManager::GetInstance().SetSharedParameter("Projection",projMat);
+	HXSetSharedParameter("Projection",projMat);
 
 	// Get the view matrix
 	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	Helix::ShaderManager::GetInstance().SetSharedParameter("View",viewMat);
+	HXSetSharedParameter("View",viewMat);
 
 	// View inverse
 	D3DXMATRIX invView;
 	D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
 	_ASSERT(invRet = &invView);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("InvView",invView);
+	HXSetSharedParameter("InvView",invView);
 
 	// TODO: Get the world matrix from the object.  
 	// Use I for now
@@ -1295,7 +1295,7 @@ void FillGBuffer()
 	// Calculate the WorldView matrix
 	D3DXMATRIX worldView;
 	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
+	HXSetSharedParameter("WorldView",worldView);
 
 	D3DXMATRIX worldViewProj;
 	D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
@@ -1304,7 +1304,7 @@ void FillGBuffer()
 	invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
 	_ASSERT(invRet == &invWorldViewProj);
 
-	Helix::ShaderManager::GetInstance().SetSharedParameter("InvWorldViewProj",invWorldViewProj);
+	HXSetSharedParameter("InvWorldViewProj",invWorldViewProj);
 
 	// Generate the inverse transpose of the WorldView matrix
 	// We don't use any non uniform scaling, so we can just send down the 
@@ -1317,7 +1317,7 @@ void FillGBuffer()
 	invRet = D3DXMatrixInverse(&worldViewIT,NULL,&worldViewIT);
 	_ASSERT(invRet == &worldViewIT);
 
-	Helix::ShaderManager::GetInstance().SetSharedParameter("WorldViewIT",worldViewIT);
+	HXSetSharedParameter("WorldViewIT",worldViewIT);
 
 	// Inverse view/proj
 	D3DXMATRIX viewProj;
@@ -1325,20 +1325,20 @@ void FillGBuffer()
 	D3DXMATRIX invViewProj;
 	invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
 	_ASSERT(invRet == &invViewProj);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("InvViewProj",invViewProj);
+	HXSetSharedParameter("InvViewProj",invViewProj);
 
 	// Inverse projection
 	D3DXMATRIX invProj;
 	D3DXMatrixInverse(&invProj,NULL,&projMat);
 	_ASSERT(invRet = &invProj);
-	Helix::ShaderManager::GetInstance().SetSharedParameter("InvProj",invProj);
+	HXSetSharedParameter("InvProj",invProj);
 
 	// The upper 3x3 of the view matrx
 	// Used to transform directional lights
 	D3DXMATRIX view3x3 = viewMat;
 	view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
 	view3x3._44 = 1;
-	Helix::ShaderManager::GetInstance().SetSharedParameter("View3x3",view3x3);
+	HXSetSharedParameter("View3x3",view3x3);
 
 	// Go through all of our render objects
 	RenderData *obj = m_submissionBuffers[m_renderIndex];
@@ -1354,13 +1354,13 @@ void FillGBuffer()
 
 		// Set our input assembly buffers
 		Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
-		Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
+		HXShader *shader = HXGetShaderByName(mat->m_shaderName);
 
 		// Set the input layout 
-		device->IASetInputLayout(shader->GetDecl().m_layout);
+		device->IASetInputLayout(shader->m_decl->m_layout);
 
 		// Set our vertex/index buffers
-		unsigned int stride = shader->GetDecl().m_vertexSize;
+		unsigned int stride = shader->m_decl->m_vertexSize;
 		unsigned int offset = 0;
 		ID3D10Buffer *vb = mesh->GetVertexBuffer();
 		device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
@@ -1370,7 +1370,7 @@ void FillGBuffer()
 		device->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
 		// Start rendering
-		ID3D10Effect *effect = shader->GetEffect();
+		ID3D10Effect *effect = shader->m_pEffect;
 		D3D10_TECHNIQUE_DESC techDesc;
 		ID3D10EffectTechnique *technique = effect->GetTechniqueByIndex(0);
 		technique->GetDesc(&techDesc);

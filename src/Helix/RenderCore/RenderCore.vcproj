@@ -212,19 +212,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Shader.cpp"
+			RelativePath=".\Shaders.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Shader.h"
-			>
-		</File>
-		<File
-			RelativePath=".\ShaderManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\ShaderManager.h"
+			RelativePath=".\Shaders.h"
 			>
 		</File>
 		<File

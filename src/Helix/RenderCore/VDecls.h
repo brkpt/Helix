@@ -1,12 +1,9 @@
 #ifndef VDECLS_H
 #define VDECLS_H
 
-namespace Helix
-{
-	class Shader;
-}
-
 #include <map>
+
+struct HXShader;
 
 struct HXVertexDecl
 {
@@ -20,7 +17,7 @@ struct HXVertexDecl
 void							HXInitializeVertexDecls();
 HXVertexDecl *					HXGetVertexDecl(const std::string &declName);
 HXVertexDecl *					HXLoadVertexDecl(const std::string &declName);
-ID3D10InputLayout *				HXDeclBuildLayout(HXVertexDecl &decl, Helix::Shader *shader);
+ID3D10InputLayout *				HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader);
 bool							HXDeclHasSemantic(HXVertexDecl &decl, const char *semanticName, int &offset);
 
 	//ID3D10InputLayout *			GetLayout() { return m_layout; }

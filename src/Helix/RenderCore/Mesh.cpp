@@ -86,11 +86,11 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	HXMaterial *mat = HXLoadMaterial(m_materialName);
 	_ASSERT(mat != NULL);
 
-	Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
+	HXShader *shader = HXGetShaderByName(mat->m_shaderName);
 	_ASSERT(shader != NULL);
 
 	// TODO: Setup vertex format based off of annotation
-	ID3D10Effect *shaderEffect = shader->GetEffect();
+	ID3D10Effect *shaderEffect = shader->m_pEffect;
 	_ASSERT(shaderEffect != NULL);
 
 	D3D10_EFFECT_DESC effectDesc;
@@ -125,7 +125,7 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	int normOffset = 0;
 	int tex1Offset = 0;
 
-	HXVertexDecl &decl = shader->GetDecl();
+	HXVertexDecl &decl = *shader->m_decl;
 	int vertexSize = decl.m_vertexSize;
 	bool havePosData = HXDeclHasSemantic(decl,"POSITION",posOffset);
 	bool haveNormData = HXDeclHasSemantic(decl,"NORMAL",normOffset);

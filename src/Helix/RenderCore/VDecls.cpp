@@ -349,7 +349,7 @@ HXVertexDecl * HXLoadVertexDecl(const std::string &name)
 
 // ****************************************************************************
 // ****************************************************************************
-ID3D10InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, Helix::Shader *shader)
+ID3D10InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader)
 {
 	if(decl.m_layout != NULL)
 	{
@@ -357,7 +357,7 @@ ID3D10InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, Helix::Shader *shader)
 	}
 
 	// Build the layout against the specific shader
-	ID3D10Effect *effect = shader->GetEffect();
+	ID3D10Effect *effect = shader->m_pEffect;
 	ID3D10EffectTechnique *tech = effect->GetTechniqueByIndex(0);
 	ID3D10EffectPass *pass = tech->GetPassByIndex(0);
 	D3D10_PASS_DESC passDesc;

@@ -35,7 +35,7 @@ HXMaterial * HXCreateMaterial(const std::string &name, LuaObject &object)
 	}
 
 	// Load the shader
-	Helix::Shader *shader = Helix::ShaderManager::GetInstance().Load(newMat->m_shaderName);
+	HXShader *shader = HXLoadShader(newMat->m_shaderName);
 	
 	// Make sure we can load the associated texture
 	// Texture names wrapped in []'s signify a render target or other

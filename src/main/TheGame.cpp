@@ -4,7 +4,8 @@
 #include <time.h>
 #include "TheGame.h"
 #include "RenderCore/VDecls.h"
-#include "RenderCore/ShaderManager.h"
+#include "RenderCore/Shaders.h"
+#include "RenderCore/Materials.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"
@@ -46,9 +47,9 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
 
 	HXInitializeVertexDecls();
+	HXInitializeShaders();
 	HXInitializeMaterials();
 	Helix::SetDevice(dev,sc);
-	Helix::ShaderManager::Create();
 	Helix::MeshManager::Create();
 	Helix::InstanceManager::GetInstance();
 	Helix::InitializeLights();

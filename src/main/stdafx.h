@@ -29,13 +29,12 @@
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/VDecls.h"
 #include "RenderCore/InstanceManager.h"
-#include "RenderCore/ShaderManager.h"
+#include "RenderCore/Shaders.h"
 #include "RenderCore/TextureManager.h"
 #include "RenderCore/Materials.h"
 #include "RenderCore/MeshManager.h"
 #include "RenderCore/Instance.h"
 #include "RenderCore/Mesh.h"
-#include "RenderCore/Shader.h"
 
 // TODO: reference additional headers your program requires here
 

@@ -1,6 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "Kernel/RefCount.h"
+
 namespace Helix {
 
 class Material;
