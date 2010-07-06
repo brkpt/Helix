@@ -244,19 +244,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Texture.cpp"
+			RelativePath=".\Textures.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Texture.h"
-			>
-		</File>
-		<File
-			RelativePath=".\TextureManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\TextureManager.h"
+			RelativePath=".\Textures.h"
 			>
 		</File>
 		<File

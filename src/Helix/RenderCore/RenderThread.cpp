@@ -197,7 +197,7 @@ void CreateBackbufferViews()
     pBuffer->Release();
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_backBufferView),"[backbuffer]");
+	HXAddTexture(new HXTexture(m_backBufferView),"[backbuffer]");
 
 	// Create depth stencil texture
     D3D10_TEXTURE2D_DESC descDepth;
@@ -225,7 +225,7 @@ void CreateBackbufferViews()
     descDSV.Texture2D.MipSlice = 0;
     hr = m_D3DDevice->CreateDepthStencilView( m_backDepthStencil, &descDSV, &m_backDepthStencilView );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_backDepthStencilView), "[backdepthstencil]");
+	HXAddTexture(new HXTexture(m_backDepthStencilView), "[backdepthstencil]");
 	_ASSERT( SUCCEEDED(hr) );
 }
 
@@ -261,7 +261,7 @@ void CreateColorTarget()
 	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[ALBEDO], &rtDesc, &m_RTView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[ALBEDO]), "[albedotarget]");
+	HXAddTexture(new HXTexture(m_RTView[ALBEDO]), "[albedotarget]");
 
 	// Create the shader input view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
@@ -273,7 +273,7 @@ void CreateColorTarget()
 	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[ALBEDO], &srDesc, &m_SRView[ALBEDO] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[ALBEDO]), "[albedoshader]");
+	HXAddTexture(new HXTexture(m_SRView[ALBEDO]), "[albedoshader]");
 }
 
 // ****************************************************************************
@@ -305,7 +305,7 @@ void CreateDepthTarget()
 	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[DEPTH], &rtDesc, &m_RTView[DEPTH] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[DEPTH]), "[depthtarget]");
+	HXAddTexture(new HXTexture(m_RTView[DEPTH]), "[depthtarget]");
 
 	// Create the shader input view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
@@ -317,7 +317,7 @@ void CreateDepthTarget()
 	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[DEPTH], &srDesc, &m_SRView[DEPTH] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[DEPTH]), "[depthshader]");
+	HXAddTexture(new HXTexture(m_SRView[DEPTH]), "[depthshader]");
 }
 // ****************************************************************************
 // - Create a depth/stencil target texture (DXGI_FORMAT_R16_TYPELESS)
@@ -351,7 +351,7 @@ void CreateDepthStencilTarget()
     hr = m_D3DDevice->CreateDepthStencilView(m_depthStencilTexture,&dsDesc,&m_depthStencilDSView );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_depthStencilDSView), "[depthstenciltarget]");
+	HXAddTexture(new HXTexture(m_depthStencilDSView), "[depthstenciltarget]");
 
 	// Create our shader resource view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
@@ -364,7 +364,7 @@ void CreateDepthStencilTarget()
 	hr = m_D3DDevice->CreateShaderResourceView(m_depthStencilTexture,&srDesc,&m_depthStencilSRView );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_depthStencilSRView), "[depthstencilshader]");
+	HXAddTexture(new HXTexture(m_depthStencilSRView), "[depthstencilshader]");
 }
 
 // ****************************************************************************
@@ -396,7 +396,7 @@ void CreateNormalTarget()
 	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[NORMAL], &rtDesc, &m_RTView[NORMAL] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_RTView[NORMAL]), "[normaltarget]");
+	HXAddTexture(new HXTexture(m_RTView[NORMAL]), "[normaltarget]");
 
 	// Create the shader input view
 	D3D10_SHADER_RESOURCE_VIEW_DESC srDesc;
@@ -408,7 +408,7 @@ void CreateNormalTarget()
 	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[NORMAL], &srDesc, &m_SRView[NORMAL] );
 	_ASSERT( SUCCEEDED(hr) );
 
-	TextureManager::GetInstance().AddTexture(new Texture(m_SRView[NORMAL]), "[normalshader]");
+	HXAddTexture(new HXTexture(m_SRView[NORMAL]), "[normalshader]");
 }
 
 // ****************************************************************************
@@ -1231,13 +1231,13 @@ void SetMaterialParameters(HXMaterial *mat)
 
 	ID3D10EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
 
-	Texture *tex = TextureManager::GetInstance().GetTexture(mat->m_textureName);
+	HXTexture *tex = HXGetTextureByName(mat->m_textureName);
 
 	if( tex != NULL)
 	{
 		// Mesh that only uses render targets as input textures 
 		// may not have a texture 
-		ID3D10ShaderResourceView *textureRV = tex->GetShaderView();
+		ID3D10ShaderResourceView *textureRV = tex->m_shaderView;
 		HRESULT hr = shaderResource->SetResource(textureRV);
 		_ASSERT(SUCCEEDED(hr));
 	}

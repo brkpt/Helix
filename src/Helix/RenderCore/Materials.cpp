@@ -43,7 +43,7 @@ HXMaterial * HXCreateMaterial(const std::string &name, LuaObject &object)
 	if(newMat->m_textureName.empty() || (newMat->m_textureName[0] == '[' && newMat->m_textureName[newMat->m_textureName.length()-1] == ']') )
 		return newMat;
 
-	Helix::Texture *tex = Helix::TextureManager::GetInstance().LoadTexture(newMat->m_textureName);
+	HXTexture *tex = HXLoadTexture(newMat->m_textureName);
 	_ASSERT(tex != NULL);
 
 	return newMat;

@@ -30,7 +30,7 @@
 #include "RenderCore/VDecls.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/Shaders.h"
-#include "RenderCore/TextureManager.h"
+#include "RenderCore/Textures.h"
 #include "RenderCore/Materials.h"
 #include "RenderCore/MeshManager.h"
 #include "RenderCore/Instance.h"

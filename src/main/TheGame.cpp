@@ -6,6 +6,7 @@
 #include "RenderCore/VDecls.h"
 #include "RenderCore/Shaders.h"
 #include "RenderCore/Materials.h"
+#include "RenderCore/Textures.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"
@@ -48,6 +49,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 
 	HXInitializeVertexDecls();
 	HXInitializeShaders();
+	HXInitializeTextures();
 	HXInitializeMaterials();
 	Helix::SetDevice(dev,sc);
 	Helix::MeshManager::Create();
