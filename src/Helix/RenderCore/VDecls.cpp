@@ -14,7 +14,7 @@ struct VertexDeclState {
 	DeclMap				m_database;
 };
 
-VertexDeclState *	m_vertexDeclState;
+VertexDeclState *	m_vertexDeclState = NULL;
 // ****************************************************************************
 // ****************************************************************************
 // Helper macros for adding all for the different formats and classifications to the maps
@@ -23,6 +23,7 @@ VertexDeclState *	m_vertexDeclState;
 
 void HXInitializeVertexDecls()
 {
+	_ASSERT(m_vertexDeclState == NULL);
 	m_vertexDeclState = new VertexDeclState();
 
 	HX_ADD_FORMAT( DXGI_FORMAT_UNKNOWN );

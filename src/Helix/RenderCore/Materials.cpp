@@ -6,12 +6,13 @@ struct MaterialState
 {
 	MaterialMap		m_database;
 };
-MaterialState	*m_materialState;
+MaterialState	*m_materialState = NULL;
 
 // ****************************************************************************
 // ****************************************************************************
 void HXInitializeMaterials()
 {
+	_ASSERT(m_materialState == NULL);
 	m_materialState = new MaterialState;
 }
 
