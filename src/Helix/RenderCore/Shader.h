@@ -3,6 +3,7 @@
 
 #include <string>
 #include "Kernel/RefCount.h"
+#include "VDecls.h"
 
 namespace Helix {
 class VertexDecl;
@@ -24,7 +25,7 @@ public:
 	bool	NeedsProcessing()		{ return m_needsProcessing; }
 	void	ClearProcessingFlag()	{ m_needsProcessing = false; }
 
-	VertexDecl &	GetDecl() { return *m_decl; }
+	HXVertexDecl &	GetDecl() { return *m_decl; }
 	ID3D10Effect *	GetEffect() { return m_pEffect; }
 
 	void	SetShaderParameter(const std::string &paramName, D3DXMATRIX &value);
@@ -32,7 +33,7 @@ public:
 
 private:
 	std::string		m_shaderName;
-	VertexDecl *	m_decl;
+	HXVertexDecl *	m_decl;
 	ID3D10Effect *	m_pEffect;
 
 	union {

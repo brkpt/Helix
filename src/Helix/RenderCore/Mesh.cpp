@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "VertexDecl.h"
+#include "VDecls.h"
 #include "RenderMgr.h"
 #include "Materials.h"
 
@@ -125,11 +125,11 @@ bool Mesh::CreatePlatformData(const std::string &name, LuaObject &meshObj)
 	int normOffset = 0;
 	int tex1Offset = 0;
 
-	VertexDecl &decl = shader->GetDecl();
-	int vertexSize = decl.VertexSize();
-	bool havePosData = decl.HasSemantic("POSITION",posOffset);
-	bool haveNormData = decl.HasSemantic("NORMAL",normOffset);
-	bool haveTex1Data = decl.HasSemantic("TEXCOORD",tex1Offset);
+	HXVertexDecl &decl = shader->GetDecl();
+	int vertexSize = decl.m_vertexSize;
+	bool havePosData = HXDeclHasSemantic(decl,"POSITION",posOffset);
+	bool haveNormData = HXDeclHasSemantic(decl,"NORMAL",normOffset);
+	bool haveTex1Data = HXDeclHasSemantic(decl,"TEXCOORD",tex1Offset);
 
 	m_numTriangles = faceListObj.GetTableCount();
 	for(unsigned int faceIndex=1;faceIndex <= m_numTriangles; faceIndex++)

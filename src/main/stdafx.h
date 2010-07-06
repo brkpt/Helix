@@ -27,7 +27,7 @@
 #include "LuaPlus.h"
 #include "Kernel/Win32DX10.h"
 #include "RenderCore/RenderThread.h"
-#include "RenderCore/VertexDecl.h"
+#include "RenderCore/VDecls.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/ShaderManager.h"
 #include "RenderCore/TextureManager.h"

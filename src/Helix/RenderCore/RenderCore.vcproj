@@ -144,14 +144,6 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\DeclManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\DeclManager.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Instance.cpp"
 			>
 		</File>
@@ -276,11 +268,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\VertexDecl.cpp"
+			RelativePath=".\VDecls.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\VertexDecl.h"
+			RelativePath=".\VDecls.h"
 			>
 		</File>
 	</Files>

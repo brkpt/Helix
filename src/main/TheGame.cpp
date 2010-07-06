@@ -3,7 +3,7 @@
 #include "stdafx.h"
 #include <time.h>
 #include "TheGame.h"
-#include "RenderCore/DeclManager.h"
+#include "RenderCore/VDecls.h"
 #include "RenderCore/ShaderManager.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
@@ -45,10 +45,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	ID3D10Device *dev = Helix::RenderMgr::GetInstance().GetDevice();
 	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
 
-	Helix::SetDevice(dev,sc);
-	Helix::DeclManager::Create();
-	Helix::ShaderManager::Create();
+	HXInitializeVertexDecls();
 	HXInitializeMaterials();
+	Helix::SetDevice(dev,sc);
+	Helix::ShaderManager::Create();
 	Helix::MeshManager::Create();
 	Helix::InstanceManager::GetInstance();
 	Helix::InitializeLights();

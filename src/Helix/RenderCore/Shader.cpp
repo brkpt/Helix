@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "RenderMgr.h"
-#include "DeclManager.h"
+#include "VDecls.h"
 
 namespace Helix {
 
@@ -39,7 +39,7 @@ void Shader::Load(LuaPlus::LuaObject &shaderObj, ID3D10EffectPool *effectPool)
 	_ASSERT(obj.IsString());
 	std::string name = obj.GetString();
 
-	m_decl = DeclManager::GetInstance().Load(name);
+	m_decl = HXLoadVertexDecl(name);
 	_ASSERT(m_decl);
 
 	// Load our effect
@@ -67,7 +67,7 @@ void Shader::Load(LuaPlus::LuaObject &shaderObj, ID3D10EffectPool *effectPool)
 	_ASSERT(hr == D3D_OK);
 
 	// Now create the layout if it hasn't been created already
-	m_decl->BuildLayout(this);
+	HXDeclBuildLayout(*m_decl,this);
 }
 // ****************************************************************************
 // ****************************************************************************

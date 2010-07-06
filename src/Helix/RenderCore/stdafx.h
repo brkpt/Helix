@@ -27,4 +27,4 @@
 #include "Texture.h"
 #include "InstanceManager.h"
 #include "Instance.h"
-#include "VertexDecl.h"
+#include "VDecls.h"

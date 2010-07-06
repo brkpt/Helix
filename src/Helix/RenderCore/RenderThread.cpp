@@ -3,7 +3,7 @@
 #include <crtdbg.h>
 #include "RenderThread.h"
 #include "RenderMgr.h"
-#include "VertexDecl.h"
+#include "VDecls.h"
 #include "Light.h"
 #include "Materials.h"
 
@@ -887,7 +887,7 @@ void ShowNormals()
 	_ASSERT( SUCCEEDED(hr) );
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int stride = shader->GetDecl().m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -981,7 +981,7 @@ void RenderSunlight()
 	vecVar->SetFloatVector(vecData);
 	
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int stride = shader->GetDecl().m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -1043,10 +1043,10 @@ void RenderAmbientLight()
 	vecVar->SetFloatVector(vecData);
 	
 	// Set the input layout 
-	device->IASetInputLayout(shader->GetDecl().GetLayout());
+	device->IASetInputLayout(shader->GetDecl().m_layout);
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int stride = shader->GetDecl().m_vertexSize;
 	unsigned int offset = 0;
 	device->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
 	device->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
@@ -1156,10 +1156,10 @@ void RenderPointLight(Light &light)
 	hr = scalarVar->SetFloat(5.0f);
 
 	// Set the input layout 
-	device->IASetInputLayout(shader->GetDecl().GetLayout());
+	device->IASetInputLayout(shader->GetDecl().m_layout);
 
 	// Set our IB/VB
-	unsigned int stride = shader->GetDecl().VertexSize();
+	unsigned int stride = shader->GetDecl().m_vertexSize;
 	unsigned int offset = 0;
 	ID3D10Buffer *vb = lightSphere->GetVertexBuffer();
 	ID3D10Buffer *ib = lightSphere->GetIndexBuffer();
@@ -1357,10 +1357,10 @@ void FillGBuffer()
 		Shader *shader = ShaderManager::GetInstance().GetShader(mat->m_shaderName);
 
 		// Set the input layout 
-		device->IASetInputLayout(shader->GetDecl().GetLayout());
+		device->IASetInputLayout(shader->GetDecl().m_layout);
 
 		// Set our vertex/index buffers
-		unsigned int stride = shader->GetDecl().VertexSize();
+		unsigned int stride = shader->GetDecl().m_vertexSize;
 		unsigned int offset = 0;
 		ID3D10Buffer *vb = mesh->GetVertexBuffer();
 		device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
