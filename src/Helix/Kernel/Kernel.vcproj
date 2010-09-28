@@ -148,6 +148,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Helix.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Helix.h"
+			>
+		</File>
+		<File
 			RelativePath=".\RefCount.h"
 			>
 		</File>

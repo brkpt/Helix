@@ -5,6 +5,8 @@
 #include "TheGame.h"
 #include "RenderCore/VDecls.h"
 #include "RenderCore/Shaders.h"
+#include "Kernel/Helix.h"
+#include "Kernel/Callback.h"
 #include "RenderCore/Materials.h"
 #include "RenderCore/Textures.h"
 #include "RenderCore/InstanceManager.h"
@@ -48,13 +50,10 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
 
 	HXInitializeVertexDecls();
+	Helix::Initialize(dev,sc);
 	HXInitializeShaders();
 	HXInitializeTextures();
 	HXInitializeMaterials();
-	Helix::SetDevice(dev,sc);
-	Helix::MeshManager::Create();
-	Helix::InstanceManager::GetInstance();
-	Helix::InitializeLights();
 
 	LightManager::Create();
 

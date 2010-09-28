@@ -21,8 +21,6 @@ m_appInstance(NULL)
 	_ASSERT(m_instance == NULL);
 	m_instance = this;
 
-	Helix::InitializeRenderThread();
-	Helix::InitializeThreadLoader();
 }
 
 WinApp::~WinApp(void)
