@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Effects">
+      <UniqueIdentifier>{fd97cc61-e048-4573-abaa-d824b008c836}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Materials">
+      <UniqueIdentifier>{3c53c478-21e2-43fb-a8e0-92b8e55905c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Textures">
+      <UniqueIdentifier>{65813d2b-bdc5-44e7-b2b2-53b28bae56d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Meshes">
+      <UniqueIdentifier>{d8542835-c2ca-42e3-b5b1-8d96e75dc483}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{3d89bcbb-e51b-439d-9cca-014c1cb89bf8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Effects\diffuse.fx">
+      <Filter>Effects</Filter>
+    </None>
+    <None Include="Effects\Jamfile.jam">
+      <Filter>Effects</Filter>
+    </None>
+    <None Include="Effects\shared.fx">
+      <Filter>Effects</Filter>
+    </None>
+    <None Include="Effects\texture.fx">
+      <Filter>Effects</Filter>
+    </None>
+    <None Include="Materials\Carsen.lua">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Materials\FunnyFace.lua">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Materials\Jamfile.jam">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Materials\Triangle.lua">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Textures\Carsen.tga">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Carsen_crop.png">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Carsen_crop.tga">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Textures\Jamfile.jam">
+      <Filter>Textures</Filter>
+    </None>
+    <None Include="Meshes\cube.lua">
+      <Filter>Meshes</Filter>
+    </None>
+    <None Include="Meshes\Jamfile.jam">
+      <Filter>Meshes</Filter>
+    </None>
+    <None Include="Meshes\Triangle.lua">
+      <Filter>Meshes</Filter>
+    </None>
+    <None Include="Shaders\diffuse.lua">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Jamfile.jam">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\pos3.lua">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\pos3_tex1.lua">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\shared.lua">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\texture.lua">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Jamfile.jam" />
+  </ItemGroup>
+</Project>

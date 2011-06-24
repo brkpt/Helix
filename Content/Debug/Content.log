@@ -1,0 +1,152 @@
+﻿Build started 6/16/2011 2:05:44 PM.
+Environment at start of build:
+MSBuildExtensionsPath32 = C:\Program Files\MSBuild
+MSBuildExtensionsPath = C:\Program Files\MSBuild
+LOCALAPPDATA = C:\Users\Matt\AppData\Local
+ALLUSERSPROFILE = C:\ProgramData
+APPDATA = C:\Users\Matt\AppData\Roaming
+CLASSPATH = .;C:\Program Files\Java\jre6\lib\ext\QTJava.zip
+CommonProgramFiles = C:\Program Files\Common Files
+COMPUTERNAME = SNARK
+ComSpec = C:\Windows\system32\cmd.exe
+DFSTRACINGON = FALSE
+DXSDK_DIR = C:\Program Files\Microsoft DirectX SDK (February 2010)\
+FP_NO_HOST_CHECK = NO
+HOMEDRIVE = C:
+HOMEPATH = \Users\Matt
+LOGONSERVER = \\SNARK
+LUA_BIN = C:\Projects\LuaPlus\work51\bin.vs2005.win32
+MAYA_LOCATION = C:\program files\Autodesk\Maya2008
+MOZ_PLUGIN_PATH = C:\Program Files\Foxit Software\Foxit Reader\plugins\
+NUMBER_OF_PROCESSORS = 2
+OS = Windows_NT
+Path = C:\Program Files\Common Files\Microsoft Shared\Windows Live;c:\program files\git\cmd;c:\cygwin\bin;C:\Program Files\Autodesk\Maya2009\bin;c:\bin;c:\pstools;C:\Program Files\Autodesk\Maya2008\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Program Files\Common Files\Roxio Shared\DLLShared\;C:\Program Files\Common Files\Roxio Shared\10.0\DLLShared\;c:\Program Files\Microsoft SQL Server\90\Tools\binn\;%CP_X86_BIN%;C:\Program Files\Common Files\DivX Shared\;C:\Program Files\Microsoft DirectX SDK (February 2010)\Utilities\bin\x86;C:\Program Files\Common Files\HP\Digital Imaging\\bin;C:\Program Files\Git\cmd;C:\Program Files\Windows Live\Shared;C:\Program Files\QuickTime\QTSystem\;C:\Windows\System32\WindowsPowerShell\v1.0\;c:\Program Files\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files\Microsoft SQL Server\100\DTS\Binn\;c:\bin;C:\Program Files\Haskell\bin;C:\ghc\ghc-6.10.3\bin;C:\program files\Microsoft DirectX SDK (March 2009)\Utilities\bin\x86;C:\Projects\LuaPlus\work51\bin.vs2005.win32;C:\Projects\jamplus\bin\ntx86;c:\program files\windiff;c:\program files\winmerge
+PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+PROCESSOR_ARCHITECTURE = x86
+PROCESSOR_IDENTIFIER = x86 Family 6 Model 15 Stepping 13, GenuineIntel
+PROCESSOR_LEVEL = 6
+PROCESSOR_REVISION = 0f0d
+ProgramData = C:\ProgramData
+ProgramFiles = C:\Program Files
+PSModulePath = C:\Windows\system32\WindowsPowerShell\v1.0\Modules\
+PUBLIC = C:\Users\Public
+QTJAVA = C:\Program Files\Java\jre6\lib\ext\QTJava.zip
+RoxioCentral = C:\Program Files\Common Files\Roxio Shared\10.0\Roxio Central36\
+SESSIONNAME = Console
+SystemDrive = C:
+SystemRoot = C:\Windows
+TEMP = C:\Users\Matt\AppData\Local\Temp
+TMP = C:\Users\Matt\AppData\Local\Temp
+TRACE_FORMAT_SEARCH_PATH = \\NTREL202.ntdev.corp.microsoft.com\4F18C3A5-CA09-4DBD-B6FC-219FDD4C6BE0\TraceFormat
+USERDOMAIN = snark
+USERNAME = Matt
+USERPROFILE = C:\Users\Matt
+VisualStudioDir = C:\Users\Matt\Documents\Visual Studio 2010
+VS100COMNTOOLS = C:\Program Files\Microsoft Visual Studio 10.0\Common7\Tools\
+VS80COMNTOOLS = C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\
+windir = C:\Windows
+
+     1>Project "C:\Projects\DeferredShader\Content\Content.vcxproj" on node 2 (rebuild target(s)).
+     1>CoreClean:
+         C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ clean
+         *** found 2 target(s)...
+         *** finished in 0.08 sec
+       Rebuild:
+         C:\Projects\jamplus\bin\ntx86\jam -fc:\projects\jamplus\bin\jambase.jam -Cc:/Projects/DeferredShader/ -a
+         *** found 105 target(s)...
+         *** updating 44 target(s)...
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/texture.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/diffuse.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/pointlight.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/dirlight.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/lightsphere.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/shownormals.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/ambient.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/showlightloc.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>ambient.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Effects/shared.fx 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>Triangle.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>Carsen.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>Grid.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>FunnyFace.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>woodterrain.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>woodgrain.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>pointlight.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>dirlight.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>shownormals.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>lightsphere.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Meshes/<Content!Meshes>cube.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Materials/<Content!Materials>showlightloc.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Meshes/<Content!Meshes>holodeck.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Meshes/<Content!Meshes>Triangle.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Meshes/<Content!Meshes>LightSphere.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Scenes/giant.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>ambient.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>diffuse.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>pos3.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>pos3_tex1.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>pos3_norm3_tex1.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>pos4_tex1.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>shared.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Scenes/holodeck.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>dirlight.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>texture.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>pointlight.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>shownormals.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>lightsphere.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Shaders/<Content!Shaders>showlightloc.lua 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Textures/<Content!Textures>Carsen_crop.png 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Textures/<Content!Textures>Grid.png 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Textures/<Content!Textures>WoodGrain.png 
+                 1 file(s) copied.
+         @ CopyFile1 c:/projects/DeferredShader/Build/Textures/<Content!Textures>parquet-wood-floor-thumb2560693.png 
+                 1 file(s) copied.
+         *** updated 44 target(s)...
+         *** finished in 5.04 sec
+     1>Done Building Project "C:\Projects\DeferredShader\Content\Content.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:05.51
