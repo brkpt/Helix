@@ -13,4 +13,5 @@ Temp/
 *.bak
 *.PIXExp
 *.PIXRun
-
+*.sdf
+*.opensdf
