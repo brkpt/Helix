@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <D3D10Effect.h>
 #include "VDecls.h"
 #include "RenderMgr.h"
 
@@ -116,8 +117,8 @@ void HXInitializeVertexDecls()
 	HX_ADD_FORMAT( DXGI_FORMAT_B8G8R8A8_UNORM );
 	HX_ADD_FORMAT( DXGI_FORMAT_B8G8R8X8_UNORM );
 
-	HX_ADD_CLASSIFICATION( D3D10_INPUT_PER_VERTEX_DATA );
-	HX_ADD_CLASSIFICATION( D3D10_INPUT_PER_INSTANCE_DATA );
+	HX_ADD_CLASSIFICATION( D3D11_INPUT_PER_VERTEX_DATA );
+	HX_ADD_CLASSIFICATION( D3D11_INPUT_PER_INSTANCE_DATA );
 }
 
 // ****************************************************************************
@@ -147,7 +148,7 @@ bool GetFormat(DXGI_FORMAT &format, const std::string &str)
 
 // ****************************************************************************
 // ****************************************************************************
-bool GetClassification(D3D10_INPUT_CLASSIFICATION &classification, const std::string &str)
+bool GetClassification(D3D11_INPUT_CLASSIFICATION &classification, const std::string &str)
 {
 	ClassificationMap::const_iterator iter = m_vertexDeclState->m_inputLayoutClassificationMap.find(str);
 	if(iter == m_vertexDeclState->m_inputLayoutClassificationMap.end())
@@ -155,25 +156,25 @@ bool GetClassification(D3D10_INPUT_CLASSIFICATION &classification, const std::st
 		return false;
 	}
 
-	classification = static_cast<D3D10_INPUT_CLASSIFICATION>(iter->second);
+	classification = static_cast<D3D11_INPUT_CLASSIFICATION>(iter->second);
 	return true;
 }
 
 // ****************************************************************************
 // ****************************************************************************
-bool HXLoadVertexDecl(HXVertexDecl &decl, LuaObject &declObj)
+bool HXLoadVertexDecl(HXVertexDecl &decl, LuaPlus::LuaObject &declObj)
 {
 	int numElements	= declObj.GetTableCount();
 	_ASSERT(numElements > 0);
 
-	decl.m_desc = new D3D10_INPUT_ELEMENT_DESC[numElements+1];
+	decl.m_desc = new D3D11_INPUT_ELEMENT_DESC[numElements+1];
 
 	for(int i=0;i<numElements;i++)
 	{
-		LuaObject elem = declObj[i+1];
+		LuaPlus::LuaObject elem = declObj[i+1];
 
 		// Semantic
-		LuaObject obj = elem[1];
+		LuaPlus::LuaObject obj = elem[1];
 		_ASSERT(obj.IsString());
 		decl.m_desc[i].SemanticName = obj.GetString();
 
@@ -205,7 +206,7 @@ bool HXLoadVertexDecl(HXVertexDecl &decl, LuaObject &declObj)
 		obj = elem[6];
 		_ASSERT(obj.IsString());
 		std::string classification = obj.GetString();
-		D3D10_INPUT_CLASSIFICATION inpClass;
+		D3D11_INPUT_CLASSIFICATION inpClass;
 		retVal = GetClassification(inpClass, classification);
 		decl.m_desc[i].InputSlotClass = inpClass;
 		_ASSERT(retVal);
@@ -219,7 +220,7 @@ bool HXLoadVertexDecl(HXVertexDecl &decl, LuaObject &declObj)
 	decl.m_numElements = numElements;
 	for(int index=0;index<decl.m_numElements;index++)
 	{
-		const D3D10_INPUT_ELEMENT_DESC &element = decl.m_desc[index];
+		const D3D11_INPUT_ELEMENT_DESC &element = decl.m_desc[index];
 
 		switch(element.Format)
 		{
@@ -331,12 +332,12 @@ HXVertexDecl * HXLoadVertexDecl(const std::string &name)
 	std::string fullPath = "Shaders/";
 	fullPath += name;
 	fullPath += ".lua";
-	LuaState *state = LuaState::Create();
+	LuaPlus::LuaState *state = LuaPlus::LuaState::Create();
 
 	int luaRet = state->DoFile(fullPath.c_str());
 	_ASSERT(luaRet == 0);
 
-	LuaObject decl = state->GetGlobals()["VertexDeclaration"];
+	LuaPlus::LuaObject decl = state->GetGlobals()["VertexDeclaration"];
 	_ASSERT(decl.IsTable());
 
 	bool retVal = HXLoadVertexDecl(*vdecl,decl);
@@ -349,25 +350,27 @@ HXVertexDecl * HXLoadVertexDecl(const std::string &name)
 
 // ****************************************************************************
 // ****************************************************************************
-ID3D10InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader)
+ID3D11InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader)
 {
-	if(decl.m_layout != NULL)
-	{
-		return decl.m_layout;
-	}
+	//if(decl.m_layout != NULL)
+	//{
+	//	return decl.m_layout;
+	//}
 
-	// Build the layout against the specific shader
-	ID3D10Effect *effect = shader->m_pEffect;
-	ID3D10EffectTechnique *tech = effect->GetTechniqueByIndex(0);
-	ID3D10EffectPass *pass = tech->GetPassByIndex(0);
-	D3D10_PASS_DESC passDesc;
-	HRESULT hr = pass->GetDesc(&passDesc);
-	_ASSERT(hr == S_OK);
+	//// Build the layout against the specific shader
+	//ID3D10Effect *effect = shader->m_pEffect;
+	//ID3D10EffectTechnique *tech = effect->GetTechniqueByIndex(0);
+	//ID3D10EffectPass *pass = tech->GetPassByIndex(0);
+	//D3D10_PASS_DESC passDesc;
+	//HRESULT hr = pass->GetDesc(&passDesc);
+	//_ASSERT(hr == S_OK);
 
-	hr = Helix::RenderMgr::GetInstance().GetDevice()->CreateInputLayout(decl.m_desc, decl.m_numElements, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &decl.m_layout);
-	_ASSERT(hr == S_OK);
+	//hr = Helix::RenderMgr::GetInstance().GetDevice()->CreateInputLayout(decl.m_desc, decl.m_numElements, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &decl.m_layout);
+	//_ASSERT(hr == S_OK);
 
-	return decl.m_layout;
+	//return decl.m_layout;
+
+	return NULL;
 }
 
 // ****************************************************************************
@@ -376,7 +379,7 @@ bool HXDeclHasSemantic(HXVertexDecl &decl, const char *semanticName, int &offset
 {
 	for(int elementIndex=0;elementIndex < decl.m_numElements; elementIndex++)
 	{
-		const D3D10_INPUT_ELEMENT_DESC const &element = decl.m_desc[elementIndex];
+		const D3D11_INPUT_ELEMENT_DESC const &element = decl.m_desc[elementIndex];
 		if( _stricmp(semanticName,element.SemanticName) == 0)
 		{
 			offset = element.AlignedByteOffset;

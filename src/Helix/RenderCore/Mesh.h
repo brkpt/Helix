@@ -14,22 +14,22 @@ public:
 	~Mesh();
 
 	bool	Load(const std::string &filename);
-	bool	Load(LuaObject &meshObj);
+	bool	Load(LuaPlus::LuaObject &meshObj);
 
 //	void			Render(int pass);
 	std::string &	GetMaterialName() { return m_materialName; }
-	ID3D10Buffer *	GetVertexBuffer() { return m_vertexBuffer; }
-	ID3D10Buffer *	GetIndexBuffer()  { return m_indexBuffer; }
+	ID3D11Buffer *	GetVertexBuffer() { return m_vertexBuffer; }
+	ID3D11Buffer *	GetIndexBuffer()  { return m_indexBuffer; }
 
 	int	NumVertices()	{ return m_numVertices; }
 	int NumTriangles()	{ return m_numTriangles; }
 	int NumIndices()	{ return m_numIndices; }
 
 private:
-	bool	CreatePlatformData(const std::string &path, LuaObject &obj);
+	bool	CreatePlatformData(const std::string &path, LuaPlus::LuaObject &obj);
 
-	ID3D10Buffer *	m_vertexBuffer;
-	ID3D10Buffer *	m_indexBuffer;
+	ID3D11Buffer *	m_vertexBuffer;
+	ID3D11Buffer *	m_indexBuffer;
 	unsigned int	m_numVertices;
 	unsigned int	m_numIndices;
 	unsigned int	m_numTriangles;

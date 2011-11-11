@@ -43,6 +43,12 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\Build\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)/../Temp/$(ProjectName)/$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <ExecutablePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Utilities\Bin\x86;$(VCInstallDir)PlatformSDK\bin;$(VSInstallDir)\SDK\v2.0\bin;$(ExecutablePath)</ExecutablePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Include;$(VCInstallDir)PlatformSDK\include;C:\projects\luaplus\luaplus51-all\Src\LuaPlus;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;C:\projects\luaplus\luaplus51-all\build2010\bin.vs2010.win32;$(LibraryPath)</LibraryPath>
+    <ExecutablePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Utilities\Bin\x86;$(VCInstallDir)PlatformSDK\bin;$(VSInstallDir)\SDK\v2.0\bin;$(ExecutablePath)</ExecutablePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Include;$(VCInstallDir)PlatformSDK\include;C:\projects\LuaPlus\work51\Src\LuaPlus;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files\Microsoft DirectX SDK (June 2010)\Lib\x86;$(VCInstallDir)PlatformSDK\lib;c:\users\matt\Documents\Visual Studio 2005\Projects\LuaPlus\work51\lib\win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -57,7 +63,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3d11.lib;d3dx11d.lib;LuaPlus_1100.debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dx11d.lib;luaplus.debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).$(Configuration).exe</OutputFile>
       <AdditionalLibraryDirectories>C:\Projects\LuaPlus\work51\bin.vs2005.win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -18,13 +18,13 @@ void HXInitializeMaterials()
 
 // ****************************************************************************
 // ****************************************************************************
-HXMaterial * HXCreateMaterial(const std::string &name, LuaObject &object)
+HXMaterial * HXCreateMaterial(const std::string &name, LuaPlus::LuaObject &object)
 {
 	HXMaterial * newMat = new HXMaterial;
 	newMat->m_name = name;
 
 	// Load our shader
-	LuaObject obj = object["Shader"];
+	LuaPlus::LuaObject obj = object["Shader"];
 	_ASSERT(obj.IsString());
 	newMat->m_shaderName = obj.GetString();
 
@@ -72,13 +72,13 @@ HXMaterial * HXLoadMaterial(const std::string &name)
 	fullPath += name;
 	fullPath += ".lua";
 
-	LuaState *state = LuaState::Create();
+	LuaPlus::LuaState *state = LuaPlus::LuaState::Create();
 	_ASSERT(state != NULL);
 	
 	int retVal = state->DoFile(fullPath.c_str());
 	_ASSERT(retVal == 0);
 
-	LuaObject shaderObj = state->GetGlobals()["Material"];
+	LuaPlus::LuaObject shaderObj = state->GetGlobals()["Material"];
 	_ASSERT(shaderObj.IsTable());
 
 	mat = HXCreateMaterial(name,shaderObj);

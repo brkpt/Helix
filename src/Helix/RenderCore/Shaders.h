@@ -8,14 +8,15 @@ struct HXVertexDecl;
 
 struct HXShader
 {
-	HXShader(const std::string &name) : m_decl(NULL), m_pEffect(NULL), m_loading(false), m_needsProcessing(false) 
+	HXShader(const std::string &name) : m_decl(NULL), m_vshader(NULL), m_pshader(NULL), m_loading(false), m_needsProcessing(false) 
 	{
 		m_shaderName = name;
 	}
 
-	std::string		m_shaderName;
-	HXVertexDecl *	m_decl;
-	ID3D10Effect *	m_pEffect;
+	std::string				m_shaderName;
+	HXVertexDecl *			m_decl;
+	ID3D11VertexShader *	m_vshader;
+	ID3D11PixelShader *		m_pshader;
 
 	union {
 		unsigned long	flags;

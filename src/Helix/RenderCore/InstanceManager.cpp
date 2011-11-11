@@ -45,13 +45,13 @@ Instance * InstanceManager::Load(const std::string &name)
 	fullPath += name;
 	fullPath += ".lua";
 
-	LuaState *state = LuaState::Create();
+	LuaPlus::LuaState *state = LuaPlus::LuaState::Create();
 	_ASSERT(state != NULL);
 	
 	int retVal = state->DoFile(fullPath.c_str());
 	_ASSERT(retVal == 0);
 
-	LuaObject shaderObj = state->GetGlobals()["MeshList"];
+	LuaPlus::LuaObject shaderObj = state->GetGlobals()["MeshList"];
 	_ASSERT(shaderObj.IsTable());
 
 	inst = new Instance;

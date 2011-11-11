@@ -13,8 +13,9 @@
 
 #include <string>
 #include <map>
-#include <d3d10.h>
-#include <d3dx10.h>
+#include <d3d11.h>
+#include <d3dx11.h>
+#include <D3DX10.h>		// For math structures/functions
 #include "LuaPlus.h"
 
 // TODO: reference additional headers your program requires here

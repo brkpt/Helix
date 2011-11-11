@@ -46,7 +46,8 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 {
 	bool retVal = WinApp::Initialize(hInstance, hPrevInstance, lpCmdLine, nCmdShow, fullScreen, width, height, windowName);
 
-	ID3D10Device *dev = Helix::RenderMgr::GetInstance().GetDevice();
+	ID3D11Device *dev = Helix::RenderMgr::GetInstance().GetDevice();
+	ID3D11DeviceContext *context = Helix::RenderMgr::GetInstance().GetContext();
 	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
 
 	HXInitializeVertexDecls();

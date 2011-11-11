@@ -13,6 +13,17 @@
 // TODO: Unroll these to 4 bits at a time (16 value table)
 // ****************************************************************************
 
+//
+//This function is the equivalent of the Divide by Two algorithm. Dividing a binary integer by 2 is the same as shifting it right one bit, and checking whether a binary integer is odd is the same as checking if its least significant bit is 1.
+//
+//int isPowerOfTwo (unsigned int x)
+//{
+// while (((x & 1) == 0) && x > 1) /* While x is even and > 1 */
+//   x >>= 1;
+// return (x == 1);
+//}
+//
+
 // Excludes sign bit
 inline int CountOnes32(int value)
 {
@@ -38,15 +49,33 @@ inline int CountOnes(unsigned int value)
 // ****************************************************************************
 // Is value power of 2?
 //
-// NOTE: Uses the bit counting functions above
+// Unsigned version takes advantage of the fact that if you subtract 1 from 
+// a power of 2, all of the bits lower than the bit that is set become one, 
+// and the set bit becomes 0
+//
+// 16 - 1 = 00010000 - 00000001 = 00001111
+// 00010000 & 00001111 = 00000000
 // ****************************************************************************
-inline bool IsPow2(int value)
+inline bool IsPow2(unsigned long value)
 {
-	return CountOnes(value) == 1;
+	return ((value != 0) && !(value & (value - 1)));
 }
 
 inline bool IsPow2(unsigned int value)
 {
+	return ((value != 0) && !(value & (value - 1)));
+}
+
+// ****************************************************************************
+// Is value power of 2? -- Signed version
+//
+// NOTE: Negative values use the slower bit counting functions above
+// TODO: Don't count all ones.  Stop once you find one.
+// ****************************************************************************
+inline bool IsPow2(int value)
+{
+	if( value > 0)
+		return IsPow2(static_cast<unsigned int>(value));
 	return CountOnes(value) == 1;
 }
 

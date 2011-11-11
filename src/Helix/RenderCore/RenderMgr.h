@@ -13,19 +13,25 @@ public:
 		return instance;
 	}
 
-	void SetDXDevice(ID3D10Device *device, IDXGISwapChain *swapChain)
+	void SetDXDevice(ID3D11Device *device, ID3D11DeviceContext *context, IDXGISwapChain *swapChain)
 	{
 		_ASSERT(device != NULL);
 		_ASSERT(m_device == NULL);
 		m_device = device; 
+		m_context = context;
 		m_swapChain = swapChain;
 	}
 
-	ID3D10Device * GetDevice()
+	ID3D11Device * GetDevice()
 	{
 		return m_device;
 	}
 
+	ID3D11DeviceContext * GetContext()
+	{
+		return m_context;
+	}
+		
 	IDXGISwapChain *GetSwapChain()
 	{
 		return m_swapChain;
@@ -44,8 +50,9 @@ private:
 	~RenderMgr() {}
 	RenderMgr & operator =(const RenderMgr &other) {}
 
-	ID3D10Device *		m_device;
-	IDXGISwapChain *	m_swapChain;
+	ID3D11Device *			m_device;
+	ID3D11DeviceContext *	m_context;
+	IDXGISwapChain *		m_swapChain;
 };
 
 } // namespace Helix

@@ -66,44 +66,36 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DeclManager.cpp" />
     <ClCompile Include="Instance.cpp" />
     <ClCompile Include="InstanceManager.cpp" />
     <ClCompile Include="Light.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="MaterialManager.cpp" />
+    <ClCompile Include="Materials.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderThread.cpp" />
     <ClCompile Include="SceneLoader.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShaderManager.cpp" />
+    <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
-    <ClCompile Include="VertexDecl.cpp" />
+    <ClCompile Include="Textures.cpp" />
+    <ClCompile Include="VDecls.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DeclManager.h" />
     <ClInclude Include="Instance.h" />
     <ClInclude Include="InstanceManager.h" />
     <ClInclude Include="Light.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialManager.h" />
+    <ClInclude Include="Materials.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderMgr.h" />
     <ClInclude Include="RenderThread.h" />
     <ClInclude Include="SceneLoader.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="Shaders.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureManager.h" />
-    <ClInclude Include="VertexDecl.h" />
+    <ClInclude Include="Textures.h" />
+    <ClInclude Include="VDecls.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -45,7 +45,7 @@ Mesh * MeshManager::Load(const std::string &meshName, const std::string &filenam
 }
 // ****************************************************************************
 // ****************************************************************************
-Mesh * MeshManager::Load(const std::string &meshName, LuaObject &meshObj)
+Mesh * MeshManager::Load(const std::string &meshName, LuaPlus::LuaObject &meshObj)
 {
 	Mesh *mesh = GetMesh(meshName);
 	if(mesh != NULL)

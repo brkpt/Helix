@@ -58,29 +58,30 @@ bool WinApp::InitializeDirectX(void)
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	memset(&swapChainDesc,0,sizeof(swapChainDesc));
-    swapChainDesc.BufferCount = 1;
-    swapChainDesc.BufferDesc.Width = m_windowWidth;
-    swapChainDesc.BufferDesc.Height = m_windowHeight;
-    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-    swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.OutputWindow = m_hWnd;
-    swapChainDesc.SampleDesc.Count = 1;
-    swapChainDesc.SampleDesc.Quality = 0;
-    swapChainDesc.Windowed = TRUE;
+	swapChainDesc.BufferCount = 1;
+	swapChainDesc.BufferDesc.Width = m_windowWidth;
+	swapChainDesc.BufferDesc.Height = m_windowHeight;
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.OutputWindow = m_hWnd;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
+	swapChainDesc.Windowed = TRUE;
 	
-    UINT createDeviceFlags = 0;
+	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
-    createDeviceFlags |= D3D10_CREATE_DEVICE_DEBUG;
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 	IDXGISwapChain *swapChain;
-	HRESULT hr = D3D10CreateDeviceAndSwapChain( NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags,
-                                            D3D10_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice );
+	ID3D11DeviceContext *context;
+	HRESULT hr = D3D11CreateDeviceAndSwapChain( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0,
+											D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice, NULL, &context );
 
 	_ASSERT( SUCCEEDED(hr) );
 
-	Helix::RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice, swapChain);
+	Helix::RenderMgr::GetInstance().SetDXDevice(m_pD3DDevice, context, swapChain);
 	return true;
 }
 
@@ -210,7 +211,7 @@ void WinApp::CleanupWin32(void)
 
 	// Unregister our window class
 	if (!UnregisterClass("D3D",m_appInstance))// Able To Unregister Class?
-    {
+	{
 		MessageBox(NULL,"Could Not Unregister Class.","SHUTDOWN ERROR",MB_OK | MB_ICONINFORMATION);
 		m_appInstance=NULL;
 	}
@@ -232,23 +233,23 @@ void WinApp::Render(void)
 // ****************************************************************************
 int WinApp::Run(void)
 {
-    MSG msg;
-    ZeroMemory( &msg, sizeof(msg) );
+	MSG msg;
+	ZeroMemory( &msg, sizeof(msg) );
 	
 	// Main message loop:
-    while( msg.message!=WM_QUIT )
-    {
-        if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
-        {
-            TranslateMessage( &msg );
-            DispatchMessage( &msg );
-        }
-        else
+	while( msg.message!=WM_QUIT )
+	{
+		if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
+		{
+			TranslateMessage( &msg );
+			DispatchMessage( &msg );
+		}
+		else
 		{
 			Update();
 			Render();
 		}
-    }
+	}
 
 	return (int) msg.wParam;
 }
@@ -265,8 +266,8 @@ int WinApp::Run(void)
 LRESULT CALLBACK WinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	BOOL leftMouse = false;
-    switch( message )
-    {
+	switch( message )
+	{
 	case WM_ACTIVATE:
 		{
 			if(!HIWORD(wParam))
@@ -380,8 +381,8 @@ LRESULT CALLBACK WinApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 			PostQuitMessage( 0 );
 			return 0;
 		}
-    }
+	}
 
-    return DefWindowProc( hWnd, message, wParam, lParam );
+	return DefWindowProc( hWnd, message, wParam, lParam );
 }
 

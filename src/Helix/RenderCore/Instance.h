@@ -16,7 +16,7 @@ public:
 	Instance();
 	~Instance();
 
-	bool				Load(const std::string &name, LuaObject &obj);
+	bool				Load(const std::string &name, LuaPlus::LuaObject &obj);
 	void				SetName(const std::string &name) { m_name = name; }
 	const std::string &	GetName() const { return m_name; }
 	void				SetMeshName(const std::string &name) { m_meshName = name; }

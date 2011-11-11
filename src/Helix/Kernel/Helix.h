@@ -2,7 +2,7 @@
 
 namespace Helix 
 {
-	void Initialize(ID3D10Device* dev, IDXGISwapChain *swapChain);
+	void Initialize(ID3D11Device* dev, IDXGISwapChain *swapChain);
 }
 #endif // HELIX_H
 

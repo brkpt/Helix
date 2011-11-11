@@ -1,6 +1,9 @@
 #ifndef INSTANCE_MGR_H
 #define INSTANCE_MGR_H
 
+#include <string>
+#include <map>
+
 namespace Helix {
 
 class Instance;

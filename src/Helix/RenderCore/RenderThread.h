@@ -1,6 +1,8 @@
 #ifndef RENDERTHREAD_H
 #define RENDERTHREAD_H
 
+#include <D3DX10.h>
+
 /*
 struct Flags
 {
@@ -25,7 +27,7 @@ class Instance;
 	void	ShutDownRenderThread();
 	void	RenderScene();
 	bool	RenderThreadReady();
-	void	SetDevice(ID3D10Device *dev, IDXGISwapChain *swapChain);
+	void	SetDevice(ID3D11Device *dev, IDXGISwapChain *swapChain);
 
 	int		SubmissionIndex();
 

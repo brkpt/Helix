@@ -50,16 +50,16 @@ bool TextureLoad(HXTexture *tex, const std::string &filename)
 	std::string fullPath = "Textures/";
 	fullPath += filename;
 
-	ID3D10Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
+	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
 
-	D3DX10_IMAGE_LOAD_INFO loadInfo;
-	ZeroMemory( &loadInfo, sizeof(D3DX10_IMAGE_LOAD_INFO) );
+	D3DX11_IMAGE_LOAD_INFO loadInfo;
+	ZeroMemory( &loadInfo, sizeof(D3DX11_IMAGE_LOAD_INFO) );
 	loadInfo.BindFlags = D3D10_BIND_SHADER_RESOURCE;
 	loadInfo.Format = DXGI_FORMAT_BC1_UNORM;
 
 	tex->m_type = HXTexture::SHADER_VIEW;
-	ID3D10ShaderResourceView *pSRView = NULL;
-	HRESULT hr = D3DX10CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &tex->m_shaderView, NULL );
+	ID3D11ShaderResourceView *pSRView = NULL;
+	HRESULT hr = D3DX11CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &tex->m_shaderView, NULL );
 	return SUCCEEDED(hr);
 }
 

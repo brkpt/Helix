@@ -14,7 +14,7 @@ public:
 	static WinApp *		Instance(void) { return m_instance; }
 	void				Cleanup(void);
 	HINSTANCE			AppInstance(void)			{ return m_appInstance; }
-	ID3D10Device *		GetDevice(void)	{ return m_pD3DDevice; }
+	ID3D11Device *		GetDevice(void)	{ return m_pD3DDevice; }
 	unsigned short		WindowWidth(void)	{ return (unsigned short)m_windowWidth; }
 	unsigned short		WindowHeight(void)	{ return (unsigned short)m_windowHeight; }
 
@@ -52,7 +52,7 @@ protected:
 	int				m_windowWidth, m_windowHeight;
 	HDC				m_hDC;
 
-	ID3D10Device *	m_pD3DDevice;
+	ID3D11Device *	m_pD3DDevice;
 };
 
 #endif
