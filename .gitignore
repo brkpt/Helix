@@ -1,6 +1,8 @@
 # Ignore files in the Build and Temp folders
 Build/
 Temp/
+src/ipch
+*.sdf
 *.ncb
 *.suo
 *.user
