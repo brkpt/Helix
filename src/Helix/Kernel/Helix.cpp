@@ -16,7 +16,7 @@ namespace Helix
 // ****************************************************************************
 void Initialize(ID3D11Device* dev, IDXGISwapChain *swapChain)
 {
-	SetDevice(dev,swapChain);
+	//SetDevice(dev,swapChain);
 
 	MeshManager::Create();
 	InstanceManager::GetInstance();
