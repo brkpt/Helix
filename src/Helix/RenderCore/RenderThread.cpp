@@ -204,52 +204,53 @@ bool RenderThreadReady()
 // ****************************************************************************
 void CreateBackbufferViews()
 {
-	//// Get the back buffer and desc
-	//ID3D11Texture2D* pBuffer;
-	//HRESULT hr = m_swapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBuffer );
-	//_ASSERT( SUCCEEDED(hr) );
+	// Get the back buffer and desc
+	ID3D11Texture2D* pBuffer;
+	HRESULT hr = m_swapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBuffer );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//D3D11_TEXTURE2D_DESC backBufferSurfaceDesc;
-	//pBuffer->GetDesc( &backBufferSurfaceDesc );
+	D3D11_TEXTURE2D_DESC backBufferSurfaceDesc;
+	pBuffer->GetDesc( &backBufferSurfaceDesc );
 
-	//// Save off our width/height
-	//m_backbufferWidth = backBufferSurfaceDesc.Width;
-	//m_backbufferHeight = backBufferSurfaceDesc.Height;
+	// Save off our width/height
+	m_backbufferWidth = backBufferSurfaceDesc.Width;
+	m_backbufferHeight = backBufferSurfaceDesc.Height;
 
-	//hr = m_D3DDevice->CreateRenderTargetView( pBuffer, NULL, &m_backBufferView );
-	//pBuffer->Release();
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateRenderTargetView( pBuffer, NULL, &m_backBufferView );
+	pBuffer->Release();
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_backBufferView),"[backbuffer]");
+	HXAddTexture(new HXTexture(m_backBufferView),"[backbuffer]");
 
-	//// Create depth stencil texture
-	//D3D11_TEXTURE2D_DESC descDepth;
-	//descDepth.Width = m_backbufferWidth;
-	//descDepth.Height = m_backbufferHeight;
-	//descDepth.MipLevels = 1;
-	//descDepth.ArraySize = 1;
-	//descDepth.Format = DXGI_FORMAT_D32_FLOAT;
-	//descDepth.SampleDesc.Count = 1;
-	//descDepth.SampleDesc.Quality = 0;
-	//descDepth.Usage = D3D11_USAGE_DEFAULT;
-	//descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	//descDepth.CPUAccessFlags = 0;
-	//descDepth.MiscFlags = 0;
-	//hr = m_D3DDevice->CreateTexture2D( &descDepth, NULL, &m_backDepthStencil );
-	//_ASSERT( SUCCEEDED(hr) );
+	// Create depth stencil texture
+	D3D11_TEXTURE2D_DESC descDepth;
+	descDepth.Width = m_backbufferWidth;
+	descDepth.Height = m_backbufferHeight;
+	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.SampleDesc.Count = 1;
+	descDepth.SampleDesc.Quality = 0;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+	hr = m_D3DDevice->CreateTexture2D( &descDepth, NULL, &m_backDepthStencil );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create the depth stencil view
-	//D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-	//descDSV.Format = descDepth.Format;
-	////if( descDepth.SampleDesc.Count > 1 )
-	////    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
-	////else
-	//descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	//descDSV.Texture2D.MipSlice = 0;
-	//hr = m_D3DDevice->CreateDepthStencilView( m_backDepthStencil, &descDSV, &m_backDepthStencilView );
+	// Create the depth stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	memset(&descDSV, 0, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;
+	//if( descDepth.SampleDesc.Count > 1 )
+	//    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+	//else
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+	hr = m_D3DDevice->CreateDepthStencilView( m_backDepthStencil, &descDSV, &m_backDepthStencilView );
 
-	//HXAddTexture(new HXTexture(m_backDepthStencilView), "[backdepthstencil]");
-	//_ASSERT( SUCCEEDED(hr) );
+	HXAddTexture(new HXTexture(m_backDepthStencilView), "[backdepthstencil]");
+	_ASSERT( SUCCEEDED(hr) );
 }
 
 // ****************************************************************************
@@ -259,88 +260,88 @@ void CreateBackbufferViews()
 // ****************************************************************************
 void CreateColorTarget()
 {
-	//// Create some empty render targets
-	//D3D11_TEXTURE2D_DESC desc;
-	//ZeroMemory(&desc, sizeof(desc));
-	//desc.Width = m_backbufferWidth;
-	//desc.Height = m_backbufferHeight;
-	//desc.MipLevels = 1;
-	//desc.ArraySize = 1;
-	//desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R10G10B10A2_UNORM ;
-	//desc.SampleDesc.Count = 1;
-	//desc.Usage = D3D11_USAGE_DEFAULT;
-	//desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	// Create some empty render targets
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R10G10B10A2_UNORM ;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	//// Create the texture
-	//HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[ALBEDO] );
-	//_ASSERT( SUCCEEDED(hr) );
+	// Create the texture
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[ALBEDO] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create the render target view
-	//D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
-	//rtDesc.Format = desc.Format;
-	//rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	//rtDesc.Texture2D.MipSlice = 0;
+	// Create the render target view
+	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
+	rtDesc.Format = desc.Format;
+	rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtDesc.Texture2D.MipSlice = 0;
 
-	//hr = m_D3DDevice->CreateRenderTargetView( m_Texture[ALBEDO], &rtDesc, &m_RTView[ALBEDO] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[ALBEDO], &rtDesc, &m_RTView[ALBEDO] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_RTView[ALBEDO]), "[albedotarget]");
+	HXAddTexture(new HXTexture(m_RTView[ALBEDO]), "[albedotarget]");
 
-	//// Create the shader input view
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
-	//srDesc.Format = desc.Format;
-	//srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srDesc.Texture2D.MostDetailedMip = 0;
-	//srDesc.Texture2D.MipLevels = 1;
+	// Create the shader input view
+	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+	srDesc.Format = desc.Format;
+	srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
 
-	//hr = m_D3DDevice->CreateShaderResourceView( m_Texture[ALBEDO], &srDesc, &m_SRView[ALBEDO] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[ALBEDO], &srDesc, &m_SRView[ALBEDO] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_SRView[ALBEDO]), "[albedoshader]");
+	HXAddTexture(new HXTexture(m_SRView[ALBEDO]), "[albedoshader]");
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void CreateDepthTarget()
 {
-	//// Create some empty render targets
-	//D3D11_TEXTURE2D_DESC desc;
-	//ZeroMemory(&desc, sizeof(desc));
-	//desc.Width = m_backbufferWidth;
-	//desc.Height = m_backbufferHeight;
-	//desc.MipLevels = 1;
-	//desc.ArraySize = 1;
-	//desc.Format = DXGI_FORMAT_R16_FLOAT;
-	//desc.SampleDesc.Count = 1;
-	//desc.Usage = D3D11_USAGE_DEFAULT;
-	//desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	// Create some empty render targets
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R16_FLOAT;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	//// Create the texture
-	//HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[DEPTH] );
-	//_ASSERT( SUCCEEDED(hr) );
+	// Create the texture
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create the render target view
-	//D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
-	//rtDesc.Format = desc.Format;
-	//rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	//rtDesc.Texture2D.MipSlice = 0;
+	// Create the render target view
+	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
+	rtDesc.Format = desc.Format;
+	rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtDesc.Texture2D.MipSlice = 0;
 
-	//hr = m_D3DDevice->CreateRenderTargetView( m_Texture[DEPTH], &rtDesc, &m_RTView[DEPTH] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[DEPTH], &rtDesc, &m_RTView[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_RTView[DEPTH]), "[depthtarget]");
+	HXAddTexture(new HXTexture(m_RTView[DEPTH]), "[depthtarget]");
 
-	//// Create the shader input view
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
-	//srDesc.Format = desc.Format;
-	//srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srDesc.Texture2D.MostDetailedMip = 0;
-	//srDesc.Texture2D.MipLevels = 1;
+	// Create the shader input view
+	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+	srDesc.Format = desc.Format;
+	srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
 
-	//hr = m_D3DDevice->CreateShaderResourceView( m_Texture[DEPTH], &srDesc, &m_SRView[DEPTH] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[DEPTH], &srDesc, &m_SRView[DEPTH] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_SRView[DEPTH]), "[depthshader]");
+	HXAddTexture(new HXTexture(m_SRView[DEPTH]), "[depthshader]");
 }
 // ****************************************************************************
 // - Create a depth/stencil target texture (DXGI_FORMAT_R16_TYPELESS)
@@ -349,89 +350,89 @@ void CreateDepthTarget()
 // ****************************************************************************
 void CreateDepthStencilTarget()
 {
-	//// Create a depth/stencil texture
-	//D3D11_TEXTURE2D_DESC desc;
-	//ZeroMemory(&desc, sizeof(desc));
-	//desc.Width = m_backbufferWidth;
-	//desc.Height = m_backbufferHeight;
-	//desc.MipLevels = 1;
-	//desc.ArraySize = 1;
-	//desc.Format = DXGI_FORMAT_R16_TYPELESS ;
-	//desc.SampleDesc.Count = 1;
-	//desc.Usage = D3D11_USAGE_DEFAULT;
-	//desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	// Create a depth/stencil texture
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R16_TYPELESS ;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
-	//HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_depthStencilTexture );
-	//_ASSERT( SUCCEEDED(hr) );
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_depthStencilTexture );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create the depth/stencil view
-	//D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
-	//ZeroMemory(&dsDesc,sizeof(dsDesc));
-	//dsDesc.Format = DXGI_FORMAT_D16_UNORM;
-	//dsDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	//dsDesc.Texture2D.MipSlice = 0;
+	// Create the depth/stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsDesc;
+	ZeroMemory(&dsDesc,sizeof(dsDesc));
+	dsDesc.Format = DXGI_FORMAT_D16_UNORM;
+	dsDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsDesc.Texture2D.MipSlice = 0;
 
-	//hr = m_D3DDevice->CreateDepthStencilView(m_depthStencilTexture,&dsDesc,&m_depthStencilDSView );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateDepthStencilView(m_depthStencilTexture,&dsDesc,&m_depthStencilDSView );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_depthStencilDSView), "[depthstenciltarget]");
+	HXAddTexture(new HXTexture(m_depthStencilDSView), "[depthstenciltarget]");
 
-	//// Create our shader resource view
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
-	//ZeroMemory(&srDesc, sizeof(srDesc));
-	//srDesc.Format = DXGI_FORMAT_R16_UNORM;
-	//srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srDesc.Texture2D.MostDetailedMip = 0;
-	//srDesc.Texture2D.MipLevels = 1;
+	// Create our shader resource view
+	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+	ZeroMemory(&srDesc, sizeof(srDesc));
+	srDesc.Format = DXGI_FORMAT_R16_UNORM;
+	srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
 
-	//hr = m_D3DDevice->CreateShaderResourceView(m_depthStencilTexture,&srDesc,&m_depthStencilSRView );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateShaderResourceView(m_depthStencilTexture,&srDesc,&m_depthStencilSRView );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_depthStencilSRView), "[depthstencilshader]");
+	HXAddTexture(new HXTexture(m_depthStencilSRView), "[depthstencilshader]");
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void CreateNormalTarget()
 {
-	//// Create some empty render targets
-	//D3D11_TEXTURE2D_DESC desc;
-	//ZeroMemory(&desc, sizeof(desc));
-	//desc.Width = m_backbufferWidth;
-	//desc.Height = m_backbufferHeight;
-	//desc.MipLevels = 1;
-	//desc.ArraySize = 1;
-	//desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM ;
-	//desc.SampleDesc.Count = 1;
-	//desc.Usage = D3D11_USAGE_DEFAULT;
-	//desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	// Create some empty render targets
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = m_backbufferWidth;
+	desc.Height = m_backbufferHeight;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R16G16B16A16_SNORM ;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-	//// Create the texture
-	//HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[NORMAL] );
-	//_ASSERT( SUCCEEDED(hr) );
+	// Create the texture
+	HRESULT hr = m_D3DDevice->CreateTexture2D( &desc, NULL, &m_Texture[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create the render target view
-	//D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
-	//rtDesc.Format = desc.Format;
-	//rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	//rtDesc.Texture2D.MipSlice = 0;
+	// Create the render target view
+	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
+	rtDesc.Format = desc.Format;
+	rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtDesc.Texture2D.MipSlice = 0;
 
-	//hr = m_D3DDevice->CreateRenderTargetView( m_Texture[NORMAL], &rtDesc, &m_RTView[NORMAL] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateRenderTargetView( m_Texture[NORMAL], &rtDesc, &m_RTView[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_RTView[NORMAL]), "[normaltarget]");
+	HXAddTexture(new HXTexture(m_RTView[NORMAL]), "[normaltarget]");
 
-	//// Create the shader input view
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
-	//srDesc.Format = desc.Format;
-	//srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srDesc.Texture2D.MostDetailedMip = 0;
-	//srDesc.Texture2D.MipLevels = 1;
+	// Create the shader input view
+	D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+	srDesc.Format = desc.Format;
+	srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srDesc.Texture2D.MostDetailedMip = 0;
+	srDesc.Texture2D.MipLevels = 1;
 
-	//hr = m_D3DDevice->CreateShaderResourceView( m_Texture[NORMAL], &srDesc, &m_SRView[NORMAL] );
-	//_ASSERT( SUCCEEDED(hr) );
+	hr = m_D3DDevice->CreateShaderResourceView( m_Texture[NORMAL], &srDesc, &m_SRView[NORMAL] );
+	_ASSERT( SUCCEEDED(hr) );
 
-	//HXAddTexture(new HXTexture(m_SRView[NORMAL]), "[normalshader]");
+	HXAddTexture(new HXTexture(m_SRView[NORMAL]), "[normalshader]");
 }
 
 // ****************************************************************************
