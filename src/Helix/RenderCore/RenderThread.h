@@ -22,12 +22,11 @@ namespace Helix {
 
 class Instance;
 
-	void	InitializeRenderThread();
+	void	InitializeRenderer(ID3D11Device *dev, ID3D11DeviceContext *context, IDXGISwapChain *swapChain);
 	bool	GetRenderThreadShutdown();
 	void	ShutDownRenderThread();
 	void	RenderScene();
 	bool	RenderThreadReady();
-	void	SetDevice(ID3D11Device *dev, IDXGISwapChain *swapChain);
 
 	int		SubmissionIndex();
 

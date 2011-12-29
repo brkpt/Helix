@@ -51,10 +51,7 @@ bool TheGame::Initialize(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCm
 	IDXGISwapChain *sc = Helix::RenderMgr::GetInstance().GetSwapChain();
 
 	HXInitializeVertexDecls();
-	Helix::Initialize(dev,sc);
-	HXInitializeShaders();
-	HXInitializeTextures();
-	HXInitializeMaterials();
+	Helix::Initialize(dev,context, sc);
 
 	LightManager::Create();
 

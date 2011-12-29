@@ -127,6 +127,8 @@ void	ShowNormals();
 // ****************************************************************************
 void RenderThreadFunc(void *data);
 
+void	InitializeRenderThread();
+void	InitializeThreadLoader();
 // ****************************************************************************
 // ****************************************************************************
 inline int SubmissionIndex()
@@ -453,17 +455,17 @@ void LoadLightShaders()
 	_ASSERT( m_ambientMat != NULL); 
 
 	// Load our directional light 
-	m_dirLightMat = HXLoadMaterial("dirlight");
-	_ASSERT( m_dirLightMat != NULL);
+	//m_dirLightMat = HXLoadMaterial("dirlight");
+	//_ASSERT( m_dirLightMat != NULL);
 
-	m_pointLightMat = HXLoadMaterial("pointlight");
-	_ASSERT( m_pointLightMat != NULL);
+	//m_pointLightMat = HXLoadMaterial("pointlight");
+	//_ASSERT( m_pointLightMat != NULL);
 
-	m_showNormalMat = HXLoadMaterial("shownormals");
-	_ASSERT(m_showNormalMat != NULL);
+	//m_showNormalMat = HXLoadMaterial("shownormals");
+	//_ASSERT(m_showNormalMat != NULL);
 
-	m_showLightLocMat = HXLoadMaterial("showlightloc");
-	_ASSERT(m_showLightLocMat != NULL);
+	//m_showLightLocMat = HXLoadMaterial("showlightloc");
+	//_ASSERT(m_showLightLocMat != NULL);
 }
 
 // ****************************************************************************
@@ -650,7 +652,7 @@ void CreateRenderStates()
 
 // ****************************************************************************
 // ****************************************************************************
-void SetDevice(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISwapChain *swapChain)
+void InitializeRenderer(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISwapChain *swapChain)
 {
 	_ASSERT(dev != NULL);
 	_ASSERT( swapChain != NULL) ;
@@ -658,24 +660,36 @@ void SetDevice(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISwapChain *
 	m_context = context;
 	m_swapChain = swapChain;
 
+	// Initialize managers
+	HXInitializeShaders();
+	HXInitializeTextures();
+	HXInitializeMaterials();
+
 	CreateViews();
 	LoadLightShaders();
 	LoadShapes();
 	CreateQuad();
 	CreateRenderStates();
 
-
 	// Set our viewport
 	D3D11_VIEWPORT vp;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	vp.Width = m_backbufferWidth;
-	vp.Height = m_backbufferHeight;
+	vp.Width = static_cast<float>(m_backbufferWidth);
+	vp.Height = static_cast<float>(m_backbufferHeight);
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	m_context->RSSetViewports(1, &vp);
 
+	MeshManager::Create();
+	InstanceManager::GetInstance();
+	InitializeLights();
+
+	// Initialize threading
+	InitializeRenderThread();
+	InitializeThreadLoader();
 }
+
 // ****************************************************************************
 // ****************************************************************************
 void InitializeRenderThread()

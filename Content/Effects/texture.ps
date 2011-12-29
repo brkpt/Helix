@@ -1,0 +1,39 @@
+cbuffer cbPerFrame 
+{
+	float3	g_sunColor;
+	float3	g_ambientColor;
+	float3	g_sunDir;
+};
+
+Texture2D	textureImage;
+
+struct TexturePS_in
+{
+	float4 pos : POSITION;
+	float3 normal : NORMAL;
+	float2 texuv : TEXCOORD0;
+	float2 depth : TEXCOORD1;
+};
+
+struct TexturePS_out
+{
+	float4 color : SV_TARGET0;
+	float4 normal : SV_TARGET1;
+	float depth : SV_TARGET2;
+};
+
+SamplerState texSampler
+{
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = Wrap;
+	AddressV = Wrap;
+};
+
+TexturePS_out TexturePixelShader(TexturePS_in In) 
+{
+	TexturePS_out outValue;
+	outValue.color = textureImage.Sample(texSampler, In.texuv);
+	outValue.normal = float4(In.normal.xyz,0);
+	outValue.depth = In.depth.x/In.depth.y;			// Store z/w in the depth buffer
+	return outValue;
+}

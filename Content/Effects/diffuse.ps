@@ -1,0 +1,16 @@
+cbuffer cbPerFrame 
+{
+	float3	g_sunColor;
+	float3	g_ambientColor;
+	float3	g_sunDir;
+};
+
+struct DiffusePixelShader_in
+{
+	float4 color : COLOR;
+};
+
+float4 DiffusePixelShader(DiffusePixelShader_in In) : COLOR
+{
+	return In.color;
+}

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Helix.h"
-//#include "RenderCore/Materials.h"
+#include "RenderCore/Materials.h"
+#include "RenderCore/Shaders.h"
+#include "RenderCore/Textures.h"
 //#include "RenderCore/DeclManager.h"
 #include "RenderCore/InstanceManager.h"
 #include "RenderCore/RenderThread.h"
@@ -14,16 +16,10 @@ namespace Helix
 {
 // ****************************************************************************
 // ****************************************************************************
-void Initialize(ID3D11Device* dev, IDXGISwapChain *swapChain)
+void Initialize(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISwapChain *swapChain)
 {
-	//SetDevice(dev,swapChain);
+	InitializeRenderer(dev,context, swapChain);
 
-	MeshManager::Create();
-	InstanceManager::GetInstance();
-	InitializeLights();
-
-	InitializeRenderThread();
-	InitializeThreadLoader();
 
 }
 

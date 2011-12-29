@@ -71,40 +71,63 @@ HXShader * HXGetShaderByName(const std::string &name)
 // ****************************************************************************
 void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 {
-//	// Load our vertex declaration
-//	LuaPlus::LuaObject obj = shaderObj["Declaration"];
-//	_ASSERT(obj.IsString());
-//	std::string name = obj.GetString();
-//
-//	shader.m_decl = HXLoadVertexDecl(name);
-//	_ASSERT(shader.m_decl);
-//
-//	// Load our effect
-//	obj = shaderObj["FX"];
-//	_ASSERT(obj.IsString());
-//	std::string fxName = obj.GetString();
-//	std::string fxPath = "Effects/";
-//	fxPath += fxName;
-//	fxPath += ".fx";
-//
-//	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
-//#if defined(_DEBUG)
-//	dwShaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION | D3D10_SHADER_DEBUG ;
-//#endif
-//	
-//	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
-//	HRESULT hr;
-//	ID3D11Blob *errorBlob;
-//	D3D10CreateBlob(1024,&errorBlob);
-//	hr = D3DX10CreateEffectFromFile(fxPath.c_str(), NULL,NULL,"fx_4_0",dwShaderFlags,D3D10_EFFECT_COMPILE_CHILD_EFFECT, pDevice, effectPool, NULL, &shader.m_pEffect, &errorBlob, NULL);
-//	if(hr != S_OK)
-//	{
-//		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
-//	}
-//	_ASSERT(hr == S_OK);
-//
-//	// Now create the layout if it hasn't been created already
-//	HXDeclBuildLayout(*(shader.m_decl),&shader);
+	// Load our vertex declaration
+	LuaPlus::LuaObject obj = shaderObj["Declaration"];
+	_ASSERT(obj.IsString());
+	std::string name = obj.GetString();
+
+	shader.m_decl = HXLoadVertexDecl(name);
+	_ASSERT(shader.m_decl);
+
+	// Load our effect
+	obj = shaderObj["FX"];
+	_ASSERT(obj.IsString());
+	std::string fxName = obj.GetString();
+	std::string fxPath = "Effects/";
+	fxPath += fxName;
+	fxPath += ".fx";
+
+	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
+#if defined(_DEBUG)
+	dwShaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION | D3D10_SHADER_DEBUG ;
+#endif
+
+	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
+
+	// Load the vertex shader
+	ID3DBlob *errorBlob = NULL;
+	ID3DBlob *pShaderBlob = NULL;
+	HRESULT hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL,"AmbientVShader","vs_4_0",dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	if(hr != S_OK)
+	{
+		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
+	}
+	_ASSERT(hr == S_OK);
+	if(errorBlob)
+		errorBlob->Release();
+	errorBlob = NULL;
+
+	// Now create the vertex shader
+	hr = pDevice->CreateVertexShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_vshader);
+	_ASSERT(hr == S_OK);
+
+	pShaderBlob = NULL;
+	hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, "AmbientPShader", "ps_4_0", dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	if(hr != S_OK)
+	{
+		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
+	}
+	_ASSERT(hr == S_OK);
+	if(errorBlob)
+		errorBlob->Release();
+	errorBlob = NULL;
+
+	// Now create the pixel shader
+	hr = pDevice->CreatePixelShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_pshader);
+	_ASSERT(hr == S_OK);
+
+	// Now create the layout if it hasn't been created already
+	HXDeclBuildLayout(*(shader.m_decl),&shader);
 }
 
 // ****************************************************************************

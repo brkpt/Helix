@@ -63,7 +63,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3d11.lib;d3dx10d.lib;luaplus51-1201_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;d3dx10d.lib;d3dx11d.lib;luaplus51-1201_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(SolutionDir)\..\Build\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>C:\Projects\luaplus\luaplus51-all\build2010\bin.vs2010.win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>

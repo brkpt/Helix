@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 	ProjectSection(SolutionItems) = preProject
 		..\Content\Effects\ambient.fx = ..\Content\Effects\ambient.fx
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
+		..\Content\Effects\diffuse.ps = ..\Content\Effects\diffuse.ps
+		..\Content\Effects\diffuse.vs = ..\Content\Effects\diffuse.vs
 		..\Content\Effects\dirlight.fx = ..\Content\Effects\dirlight.fx
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
 		..\Content\Effects\lightsphere.fx = ..\Content\Effects\lightsphere.fx
@@ -17,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		..\Content\Effects\showlightloc.fx = ..\Content\Effects\showlightloc.fx
 		..\Content\Effects\shownormals.fx = ..\Content\Effects\shownormals.fx
 		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
+		..\Content\Effects\texture.ps = ..\Content\Effects\texture.ps
+		..\Content\Effects\texture.vs = ..\Content\Effects\texture.vs
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{A125B020-FAAF-4E6C-A4DE-2C9D89A7D3BE}"
