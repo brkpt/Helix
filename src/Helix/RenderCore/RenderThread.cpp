@@ -551,103 +551,108 @@ void CreateQuad()
 // ****************************************************************************
 void CreateRenderStates()
 {
-	//// Setup our rasterizer state
-	//D3D11_RASTERIZER_DESC rDesc;
-	//memset(&rDesc,0,sizeof(rDesc));
-	//rDesc.FillMode = D3D11_FILL_SOLID;
-	//rDesc.CullMode = D3D11_CULL_BACK;
-	//rDesc.FrontCounterClockwise = false;
-	//rDesc.DepthBias = 0;
-	//rDesc.DepthBiasClamp = 0.0f;
-	//rDesc.SlopeScaledDepthBias = 0.0f;
-	//rDesc.DepthClipEnable = true;
-	//rDesc.ScissorEnable = false;
-	//rDesc.MultisampleEnable = false;
-	//rDesc.AntialiasedLineEnable = false;
-	//HRESULT hr = m_D3DDevice->CreateRasterizerState(&rDesc, &m_RState);
-	//_ASSERT( SUCCEEDED(hr) );
+	// Setup our rasterizer state
+	D3D11_RASTERIZER_DESC rDesc;
+	memset(&rDesc,0,sizeof(rDesc));
+	rDesc.FillMode = D3D11_FILL_SOLID;
+	rDesc.CullMode = D3D11_CULL_BACK;
+	rDesc.FrontCounterClockwise = false;
+	rDesc.DepthBias = 0;
+	rDesc.DepthBiasClamp = 0.0f;
+	rDesc.SlopeScaledDepthBias = 0.0f;
+	rDesc.DepthClipEnable = true;
+	rDesc.ScissorEnable = false;
+	rDesc.MultisampleEnable = false;
+	rDesc.AntialiasedLineEnable = false;
+	HRESULT hr = m_D3DDevice->CreateRasterizerState(&rDesc, &m_RState);
+	_ASSERT( SUCCEEDED(hr) );
 
-	//// Create a blend state for creating GBuffer
-	//D3D11_BLEND_DESC blendStateDesc;
-	//memset(&blendStateDesc,0,sizeof(blendStateDesc));
-	//blendStateDesc.AlphaToCoverageEnable = false;
-	//for(int i=0;i<8;i++)
-	//	blendStateDesc.BlendEnable[i] = FALSE;
-	//blendStateDesc.SrcBlend = D3D11_BLEND_SRC_COLOR;
-	//blendStateDesc.DestBlend = D3D11_BLEND_DEST_COLOR;
-	//blendStateDesc.BlendOp = D3D11_BLEND_OP_ADD;
-	//blendStateDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	//blendStateDesc.DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-	//blendStateDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	//for(int i=0;i<8;i++)
-	//	blendStateDesc.RenderTargetWriteMask[i] = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	// Create a blend state for creating GBuffer
+	D3D11_BLEND_DESC blendStateDesc;
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+	blendStateDesc.IndependentBlendEnable = true;
+	for(int i=0;i<8;i++)
+	{
+		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
+		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
+		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_DEST_COLOR;
+		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	}
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_GBufferBlendState);
+	_ASSERT(hr == S_OK);
+	
+	// Depth/stencil for creating GBuffer
+	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
 
-	//hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_GBufferBlendState);
-	//_ASSERT(hr == S_OK);
-	//
-	//// Depth/stencil for creating GBuffer
-	//D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
-	//memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
+	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;		// Write to depth/stencil
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;			// Pass if closer
+	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
+	depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_WRITE_MASK; 
+	depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
-	//depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
-	//depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;		// Write to depth/stencil
-	//depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;			// Pass if closer
-	//depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
-	//depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_WRITE_MASK; 
-	//depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	// Dummy structures for the front/back stencil operations
+	D3D11_DEPTH_STENCILOP_DESC stencilOp;
+	memset(&blendStateDesc,0,sizeof(stencilOp));
+	stencilOp.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	//// Dummy structures for the front/back stencil operations
-	//D3D11_DEPTH_STENCILOP_DESC stencilOp;
-	//memset(&blendStateDesc,0,sizeof(stencilOp));
-	//stencilOp.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.FrontFace = stencilOp;
+	depthStencilStateDesc.BackFace = stencilOp;
 
-	//depthStencilStateDesc.FrontFace = stencilOp;
-	//depthStencilStateDesc.BackFace = stencilOp;
+	ID3D11DepthStencilState *depthStencilState = NULL;
+	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_GBufferDSState);
+	_ASSERT(hr == S_OK);
 
-	//ID3D11DepthStencilState *depthStencilState = NULL;
-	//hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_GBufferDSState);
-	//_ASSERT(hr == S_OK);
+	// Depth/stencil for light blending
+	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
+	depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;		// Don't write to depth/stencil
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL ;			// Pass if closer
+	depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
+	depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_WRITE_MASK; 
+	depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
-	//// Depth/stencil for light blending
-	//memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
-	//depthStencilStateDesc.DepthEnable = true;								// Enable depth testing
-	//depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;		// Don't write to depth/stencil
-	//depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL ;			// Pass if closer
-	//depthStencilStateDesc.StencilEnable = FALSE;							// No stencil
-	//depthStencilStateDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_WRITE_MASK; 
-	//depthStencilStateDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	memset(&blendStateDesc,0,sizeof(stencilOp));
+	stencilOp.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	stencilOp.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	//memset(&blendStateDesc,0,sizeof(stencilOp));
-	//stencilOp.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	//stencilOp.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilStateDesc.FrontFace = stencilOp;
+	depthStencilStateDesc.BackFace = stencilOp;
 
-	//depthStencilStateDesc.FrontFace = stencilOp;
-	//depthStencilStateDesc.BackFace = stencilOp;
+	depthStencilState = NULL;
+	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
+	_ASSERT(hr == S_OK);
 
-	//depthStencilState = NULL;
-	//hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
-	//_ASSERT(hr == S_OK);
+	// Create a blend state for light blending
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+	blendStateDesc.IndependentBlendEnable = true;
+	for(int i=0;i<8;i++)
+	{
+		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
+		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
+		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_DEST_COLOR;
+		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	}
 
-	//// Create a blend state for light blending
-	//memset(&blendStateDesc,0,sizeof(blendStateDesc));
-	//blendStateDesc.AlphaToCoverageEnable = false;
-	//blendStateDesc.BlendEnable[0] = TRUE;
-	//blendStateDesc.SrcBlend = D3D11_BLEND_ONE;
-	//blendStateDesc.DestBlend = D3D11_BLEND_ONE;
-	//blendStateDesc.BlendOp = D3D11_BLEND_OP_ADD;
-	//blendStateDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	//blendStateDesc.DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-	//blendStateDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	//for(int i=0;i<8;i++)
-	//	blendStateDesc.RenderTargetWriteMask[i] = D3D11_COLOR_WRITE_ENABLE_ALL ;
-
-	//hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
-	//_ASSERT(hr == S_OK);
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
+	_ASSERT(hr == S_OK);
 
 }
 
