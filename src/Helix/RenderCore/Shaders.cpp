@@ -79,13 +79,28 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	shader.m_decl = HXLoadVertexDecl(name);
 	_ASSERT(shader.m_decl);
 
+	obj = shaderObj["VSEntry"];
+	_ASSERT(obj.IsString());
+	std::string vsEntry = obj.GetString();
+
+	obj = shaderObj["PSEntry"];
+	_ASSERT(obj.IsString());
+	std::string psEntry = obj.GetString();
+
+	obj = shaderObj["VSProfile"];
+	_ASSERT(obj.IsString());
+	std::string vsProfile = obj.GetString();
+
+	obj = shaderObj["PSProfile"];
+	_ASSERT(obj.IsString());
+	std::string psProfile = obj.GetString();
+
 	// Load our effect
-	obj = shaderObj["FX"];
+	obj = shaderObj["HLSL"];
 	_ASSERT(obj.IsString());
 	std::string fxName = obj.GetString();
 	std::string fxPath = "Effects/";
 	fxPath += fxName;
-	fxPath += ".fx";
 
 	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
 #if defined(_DEBUG)
@@ -97,7 +112,7 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	// Load the vertex shader
 	ID3DBlob *errorBlob = NULL;
 	ID3DBlob *pShaderBlob = NULL;
-	HRESULT hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL,"AmbientVShader","vs_4_0",dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	HRESULT hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, vsEntry.c_str(),vsProfile.c_str(),dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
 	if(hr != S_OK)
 	{
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
@@ -112,7 +127,7 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	_ASSERT(hr == S_OK);
 
 	pShaderBlob = NULL;
-	hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, "AmbientPShader", "ps_4_0", dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
 	if(hr != S_OK)
 	{
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
@@ -196,6 +211,7 @@ void HXShaderLoadedCallback(void *buffer, long bufferSize, void *userData)
 
 	delete [] zbuffer;
 
+	// NOTE: This structure is not correct. 
 	LuaPlus::LuaObject shaderObj = state->GetGlobals()["Shader"];
 	_ASSERT(shaderObj.IsTable());
 

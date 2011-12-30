@@ -1,24 +1,6 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-cbuffer cbPerFrame 
-{
-	float3	g_sunColor;
-	float3	g_ambientColor;
-	float3	g_sunDir;
-};
-
-cbuffer cbPerObject
-{
-	float4x3		g_mWorldView;
-	float4x4		g_mProjectin;
-	float4x4		g_mView;
-	float4x4		g_mInvView;
-	float4x4		g_mView3x3;
-	float4x4		g_mViewWorldIT;
-	float4x4		g_mInvWorldViewProj;
-	float4x4		g_mInvViewProj;
-	float4x4		g_mInvProj;
-};
+#include "shared.fx"
 
 Texture2D	albedoTexture;
 

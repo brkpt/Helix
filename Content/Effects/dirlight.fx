@@ -1,6 +1,5 @@
 // Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-
 #include "shared.fx"
 
 Texture2D	albedoTexture;
@@ -65,13 +64,13 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	return float4(outColor,1);	
 }
 
-technique10 FullScreenQuad
-{
-	pass P0
-	{
-		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
-		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
-	}
-}
+//technique10 FullScreenQuad
+//{
+//	pass P0
+//	{
+//		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
+//		SetGeometryShader( NULL );
+//		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
+//	}
+//}
 

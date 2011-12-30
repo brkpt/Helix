@@ -18,6 +18,7 @@ cbuffer cbPerObject
 	float4x4		g_mInvProj;
 };
 
+
 //shared cbuffer shaderCBuffer
 //{
 //	float4x3		WorldView : WORLDVIEW;

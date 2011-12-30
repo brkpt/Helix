@@ -78,10 +78,10 @@ HXMaterial * HXLoadMaterial(const std::string &name)
 	int retVal = state->DoFile(fullPath.c_str());
 	_ASSERT(retVal == 0);
 
-	LuaPlus::LuaObject shaderObj = state->GetGlobals()["Material"];
-	_ASSERT(shaderObj.IsTable());
+	LuaPlus::LuaObject materialobj = state->GetGlobals()["Material"];
+	_ASSERT(materialobj.IsTable());
 
-	mat = HXCreateMaterial(name,shaderObj);
+	mat = HXCreateMaterial(name,materialobj);
 	_ASSERT(mat != NULL);
 
 	m_materialState->m_database[name] = mat;
