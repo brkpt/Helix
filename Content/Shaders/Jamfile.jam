@@ -15,6 +15,7 @@ IncludeModule CopyFile ;
 		shared.lua
 		texture.lua
 		dirlight.lua
+		dirlight.hlsl
 		pointlight.lua
 		lightsphere.lua
 		shownormals.lua

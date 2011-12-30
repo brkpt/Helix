@@ -10,7 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
 		..\Content\Effects\diffuse.ps = ..\Content\Effects\diffuse.ps
 		..\Content\Effects\diffuse.vs = ..\Content\Effects\diffuse.vs
-		..\Content\Effects\dirlight.fx = ..\Content\Effects\dirlight.fx
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
 		..\Content\Effects\lightsphere.fx = ..\Content\Effects\lightsphere.fx
 		..\Content\Effects\pointlight.fx = ..\Content\Effects\pointlight.fx

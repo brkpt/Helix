@@ -456,8 +456,8 @@ void LoadLightShaders()
 	_ASSERT( m_ambientMat != NULL); 
 
 	// Load our directional light 
-	//m_dirLightMat = HXLoadMaterial("dirlight");
-	//_ASSERT( m_dirLightMat != NULL);
+	m_dirLightMat = HXLoadMaterial("dirlight");
+	_ASSERT( m_dirLightMat != NULL);
 
 	//m_pointLightMat = HXLoadMaterial("pointlight");
 	//_ASSERT( m_pointLightMat != NULL);
