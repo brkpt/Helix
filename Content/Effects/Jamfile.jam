@@ -16,10 +16,6 @@ IncludeModule CopyFile ;
 		lightsphere.fx
 		shownormals.fx
 		showlightloc.fx
-		ambient.fx
-		;
-	EFFECT_POOL_FX =
-		shared.fx 
 		;
 		
 	local FX_FILES = [ FGristFiles $(STANDARD_FX) ] ;

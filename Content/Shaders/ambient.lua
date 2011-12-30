@@ -5,5 +5,5 @@ Shader =
 	PSEntry="AmbientPShader",
 	VSProfile="vs_4_0",
 	PSProfile="ps_4_0",
-	HLSL = "ambient.fx"
+	HLSL = "ambient.hlsl"
 }

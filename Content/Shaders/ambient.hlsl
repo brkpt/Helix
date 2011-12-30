@@ -1,6 +1,6 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-#include "shared.fx"
+#include "shared.hlsl"
 
 Texture2D	albedoTexture;
 

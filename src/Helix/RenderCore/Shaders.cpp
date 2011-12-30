@@ -99,7 +99,7 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	obj = shaderObj["HLSL"];
 	_ASSERT(obj.IsString());
 	std::string fxName = obj.GetString();
-	std::string fxPath = "Effects/";
+	std::string fxPath = "Shaders/";
 	fxPath += fxName;
 
 	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;

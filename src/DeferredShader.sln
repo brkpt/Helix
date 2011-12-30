@@ -7,7 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix", "Helix", "{99FD8E8D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C3D03-5020-439A-864E-0692CC8CA51A}"
 	ProjectSection(SolutionItems) = preProject
-		..\Content\Effects\ambient.fx = ..\Content\Effects\ambient.fx
 		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
 		..\Content\Effects\diffuse.ps = ..\Content\Effects\diffuse.ps
 		..\Content\Effects\diffuse.vs = ..\Content\Effects\diffuse.vs
@@ -15,7 +14,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C
 		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
 		..\Content\Effects\lightsphere.fx = ..\Content\Effects\lightsphere.fx
 		..\Content\Effects\pointlight.fx = ..\Content\Effects\pointlight.fx
-		..\Content\Effects\shared.fx = ..\Content\Effects\shared.fx
 		..\Content\Effects\showlightloc.fx = ..\Content\Effects\showlightloc.fx
 		..\Content\Effects\shownormals.fx = ..\Content\Effects\shownormals.fx
 		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
