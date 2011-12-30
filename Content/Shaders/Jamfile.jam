@@ -17,6 +17,7 @@ IncludeModule CopyFile ;
 		dirlight.lua
 		dirlight.hlsl
 		pointlight.lua
+		pointlight.hlsl
 		lightsphere.lua
 		shownormals.lua
 		showlightloc.lua

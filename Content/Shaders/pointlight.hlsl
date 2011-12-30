@@ -1,6 +1,6 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-#include "shared.fx"
+#include "shared.hlsl"
 
 float3		pointLoc;			// Point light location
 float3		pointColor;			// Point light color
@@ -72,7 +72,7 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float3 viewPos = normalize(inVert.vEyeToScreen) * depthValue;
 	
 	// Transform the light into view space
-	float3 pointLocView = mul( float4(pointLoc,1), WorldView );
+	float3 pointLocView = mul( float4(pointLoc,1), g_mWorldView );
 	float3 posToLight = pointLocView - viewPos;
 	float3 posToLightNorm = normalize(posToLight);
 	

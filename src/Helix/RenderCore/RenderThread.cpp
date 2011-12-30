@@ -459,8 +459,8 @@ void LoadLightShaders()
 	m_dirLightMat = HXLoadMaterial("dirlight");
 	_ASSERT( m_dirLightMat != NULL);
 
-	//m_pointLightMat = HXLoadMaterial("pointlight");
-	//_ASSERT( m_pointLightMat != NULL);
+	m_pointLightMat = HXLoadMaterial("pointlight");
+	_ASSERT( m_pointLightMat != NULL);
 
 	//m_showNormalMat = HXLoadMaterial("shownormals");
 	//_ASSERT(m_showNormalMat != NULL);
