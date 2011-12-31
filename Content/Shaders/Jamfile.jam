@@ -19,6 +19,7 @@ IncludeModule CopyFile ;
 		pointlight.lua
 		pointlight.hlsl
 		lightsphere.lua
+		lightsphere.hlsl
 		shownormals.lua
 		showlightloc.lua
 		;
