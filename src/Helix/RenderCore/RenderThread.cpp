@@ -1085,53 +1085,60 @@ void RenderSunlight()
 	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
 	//}
 }
+
 // ****************************************************************************
 // ****************************************************************************
 void RenderAmbientLight()
 {
+	// m_D3DDevice->CreateSamplerState();
+	// m_context->PSSetSamplers(slot, count, *);
+	// m_context->PSSetShaderResources(slot, count *);
+
+	HRESULT hr = E_FAIL;
 	//ID3D11Device *device = m_D3DDevice;
 	//ID3D11DeviceContext *context = m_context;
 
-	//// Set our textures as inputs
-	//HXShader *shader = HXGetShaderByName(m_ambientMat->m_shaderName);
-	//ID3DX11Effect *effect = shader->m_pEffect;
+	// Set our textures as inputs
+	HXShader *shader = HXGetShaderByName(m_ambientMat->m_shaderName);
 
-	//// Set albedo texture as input
-	//ID3DX11EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-	//_ASSERT(albedoResource != NULL);
+	// Set albedo texture as input
+	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
 
-	//HRESULT hr = albedoResource->SetResource(m_SRView[ALBEDO]);
-	//_ASSERT( SUCCEEDED(hr) );
+	// Set up constants
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	hr = m_context->Map(m_frameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT(hr == S_OK);
 
-	//// *************
-	//// Setup ambient color
-	//// *************
-	//D3DXVECTOR3 vecData;
-	//vecData.x = m_ambientColor.Red;
-	//vecData.y = m_ambientColor.Green;
-	//vecData.z = m_ambientColor.Blue;
+	CONSTANT_BUFFER_FRAME *cbFrame = reinterpret_cast<CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
 
-	//// Make sure it is normalized
-	//D3DXVec3Normalize(&vecData, &vecData);
+	// *************
+	// Setup ambient color
+	// *************
+	D3DXVECTOR4 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+	vecData.w = 0.0f;
 
-	//ID3DX11EffectVectorVariable *vecVar = effect->GetVariableByName("ambientColor")->AsVector();
-	//_ASSERT( vecVar != NULL );
-	//vecVar->SetFloatVector(vecData);
-	//
-	//// Set the input layout 
-	//context->IASetInputLayout(shader->m_decl->m_layout);
+	// Make sure it is normalized
+	D3DXVec4Normalize(&vecData, &vecData);
 
-	//// Set our IB/VB
-	//unsigned int stride = shader->m_decl->m_vertexSize;
-	//unsigned int offset = 0;
-	//context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-	//context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+	cbFrame->m_ambientColor = vecData;
+	
+	// Set the input layout 
+	m_context->IASetInputLayout(shader->m_decl->m_layout);
 
-	//// Set our prim type
-	//context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+	// Set our IB/VB
+	unsigned int stride = shader->m_decl->m_vertexSize;
+	unsigned int offset = 0;
+	m_context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+	m_context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
 
-	//// Set our states
-	//context->RSSetState(m_RState);
+	// Set our prim type
+	m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+
+	// Set our states
+	m_context->RSSetState(m_RState);
 
 	//D3D11_TECHNIQUE_DESC techDesc;
 	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
@@ -1142,7 +1149,7 @@ void RenderAmbientLight()
 	//	context->DrawIndexed( 4, 0, 0 );
 	//}
 
-	//// Clear the inputs on the shader
+	// Clear the inputs on the shader
 	//hr = albedoResource->SetResource(NULL);
 	//_ASSERT(SUCCEEDED(hr));
 
