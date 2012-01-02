@@ -126,7 +126,12 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	hr = pDevice->CreateVertexShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_vshader);
 	_ASSERT(hr == S_OK);
 
+	// Create the layout for the vertex shader
+	HXDeclBuildLayout(*(shader.m_decl),pShaderBlob);
+
+	pShaderBlob->Release();
 	pShaderBlob = NULL;
+
 	hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
 	if(hr != S_OK)
 	{
@@ -141,8 +146,8 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	hr = pDevice->CreatePixelShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_pshader);
 	_ASSERT(hr == S_OK);
 
-	// Now create the layout if it hasn't been created already
-	HXDeclBuildLayout(*(shader.m_decl),&shader);
+	pShaderBlob->Release();
+
 }
 
 // ****************************************************************************

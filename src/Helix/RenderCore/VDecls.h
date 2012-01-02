@@ -17,7 +17,7 @@ struct HXVertexDecl
 void							HXInitializeVertexDecls();
 HXVertexDecl *					HXGetVertexDecl(const std::string &declName);
 HXVertexDecl *					HXLoadVertexDecl(const std::string &declName);
-ID3D11InputLayout *				HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader);
+ID3D11InputLayout *				HXDeclBuildLayout(HXVertexDecl &decl, ID3DBlob *vshader);
 bool							HXDeclHasSemantic(HXVertexDecl &decl, const char *semanticName, int &offset);
 
 	//ID3D10InputLayout *			GetLayout() { return m_layout; }

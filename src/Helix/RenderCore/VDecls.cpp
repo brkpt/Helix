@@ -350,27 +350,22 @@ HXVertexDecl * HXLoadVertexDecl(const std::string &name)
 
 // ****************************************************************************
 // ****************************************************************************
-ID3D11InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, HXShader *shader)
+ID3D11InputLayout * HXDeclBuildLayout(HXVertexDecl &decl, ID3DBlob *vshader)
 {
-	//if(decl.m_layout != NULL)
-	//{
-	//	return decl.m_layout;
-	//}
+	if(decl.m_layout != NULL)
+	{
+		return decl.m_layout;
+	}
 
-	//// Build the layout against the specific shader
-	//ID3D10Effect *effect = shader->m_pEffect;
-	//ID3D10EffectTechnique *tech = effect->GetTechniqueByIndex(0);
-	//ID3D10EffectPass *pass = tech->GetPassByIndex(0);
-	//D3D10_PASS_DESC passDesc;
-	//HRESULT hr = pass->GetDesc(&passDesc);
-	//_ASSERT(hr == S_OK);
+	HRESULT hr = Helix::RenderMgr::GetInstance().GetDevice()->CreateInputLayout(
+		decl.m_desc, 
+		decl.m_numElements, 
+		vshader->GetBufferPointer(), 
+		vshader->GetBufferSize(), 
+		&decl.m_layout);
+	_ASSERT(hr == S_OK);
 
-	//hr = Helix::RenderMgr::GetInstance().GetDevice()->CreateInputLayout(decl.m_desc, decl.m_numElements, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &decl.m_layout);
-	//_ASSERT(hr == S_OK);
-
-	//return decl.m_layout;
-
-	return NULL;
+	return decl.m_layout;
 }
 
 // ****************************************************************************
