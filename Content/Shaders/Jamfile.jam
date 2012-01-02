@@ -8,12 +8,14 @@ IncludeModule CopyFile ;
 		ambient.lua
 		ambient.hlsl
 		diffuse.lua
+		diffuse.hlsl
 		pos3.lua
 		pos3_tex1.lua
 		pos3_norm3_tex1.lua
 		pos4_tex1.lua
 		shared.lua
 		texture.lua
+		texture.hlsl
 		dirlight.lua
 		dirlight.hlsl
 		pointlight.lua
@@ -21,7 +23,9 @@ IncludeModule CopyFile ;
 		lightsphere.lua
 		lightsphere.hlsl
 		shownormals.lua
+		shownormals.hlsl
 		showlightloc.lua
+		showlightloc.hlsl
 		;
 		
 	local sources = [ FGristFiles $(SHADER_FILES) ] ;

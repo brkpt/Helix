@@ -1,5 +1,9 @@
 Shader =
 {
 	Declaration = "pos3_tex1",
-	FX = "diffuse"
+	VSEntry="DiffuseVertexShader",
+	PSEntry="DiffusePixelShader",
+	VSProfile="vs_4_0",
+	PSProfile="ps_4_0",
+	HLSL = "diffuse.hlsl"
 }

@@ -1,6 +1,6 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-#include "shared.fx"
+#include "shared.hlsl"
 
 Texture2D	normalTexture;
 
@@ -41,13 +41,13 @@ float4 ShowNormalsPS(QuadPS_in inVert) : SV_Target
 	return outColor;
 }
 
-technique10 DeferredRender
-{
-	pass P0
-	{
-		SetVertexShader( CompileShader( vs_4_0, ShowNormalsVS() ) );
-		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_4_0, ShowNormalsPS() ) );
-	}
-}
+//technique10 DeferredRender
+//{
+//	pass P0
+//	{
+//		SetVertexShader( CompileShader( vs_4_0, ShowNormalsVS() ) );
+//		SetGeometryShader( NULL );
+//		SetPixelShader( CompileShader( ps_4_0, ShowNormalsPS() ) );
+//	}
+//}
 

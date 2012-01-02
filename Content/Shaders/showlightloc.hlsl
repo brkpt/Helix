@@ -1,6 +1,6 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-#include "shared.fx"
+#include "shared.hlsl"
 
 float3		pointLoc;			// Point light location
 float3		pointColor;			// Point light color
@@ -35,8 +35,8 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {
 	QuadPS_in outVert;
 
-	float3 P = mul( float4(inVert.pos,1), WorldView );
-	outVert.pos = mul( float4(P,1), Projection );
+	float3 P = mul( float4(inVert.pos,1), g_mWorldView );
+	outVert.pos = mul( float4(P,1), g_mProjection );
 	return outVert;
 }
 
@@ -47,13 +47,13 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	return outColor;
 }
 
-technique10 FullScreenQuad
-{
-	pass P0
-	{
-		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
-		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
-	}
-}
+//technique10 FullScreenQuad
+//{
+//	pass P0
+//	{
+//		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
+//		SetGeometryShader( NULL );
+//		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
+//	}
+//}
 

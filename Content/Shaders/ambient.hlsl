@@ -2,7 +2,7 @@
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 #include "shared.hlsl"
 
-Texture2D	albedoTexture;
+Texture2D	albedoTexture : register(t0) ;
 
 struct AmbientVS_in
 {

@@ -1,4 +1,4 @@
-#include "shared.fx"
+#include "shared.hlsl"
 
 struct DiffuseVertex_in
 {
@@ -32,12 +32,12 @@ float4 DiffusePixelShader(DiffusePixelShader_in In) : COLOR
 	return In.color;
 }
 
-technique Diffuse
-{
-	pass P0
-	{
-		VertexShader = compile vs_3_0 DiffuseVertexShader();
-		PixelShader = compile ps_3_0 DiffusePixelShader();
-	}
-}
+//technique diffuse
+//{
+//	pass p0
+//	{
+//		vertexshader = compile vs_3_0 diffusevertexshader();
+//		pixelshader = compile ps_3_0 diffusepixelshader();
+//	}
+//}
 

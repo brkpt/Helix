@@ -37,8 +37,8 @@ LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 {
 	LightSpherePixel_in outVert;
 
-	float3 viewPos = mul( float4(inVert.pos,1), WorldView );
-	float4 projPos = mul( float4(viewPos,1), Projection );
+	float3 viewPos = mul( float4(inVert.pos,1), g_mWorldView );
+	float4 projPos = mul( float4(viewPos,1), g_mProjection );
 	outVert.pos = projPos;
 	
 	return outVert;
@@ -59,11 +59,11 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float4 clipPos = float4(clipX, clipY, depth, 1.0);
 	
 	// View space position (inverse proj)
-	float4 wPos = mul(clipPos,InvProj);
+	float4 wPos = mul(clipPos,g_mInvProj);
 	float4 viewPos = float4(wPos.xyz/wPos.w,1.0);
 	
 	// world space position (inverse view)
-	float4 worldPos = mul(viewPos,InvView);
+	float4 worldPos = mul(viewPos,g_mInvView);
 	
 	// Calculate lighting normal in world space
 	float3 posToLight = pointLoc - worldPos.xyz;

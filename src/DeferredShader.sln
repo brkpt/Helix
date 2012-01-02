@@ -6,17 +6,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helix", "Helix", "{99FD8E8D-AE46-47F4-8204-FCAD08B65DE0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Effects", "Effects", "{594C3D03-5020-439A-864E-0692CC8CA51A}"
-	ProjectSection(SolutionItems) = preProject
-		..\Content\Effects\diffuse.fx = ..\Content\Effects\diffuse.fx
-		..\Content\Effects\diffuse.ps = ..\Content\Effects\diffuse.ps
-		..\Content\Effects\diffuse.vs = ..\Content\Effects\diffuse.vs
-		..\Content\Effects\Jamfile.jam = ..\Content\Effects\Jamfile.jam
-		..\Content\Effects\showlightloc.fx = ..\Content\Effects\showlightloc.fx
-		..\Content\Effects\shownormals.fx = ..\Content\Effects\shownormals.fx
-		..\Content\Effects\texture.fx = ..\Content\Effects\texture.fx
-		..\Content\Effects\texture.ps = ..\Content\Effects\texture.ps
-		..\Content\Effects\texture.vs = ..\Content\Effects\texture.vs
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Materials", "Materials", "{A125B020-FAAF-4E6C-A4DE-2C9D89A7D3BE}"
 	ProjectSection(SolutionItems) = preProject
