@@ -56,22 +56,22 @@ DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
 
 struct CONSTANT_BUFFER_FRAME
 {
-	D3DXVECTOR3		sunDirection;
-	D3DXVECTOR3		sunColor;
-	D3DXVECTOR3		ambientColor;
-	D3DXMATRIX		projMatrix;
-	D3DXMATRIX		invProj;
+	D3DXVECTOR4		m_sunDirection;
+	D3DXVECTOR4		m_sunColor;
+	D3DXVECTOR4		m_ambientColor;
 };
 
-struct CONSTANT_BUFFFER_OBJECT
+struct CONSTANT_BUFFER_OBJECT
 {
-	D3DXMATRIX		worldViewMatrix;
-	D3DXMATRIX		viweMatrix;
-	D3DXMATRIX		invViewMatrix;
-	D3DXMATRIX		view3x3;
-	D3DXMATRIX		worldViewIT;
-	D3DXMATRIX		invWorldViewProj;
-	D3DXMATRIX		invViewProj;
+	D3DXMATRIX		m_worldViewMatrix;
+	D3DXMATRIX		m_viewMatrix;
+	D3DXMATRIX		m_projMatrix;
+	D3DXMATRIX		m_invViewMatrix;
+	D3DXMATRIX		m_view3x3;
+	D3DXMATRIX		m_worldViewIT;
+	D3DXMATRIX		m_invWorldViewProj;
+	D3DXMATRIX		m_invViewProj;
+	D3DXMATRIX		m_invProj;
 };
 
 struct RenderData
@@ -103,6 +103,9 @@ float			m_invTanHalfFOV = 0;
 bool			m_showNormals = false;
 bool			m_showLightLocs = false;
 
+ID3D11Buffer	*m_frameConstants = NULL;
+ID3D11Buffer	*m_objectConstants = NULL;
+
 struct QuadVert {
 	float	pos[3];
 	float	uv[2];
@@ -116,6 +119,7 @@ void	CreateDepthStencilTarget();
 void	CreateNormalTarget();
 void	CreateQuad();
 void	CreateRenderStates();
+void	CreateConstantBuffers();
 
 void	FillGBuffer();
 void	DoLighting();
@@ -658,6 +662,32 @@ void CreateRenderStates()
 
 // ****************************************************************************
 // ****************************************************************************
+void CreateConstantBuffers()
+{
+    D3D11_BUFFER_DESC bufferDesc;
+
+	// Create per-frame constant buffer
+	//memset(&bufferDesc,0,sizeof(bufferDesc));
+
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+	//bufferDesc.StructureByteStride = 0;
+
+    bufferDesc.ByteWidth = sizeof( CONSTANT_BUFFER_FRAME );
+    HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_frameConstants );
+	_ASSERT(hr == S_OK);
+
+    bufferDesc.ByteWidth = sizeof( CONSTANT_BUFFER_OBJECT );
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_objectConstants );
+	_ASSERT(hr == S_OK);
+
+}
+
+
+// ****************************************************************************
+// ****************************************************************************
 void InitializeRenderer(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISwapChain *swapChain)
 {
 	_ASSERT(dev != NULL);
@@ -676,6 +706,7 @@ void InitializeRenderer(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISw
 	LoadShapes();
 	CreateQuad();
 	CreateRenderStates();
+	CreateConstantBuffers();
 
 	// Set our viewport
 	D3D11_VIEWPORT vp;
