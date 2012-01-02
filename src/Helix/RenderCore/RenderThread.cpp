@@ -54,24 +54,28 @@ D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
 DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
 
-struct CONSTANT_BUFFER_FRAME
+struct VS_CONSTANT_BUFFER_FRAME
 {
-	D3DXVECTOR4		m_sunDirection;
-	D3DXVECTOR4		m_sunColor;
-	D3DXVECTOR4		m_ambientColor;
-};
-
-struct CONSTANT_BUFFER_OBJECT
-{
-	D3DXMATRIX		m_worldViewMatrix;
 	D3DXMATRIX		m_viewMatrix;
 	D3DXMATRIX		m_projMatrix;
 	D3DXMATRIX		m_invViewMatrix;
 	D3DXMATRIX		m_view3x3;
-	D3DXMATRIX		m_worldViewIT;
-	D3DXMATRIX		m_invWorldViewProj;
 	D3DXMATRIX		m_invViewProj;
 	D3DXMATRIX		m_invProj;
+};
+
+struct VS_CONSTANT_BUFFER_OBJECT
+{
+	D3DXMATRIX		m_worldViewMatrix;
+	D3DXMATRIX		m_worldViewIT;
+	D3DXMATRIX		m_invWorldViewProj;
+};
+
+struct PS_CONSTANT_BUFFER_FRAME
+{
+	D3DXVECTOR4		m_sunDirection;
+	D3DXVECTOR4		m_sunColor;
+	D3DXVECTOR4		m_ambientColor;
 };
 
 struct RenderData
@@ -103,8 +107,9 @@ float			m_invTanHalfFOV = 0;
 bool			m_showNormals = false;
 bool			m_showLightLocs = false;
 
-ID3D11Buffer	*m_frameConstants = NULL;
-ID3D11Buffer	*m_objectConstants = NULL;
+ID3D11Buffer	*m_VSFrameConstants = NULL;
+ID3D11Buffer	*m_VSObjectConstants = NULL;
+ID3D11Buffer	*m_PSFrameConstants = NULL;
 
 struct QuadVert {
 	float	pos[3];
@@ -588,7 +593,7 @@ void CreateRenderStates()
 		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
 	}
 	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_GBufferBlendState);
-	_ASSERT(hr == S_OK);
+	_ASSERT( SUCCEEDED( hr ) );
 	
 	// Depth/stencil for creating GBuffer
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
@@ -614,7 +619,7 @@ void CreateRenderStates()
 
 	ID3D11DepthStencilState *depthStencilState = NULL;
 	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_GBufferDSState);
-	_ASSERT(hr == S_OK);
+	_ASSERT( SUCCEEDED( hr ) );
 
 	// Depth/stencil for light blending
 	memset(&blendStateDesc,0,sizeof(depthStencilStateDesc));
@@ -636,7 +641,7 @@ void CreateRenderStates()
 
 	depthStencilState = NULL;
 	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
-	_ASSERT(hr == S_OK);
+	_ASSERT( SUCCEEDED( hr ) );
 
 	// Create a blend state for light blending
 	memset(&blendStateDesc,0,sizeof(blendStateDesc));
@@ -656,7 +661,7 @@ void CreateRenderStates()
 	}
 
 	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
-	_ASSERT(hr == S_OK);
+	_ASSERT( SUCCEEDED( hr ) );
 
 }
 
@@ -675,13 +680,17 @@ void CreateConstantBuffers()
     bufferDesc.MiscFlags = 0;
 	//bufferDesc.StructureByteStride = 0;
 
-    bufferDesc.ByteWidth = sizeof( CONSTANT_BUFFER_FRAME );
-    HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_frameConstants );
-	_ASSERT(hr == S_OK);
+    bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_FRAME );
+    HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSFrameConstants );
+	_ASSERT( SUCCEEDED( hr ) );
 
-    bufferDesc.ByteWidth = sizeof( CONSTANT_BUFFER_OBJECT );
-	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_objectConstants );
-	_ASSERT(hr == S_OK);
+    bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_OBJECT );
+    hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSObjectConstants );
+	_ASSERT( SUCCEEDED( hr ) );
+
+    bufferDesc.ByteWidth = sizeof( PS_CONSTANT_BUFFER_FRAME );
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PSFrameConstants );
+	_ASSERT( SUCCEEDED( hr ) );
 
 }
 
@@ -700,6 +709,8 @@ void InitializeRenderer(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISw
 	HXInitializeShaders();
 	HXInitializeTextures();
 	HXInitializeMaterials();
+	MeshManager::Create();
+	InstanceManager::GetInstance();
 
 	CreateViews();
 	LoadLightShaders();
@@ -718,8 +729,6 @@ void InitializeRenderer(ID3D11Device* dev, ID3D11DeviceContext *context, IDXGISw
 	vp.MaxDepth = 1;
 	m_context->RSSetViewports(1, &vp);
 
-	MeshManager::Create();
-	InstanceManager::GetInstance();
 	InitializeLights();
 
 	// Initialize threading
@@ -1106,10 +1115,10 @@ void RenderAmbientLight()
 
 	// Set up constants
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	hr = m_context->Map(m_frameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT(hr == S_OK);
+	hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
 
-	CONSTANT_BUFFER_FRAME *cbFrame = reinterpret_cast<CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+	PS_CONSTANT_BUFFER_FRAME *cbFrame = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
 
 	// *************
 	// Setup ambient color
@@ -1309,166 +1318,191 @@ void RenderLights()
 // ****************************************************************************
 void SetMaterialParameters(HXMaterial *mat)
 {
-	//HXShader *shader = HXGetShaderByName(mat->m_shaderName);
-	//_ASSERT(shader != NULL);
+	HXShader *shader = HXGetShaderByName(mat->m_shaderName);
+	_ASSERT(shader != NULL);
 
-	//ID3DX11Effect *effect = shader->m_pEffect;
+	HXTexture *tex = HXGetTextureByName(mat->m_textureName);
 
-	//ID3DX11EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("textureImage")->AsShaderResource();
-
-	//HXTexture *tex = HXGetTextureByName(mat->m_textureName);
-
-	//if( tex != NULL)
-	//{
-	//	// Mesh that only uses render targets as input textures 
-	//	// may not have a texture 
-	//	ID3D11ShaderResourceView *textureRV = tex->m_shaderView;
-	//	HRESULT hr = shaderResource->SetResource(textureRV);
-	//	_ASSERT(SUCCEEDED(hr));
-	//}
+	if( tex != NULL)
+	{
+		// Mesh that only uses render targets as input textures 
+		// may not have a texture 
+		ID3D11ShaderResourceView *textureRV = tex->m_shaderView;
+		m_context->PSSetShaderResources(0, 1, &textureRV);
+	}
 }
 // ****************************************************************************
 // ****************************************************************************
 void FillGBuffer()
 {
-	//ID3D11Device *device = m_D3DDevice;
-	//_ASSERT(device);
-	//ID3D11DeviceContext *context = m_context;
+	// Reset our view
+	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
+	m_context->PSSetShaderResources( 0, 2, pSRV );
 
-	//// Reset our view
-	//ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
-	//context->PSSetShaderResources( 0, 2, pSRV );
+	//
+	// Clear the render targets
+	//
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
+	float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
+	float ClearDepth[1] = { 0.0f };
+	m_context->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
+	m_context->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
+	m_context->ClearRenderTargetView( m_RTView[DEPTH], ClearDepth) ;
+	m_context->ClearDepthStencilView( m_depthStencilDSView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//device->ClearRenderTargetView( m_backBufferView, ClearColor );
 
-	////
-	//// Clear the render targets
-	////
-	//float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-	//float ClearNormal[3] = { 0.0f, 0.0f, 0.0f };
-	//float ClearDepth[1] = { 0.0f };
-	//context->ClearRenderTargetView( m_RTView[ALBEDO], ClearColor );
-	//context->ClearRenderTargetView( m_RTView[NORMAL], ClearNormal );
-	//context->ClearRenderTargetView( m_RTView[DEPTH], ClearDepth) ;
-	//context->ClearDepthStencilView( m_depthStencilDSView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	////device->ClearRenderTargetView( m_backBufferView, ClearColor );
+	m_context->OMSetDepthStencilState(m_GBufferDSState,0);
+	FLOAT blendFactor[4] = {0,0,0,0};
+	m_context->OMSetBlendState(m_GBufferBlendState,blendFactor,0xffffffff);
 
-	//context->OMSetDepthStencilState(m_GBufferDSState,0);
-	//FLOAT blendFactor[4] = {0,0,0,0};
-	//context->OMSetBlendState(m_GBufferBlendState,blendFactor,0xffffffff);
+	// Set our render targets
+	m_context->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
+	//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
-	//// Set our render targets
-	//context->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
-	////device->OMSetRenderTargets(1,&m_backBufferView,NULL);
+	// Set our per frame VS constants
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_VSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
 
-	//// Setup camera parameters
-	//D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
-	//HXSetSharedParameter("Projection",projMat);
+	VS_CONSTANT_BUFFER_FRAME *vsFrameConstants = reinterpret_cast<VS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
 
-	//// Get the view matrix
-	//D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	//HXSetSharedParameter("View",viewMat);
+	// Setup camera parameters
+	D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
+	vsFrameConstants->m_projMatrix = projMat;
 
-	//// View inverse
-	//D3DXMATRIX invView;
-	//D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
-	//_ASSERT(invRet = &invView);
-	//HXSetSharedParameter("InvView",invView);
+	// Get the view matrix
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	vsFrameConstants->m_viewMatrix = viewMat;
 
-	//// TODO: Get the world matrix from the object.  
-	//// Use I for now
-	//D3DXMATRIX worldMat;
-	//D3DXMatrixIdentity(&worldMat);
+	// View inverse
+	D3DXMATRIX invView;
+	D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
+	_ASSERT(invRet = &invView);
+	vsFrameConstants->m_invViewMatrix = invView;
 
-	//// Calculate the WorldView matrix
-	//D3DXMATRIX worldView;
-	//D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	//HXSetSharedParameter("WorldView",worldView);
+	// Inverse view/proj
+	D3DXMATRIX viewProj;
+	D3DXMatrixMultiply(&viewProj,&viewMat,&projMat);
+	D3DXMATRIX invViewProj;
+	invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
+	_ASSERT(invRet == &invViewProj);
+	vsFrameConstants->m_invViewProj = invViewProj;
 
-	//D3DXMATRIX worldViewProj;
-	//D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
+	// Inverse projection
+	D3DXMATRIX invProj;
+	D3DXMatrixInverse(&invProj,NULL,&projMat);
+	_ASSERT(invRet = &invProj);
+	vsFrameConstants->m_invProj = invProj;
 
-	//D3DXMATRIX invWorldViewProj;
-	//invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
-	//_ASSERT(invRet == &invWorldViewProj);
+	// The upper 3x3 of the view matrx
+	// Used to transform directional lights
+	D3DXMATRIX view3x3 = viewMat;
+	view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
+	view3x3._44 = 1;
+	vsFrameConstants->m_view3x3 = view3x3;
 
-	//HXSetSharedParameter("InvWorldViewProj",invWorldViewProj);
+	// Done with per-frame VS constants
+	m_context->Unmap(m_VSFrameConstants, NULL);
 
-	//// Generate the inverse transpose of the WorldView matrix
-	//// We don't use any non uniform scaling, so we can just send down the 
-	//// upper 3x3 of the world view matrix
-	//D3DXMATRIX worldViewIT;
-	//worldViewIT = worldView;
-	//worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
-	//worldViewIT._44 = 1;
-	//D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
-	//invRet = D3DXMatrixInverse(&worldViewIT,NULL,&worldViewIT);
-	//_ASSERT(invRet == &worldViewIT);
+	// Set the per frame VS constants in slot 0
+	m_context->VSSetConstantBuffers(0, 1, &m_VSFrameConstants);
 
-	//HXSetSharedParameter("WorldViewIT",worldViewIT);
+	// Go through all of our render objects
+	RenderData *obj = m_submissionBuffers[m_renderIndex];
 
-	//// Inverse view/proj
-	//D3DXMATRIX viewProj;
-	//D3DXMatrixMultiply(&viewProj,&viewMat,&projMat);
-	//D3DXMATRIX invViewProj;
-	//invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
-	//_ASSERT(invRet == &invViewProj);
-	//HXSetSharedParameter("InvViewProj",invViewProj);
+	// Per object VS constants start at 1
+	int objectConstantSlot = 1;
+	while(obj)
+	{
+		// TODO: We only have a max of D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT (14) constant buffer
+		// slots.  This uses one constant buffer per object, however each constant buffer can hold up to 4096 
+		// constants.  Ideally, you'd pack a number of object constants enough to fill one constant buffer.
+		_ASSERT(objectConstantSlot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
+		hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		_ASSERT( SUCCEEDED( hr ) );
+		VS_CONSTANT_BUFFER_OBJECT *vsObjectConstants = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT*>(mappedResource.pData);
 
-	//// Inverse projection
-	//D3DXMATRIX invProj;
-	//D3DXMatrixInverse(&invProj,NULL,&projMat);
-	//_ASSERT(invRet = &invProj);
-	//HXSetSharedParameter("InvProj",invProj);
+		// TODO: Get the world matrix from the object.  
+		// Use I for now
+		D3DXMATRIX worldMat;
+		D3DXMatrixIdentity(&worldMat);
 
-	//// The upper 3x3 of the view matrx
-	//// Used to transform directional lights
-	//D3DXMATRIX view3x3 = viewMat;
-	//view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
-	//view3x3._44 = 1;
-	//HXSetSharedParameter("View3x3",view3x3);
+		// Calculate the WorldView matrix
+		D3DXMATRIX worldView;
+		D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+		vsObjectConstants->m_worldViewMatrix = worldView;
 
-	//// Go through all of our render objects
-	//RenderData *obj = m_submissionBuffers[m_renderIndex];
-	//if (obj == NULL)
-	//{
-	//	int a =1;
-	//}
-	//while(obj)
-	//{
-	//	// Set the parameters
-	//	HXMaterial *mat = HXGetMaterial(obj->materialName);
-	//	SetMaterialParameters(mat);
+		D3DXMATRIX worldViewProj;
+		D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
 
-	//	// Set our input assembly buffers
-	//	Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
-	//	HXShader *shader = HXGetShaderByName(mat->m_shaderName);
+		D3DXMATRIX invWorldViewProj;
+		invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
+		_ASSERT(invRet == &invWorldViewProj);
 
-	//	// Set the input layout 
-	//	context->IASetInputLayout(shader->m_decl->m_layout);
+		vsObjectConstants->m_invWorldViewProj = invWorldViewProj;
 
-	//	// Set our vertex/index buffers
-	//	unsigned int stride = shader->m_decl->m_vertexSize;
-	//	unsigned int offset = 0;
-	//	ID3D11Buffer *vb = mesh->GetVertexBuffer();
-	//	context->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-	//	context->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
+		// Generate the inverse transpose of the WorldView matrix
+		// We don't use any non uniform scaling, so we can just send down the 
+		// upper 3x3 of the world view matrix
+		D3DXMATRIX worldViewIT;
+		worldViewIT = worldView;
+		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
+		worldViewIT._44 = 1;
+		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
+		invRet = D3DXMatrixInverse(&worldViewIT,NULL,&worldViewIT);
+		_ASSERT(invRet == &worldViewIT);
 
-	//	// Set our prim type
-	//	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+		vsObjectConstants->m_worldViewIT = worldViewIT;
 
-	//	// Start rendering
-	//	ID3DX11Effect *effect = shader->m_pEffect;
-	//	D3D11_TECHNIQUE_DESC techDesc;
-	//	ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//	technique->GetDesc(&techDesc);
-	//	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//	{
-	//		technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//		context->DrawIndexed( mesh->NumIndices(), 0, 0 );
-	//	}
+		// Done with per-object VS constants
+		m_context->Unmap(m_VSObjectConstants, NULL);
 
-	//	// Next
-	//	obj=obj->next;
-	//}
+		// Set the per frame VS constants in slot 0
+		m_context->VSSetConstantBuffers(objectConstantSlot++, 1, &m_VSObjectConstants);
+
+		// Set the parameters
+		HXMaterial *mat = HXGetMaterial(obj->materialName);
+		SetMaterialParameters(mat);
+
+		// Set our input assembly buffers
+		Mesh *mesh = MeshManager::GetInstance().GetMesh(obj->meshName);
+		HXShader *shader = HXGetShaderByName(mat->m_shaderName);
+
+		// Set the input layout 
+		m_context->IASetInputLayout(shader->m_decl->m_layout);
+
+		// Set our vertex/index buffers
+		unsigned int stride = shader->m_decl->m_vertexSize;
+		unsigned int offset = 0;
+		ID3D11Buffer *vb = mesh->GetVertexBuffer();
+		m_context->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+		m_context->IASetIndexBuffer(mesh->GetIndexBuffer(),DXGI_FORMAT_R16_UINT,0);
+
+		// Set our prim type
+		m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+
+		// Set our shader
+		m_context->VSSetShader(shader->m_vshader, NULL, 0);
+		m_context->PSSetShader(shader->m_pshader, NULL, 0);
+		m_context->GSSetShader(NULL, NULL, 0);
+
+		// Draw
+		m_context->DrawIndexed( mesh->NumIndices(), 0, 0 );
+
+		// Start rendering
+		//ID3DX11Effect *effect = shader->m_pEffect;
+		//D3D11_TECHNIQUE_DESC techDesc;
+		//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+		//technique->GetDesc(&techDesc);
+		//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+		//{
+		//	technique->GetPassByIndex( passIndex )->Apply( 0 );
+		//	m_context->DrawIndexed( mesh->NumIndices(), 0, 0 );
+		//}
+
+		// Next
+		obj=obj->next;
+	}
 }
 
 // ****************************************************************************

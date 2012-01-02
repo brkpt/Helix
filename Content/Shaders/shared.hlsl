@@ -1,21 +1,25 @@
-cbuffer cbPerFrame 
+cbuffer VSPerFrameConstants
 {
-	float3	g_sunColor;
-	float3	g_sunDir;
-	float3	g_ambientColor;
-};
-
-cbuffer cbPerObject
-{
-	float4x3		g_mWorldView;
 	float4x4		g_mView;
 	float4x4		g_mProjection;
 	float4x4		g_mInvView;
 	float4x4		g_mView3x3;
-	float4x4		g_mViewWorldIT;
-	float4x4		g_mInvWorldViewProj;
 	float4x4		g_mInvViewProj;
 	float4x4		g_mInvProj;
+}
+
+cbuffer VSPerObjectConstants
+{
+	float4x3		g_mWorldView;
+	float4x4		g_mViewWorldIT;
+	float4x4		g_mInvWorldViewProj;
+};
+
+cbuffer PSPerFrameConstants
+{
+	float3	g_sunColor;
+	float3	g_sunDir;
+	float3	g_ambientColor;
 };
 
 

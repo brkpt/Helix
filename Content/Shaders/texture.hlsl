@@ -3,7 +3,7 @@
 
 #include "shared.hlsl"
 
-Texture2D	textureImage;
+Texture2D	textureImage : register(t0) ;
 
 struct TextureVS_in
 {
