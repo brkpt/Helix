@@ -40,17 +40,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scenes", "Scenes", "{494425
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{98F2CFEE-0AC3-4C02-9050-2A45057F3408}"
 	ProjectSection(SolutionItems) = preProject
+		..\Content\Shaders\ambient.hlsl = ..\Content\Shaders\ambient.hlsl
 		..\Content\Shaders\ambient.lua = ..\Content\Shaders\ambient.lua
+		..\Content\Shaders\diffuse.hlsl = ..\Content\Shaders\diffuse.hlsl
 		..\Content\Shaders\diffuse.lua = ..\Content\Shaders\diffuse.lua
+		..\Content\Shaders\dirlight.hlsl = ..\Content\Shaders\dirlight.hlsl
 		..\Content\Shaders\Jamfile.jam = ..\Content\Shaders\Jamfile.jam
+		..\Content\Shaders\lightsphere.hlsl = ..\Content\Shaders\lightsphere.hlsl
 		..\Content\Shaders\lightsphere.lua = ..\Content\Shaders\lightsphere.lua
+		..\Content\Shaders\pointlight.hlsl = ..\Content\Shaders\pointlight.hlsl
 		..\Content\Shaders\pointlight.lua = ..\Content\Shaders\pointlight.lua
 		..\Content\Shaders\pos3.lua = ..\Content\Shaders\pos3.lua
 		..\Content\Shaders\pos3_norm3_tex1.lua = ..\Content\Shaders\pos3_norm3_tex1.lua
 		..\Content\Shaders\pos3_tex1.lua = ..\Content\Shaders\pos3_tex1.lua
 		..\Content\Shaders\pos4_tex1.lua = ..\Content\Shaders\pos4_tex1.lua
+		..\Content\Shaders\shared.hlsl = ..\Content\Shaders\shared.hlsl
 		..\Content\Shaders\shared.lua = ..\Content\Shaders\shared.lua
+		..\Content\Shaders\showlightloc.hlsl = ..\Content\Shaders\showlightloc.hlsl
 		..\Content\Shaders\showlightloc.lua = ..\Content\Shaders\showlightloc.lua
+		..\Content\Shaders\shownormals.hlsl = ..\Content\Shaders\shownormals.hlsl
+		..\Content\Shaders\texture.hlsl = ..\Content\Shaders\texture.hlsl
 		..\Content\Shaders\texture.lua = ..\Content\Shaders\texture.lua
 	EndProjectSection
 EndProject
