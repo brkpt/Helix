@@ -24,12 +24,7 @@ struct QuadPS_in
 	float4 pos : SV_Position;
 };
 
-SamplerState texSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState texSampler : register(s0) ;
 	
 QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {

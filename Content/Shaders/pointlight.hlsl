@@ -27,26 +27,9 @@ struct QuadPS_in
 	float3 vEyeToScreen: TEXCOORD1;
 };
 
-SamplerState colorSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-SamplerState depthSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
-
-SamplerState normalSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState colorSampler : register(s0) ;
+SamplerState depthSampler : register(s1) ;
+SamplerState normalSampler : register(s2) ;
 
 QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {

@@ -16,12 +16,7 @@ struct QuadPS_in
 	float2 texuv : TEXCOORD0;
 };
 
-SamplerState texSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState texSampler : register(s0) ;
 	
 QuadPS_in ShowNormalsVS(QuadVS_in inVert)
 {

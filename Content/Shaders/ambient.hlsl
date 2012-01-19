@@ -16,12 +16,7 @@ struct AmbientPS_in
 	float2 texuv : TEXCOORD0;
 };
 
-SamplerState texSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState texSampler : register(s0) ;
 	
 AmbientPS_in AmbientVShader(AmbientVS_in inVert)
 {

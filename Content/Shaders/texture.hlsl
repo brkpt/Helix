@@ -27,12 +27,7 @@ struct TexturePS_out
 	float depth : SV_TARGET2;
 };
 
-SamplerState texSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState texSampler : register(s0) ;
 	
 TexturePS_in TextureVertexShader(TextureVS_in In)
 {

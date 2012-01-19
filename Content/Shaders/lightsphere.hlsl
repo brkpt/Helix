@@ -26,12 +26,7 @@ struct LightSpherePixel_in
 	//float3 vEyeToScreen: TEXCOORD0;
 };
 
-SamplerState texSampler
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState texSampler : register(s0) ;
 
 LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 {

@@ -111,6 +111,8 @@ ID3D11Buffer	*m_VSFrameConstants = NULL;
 ID3D11Buffer	*m_VSObjectConstants = NULL;
 ID3D11Buffer	*m_PSFrameConstants = NULL;
 
+ID3D11SamplerState	*m_basicSampler;
+
 struct QuadVert {
 	float	pos[3];
 	float	uv[2];
@@ -663,32 +665,52 @@ void CreateRenderStates()
 	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
 	_ASSERT( SUCCEEDED( hr ) );
 
+	// Create a SamplerState
+	//{
+	//	Filter = MIN_MAG_MIP_LINEAR;
+	//	AddressU = Wrap;
+	//	AddressV = Wrap;
+	//};
+
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR ;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = samplerDesc.BorderColor[1] = samplerDesc.BorderColor[2] = samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	hr = m_D3DDevice->CreateSamplerState(&samplerDesc,&m_basicSampler);
+	_ASSERT( SUCCEEDED( hr ) ) ;
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void CreateConstantBuffers()
 {
-    D3D11_BUFFER_DESC bufferDesc;
+	D3D11_BUFFER_DESC bufferDesc;
 
 	// Create per-frame constant buffer
 	//memset(&bufferDesc,0,sizeof(bufferDesc));
 
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDesc.MiscFlags = 0;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
 	//bufferDesc.StructureByteStride = 0;
 
-    bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_FRAME );
-    HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSFrameConstants );
+	bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_FRAME );
+	HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSFrameConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-    bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_OBJECT );
-    hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSObjectConstants );
+	bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_OBJECT );
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSObjectConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-    bufferDesc.ByteWidth = sizeof( PS_CONSTANT_BUFFER_FRAME );
+	bufferDesc.ByteWidth = sizeof( PS_CONSTANT_BUFFER_FRAME );
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PSFrameConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
@@ -1113,27 +1135,6 @@ void RenderAmbientLight()
 	// Set albedo texture as input
 	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
 
-	// Set up constants
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *cbFrame = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// *************
-	// Setup ambient color
-	// *************
-	D3DXVECTOR4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 0.0f;
-
-	// Make sure it is normalized
-	D3DXVec4Normalize(&vecData, &vecData);
-
-	cbFrame->m_ambientColor = vecData;
-	
 	// Set the input layout 
 	m_context->IASetInputLayout(shader->m_decl->m_layout);
 
@@ -1149,23 +1150,18 @@ void RenderAmbientLight()
 	// Set our states
 	m_context->RSSetState(m_RState);
 
-	//D3D11_TECHNIQUE_DESC techDesc;
-	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//technique->GetDesc(&techDesc);
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//	context->DrawIndexed( 4, 0, 0 );
-	//}
+	m_context->VSSetShader(shader->m_vshader,NULL, 0);
+	m_context->PSSetShader(shader->m_pshader,NULL, 0);
+	m_context->GSSetShader(NULL,NULL, 0);
+
+	m_context->DrawIndexed( 4, 0, 0 );
 
 	// Clear the inputs on the shader
-	//hr = albedoResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
+	//m_context->PSSetShaderResources(0, 1, NULL);
 
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//}
+	m_context->VSSetShader(NULL,NULL, 0);
+	m_context->GSSetShader(NULL,NULL, 0);
+	m_context->PSSetShader(NULL,NULL, 0);
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -1526,6 +1522,29 @@ void DoLighting()
 	FLOAT blendFactor[4] = {0,0,0,0};
 	context->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
 
+	// Set up constants
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
+
+	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+
+	// *************
+	// Setup ambient color
+	// *************
+	D3DXVECTOR4 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+	vecData.w = 0.0f;
+
+	// Make sure it is normalized
+	D3DXVec4Normalize(&vecData, &vecData);
+
+	PSFrameConstants->m_ambientColor = vecData;
+	m_context->Unmap(m_PSFrameConstants, 0);
+	m_context->PSSetConstantBuffers(0, 1, &m_PSFrameConstants);
+
 	// Render the scene with ambient into the backbuffer
 	RenderAmbientLight();
 
@@ -1552,6 +1571,11 @@ void RenderThreadFunc(void *data)
 
 		result = WaitForSingleObject(m_startRenderEvent,INFINITE);
 		_ASSERT(result == WAIT_OBJECT_0);
+
+		// Set our samplers
+		m_context->PSSetSamplers(0, 1, &m_basicSampler);
+		m_context->PSSetSamplers(1, 1, &m_basicSampler);
+		m_context->PSSetSamplers(2, 1, &m_basicSampler);
 
 		FillGBuffer();
 
