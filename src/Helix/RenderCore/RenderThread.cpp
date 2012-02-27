@@ -1369,17 +1369,17 @@ void FillGBuffer()
 
 	// Setup camera parameters
 	D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
-	vsFrameConstants->m_projMatrix = projMat;
+	D3DXMatrixTranspose(&vsFrameConstants->m_projMatrix, &projMat);
 
 	// Get the view matrix
 	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	vsFrameConstants->m_viewMatrix = viewMat;
+	D3DXMatrixTranspose(&vsFrameConstants->m_viewMatrix, &viewMat);
 
 	// View inverse
 	D3DXMATRIX invView;
 	D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
 	_ASSERT(invRet = &invView);
-	vsFrameConstants->m_invViewMatrix = invView;
+	D3DXMatrixTranspose(&vsFrameConstants->m_invViewMatrix, &invView);
 
 	// Inverse view/proj
 	D3DXMATRIX viewProj;
@@ -1387,20 +1387,20 @@ void FillGBuffer()
 	D3DXMATRIX invViewProj;
 	invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
 	_ASSERT(invRet == &invViewProj);
-	vsFrameConstants->m_invViewProj = invViewProj;
+	D3DXMatrixTranspose(&vsFrameConstants->m_invViewProj, &invViewProj);
 
 	// Inverse projection
 	D3DXMATRIX invProj;
 	D3DXMatrixInverse(&invProj,NULL,&projMat);
 	_ASSERT(invRet = &invProj);
-	vsFrameConstants->m_invProj = invProj;
+	D3DXMatrixTranspose(&vsFrameConstants->m_invProj, &invProj);
 
 	// The upper 3x3 of the view matrx
 	// Used to transform directional lights
 	D3DXMATRIX view3x3 = viewMat;
 	view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
 	view3x3._44 = 1;
-	vsFrameConstants->m_view3x3 = view3x3;
+	D3DXMatrixTranspose(&vsFrameConstants->m_view3x3, &view3x3);
 
 	// Done with per-frame VS constants
 	m_context->Unmap(m_VSFrameConstants, NULL);
@@ -1431,7 +1431,7 @@ void FillGBuffer()
 		// Calculate the WorldView matrix
 		D3DXMATRIX worldView;
 		D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-		vsObjectConstants->m_worldViewMatrix = worldView;
+		D3DXMatrixTranspose(&vsObjectConstants->m_worldViewMatrix, &worldView);
 
 		D3DXMATRIX worldViewProj;
 		D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
