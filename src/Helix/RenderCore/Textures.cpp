@@ -59,8 +59,7 @@ bool TextureLoad(HXTexture *tex, const std::string &filename)
 
 	tex->m_type = HXTexture::SHADER_VIEW;
 	ID3D11ShaderResourceView *pSRView = NULL;
-	//HRESULT hr = D3DX11CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &tex->m_shaderView, NULL );
-	HRESULT hr = S_OK;
+	HRESULT hr = D3DX11CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &tex->m_shaderView, NULL );
 	return SUCCEEDED(hr);
 }
 

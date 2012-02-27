@@ -35,8 +35,8 @@ TexturePS_in TextureVertexShader(TextureVS_in In)
 
 	Out.normal = In.normal;
 	Out.texuv = In.texuv;
-	float3 P = mul( float4(In.pos,1), g_mWorldView );
-	Out.pos = mul( float4(P,1), g_mProjection );
+	float4 P = mul( float4(In.pos,1), g_mWorldView );
+	Out.pos = mul( P, g_mProjection );
 	Out.depth.xy = Out.pos.zw;						// Send z and w separately to the pixel shader
 	return Out;
 }

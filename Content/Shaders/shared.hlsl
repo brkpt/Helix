@@ -1,25 +1,25 @@
-cbuffer VSPerFrameConstants
+cbuffer VSPerFrameConstants : register(b0)
 {
-	float4x4		g_mView;
-	float4x4		g_mProjection;
-	float4x4		g_mInvView;
-	float4x4		g_mView3x3;
-	float4x4		g_mInvViewProj;
-	float4x4		g_mInvProj;
+	matrix		g_mView			: packoffset(c0) ;
+	matrix		g_mProjection	: packoffset(c4) ;
+	matrix		g_mInvView		: packoffset(c8) ;
+	matrix		g_mView3x3		: packoffset(c12);
+	matrix		g_mInvViewProj	: packoffset(c16);
+	matrix		g_mInvProj		: packoffset(c20);
 }
 
-cbuffer VSPerObjectConstants
+cbuffer VSPerObjectConstants : register(b1)
 {
-	float4x3		g_mWorldView;
-	float4x4		g_mViewWorldIT;
-	float4x4		g_mInvWorldViewProj;
+	matrix		g_mWorldView			: packoffset(c0) ;
+	matrix		g_mViewWorldIT			: packoffset(c4) ;
+	matrix		g_mInvWorldViewProj		: packoffset(c8) ;
 };
 
-cbuffer PSPerFrameConstants
+cbuffer PSPerFrameConstants : register(b2)
 {
-	float3	g_sunColor;
-	float3	g_sunDir;
-	float3	g_ambientColor;
+	float3	g_sunColor		: packoffset(c0) ;
+	float3	g_sunDir		: packoffset(c4) ;
+	float3	g_ambientColor	: packoffset(c8) ;
 };
 
 

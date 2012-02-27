@@ -1152,7 +1152,9 @@ void RenderAmbientLight()
 
 	m_context->VSSetShader(shader->m_vshader,NULL, 0);
 	m_context->PSSetShader(shader->m_pshader,NULL, 0);
-	m_context->GSSetShader(NULL,NULL, 0);
+	m_context->GSSetShader(NULL, NULL, 0);
+	m_context->DSSetShader(NULL, NULL, 0);
+	m_context->HSSetShader(NULL, NULL, 0);
 
 	m_context->DrawIndexed( 4, 0, 0 );
 
@@ -1162,6 +1164,9 @@ void RenderAmbientLight()
 	m_context->VSSetShader(NULL,NULL, 0);
 	m_context->GSSetShader(NULL,NULL, 0);
 	m_context->PSSetShader(NULL,NULL, 0);
+	m_context->DSSetShader(NULL, NULL, 0);
+	m_context->HSSetShader(NULL, NULL, 0);
+
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -1454,7 +1459,7 @@ void FillGBuffer()
 		m_context->Unmap(m_VSObjectConstants, NULL);
 
 		// Set the per frame VS constants in slot 0
-		m_context->VSSetConstantBuffers(objectConstantSlot++, 1, &m_VSObjectConstants);
+		m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
 
 		// Set the parameters
 		HXMaterial *mat = HXGetMaterial(obj->materialName);
@@ -1481,6 +1486,8 @@ void FillGBuffer()
 		m_context->VSSetShader(shader->m_vshader, NULL, 0);
 		m_context->PSSetShader(shader->m_pshader, NULL, 0);
 		m_context->GSSetShader(NULL, NULL, 0);
+		m_context->DSSetShader(NULL, NULL, 0);
+		m_context->HSSetShader(NULL, NULL, 0);
 
 		// Draw
 		m_context->DrawIndexed( mesh->NumIndices(), 0, 0 );
