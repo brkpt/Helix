@@ -1549,8 +1549,10 @@ void DoLighting()
 	D3DXVec4Normalize(&vecData, &vecData);
 
 	PSFrameConstants->m_ambientColor = vecData;
+
+	// Send it to the hardware in slot 2
 	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(0, 1, &m_PSFrameConstants);
+	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
 
 	// Render the scene with ambient into the backbuffer
 	RenderAmbientLight();

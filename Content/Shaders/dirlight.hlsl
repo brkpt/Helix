@@ -34,7 +34,7 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float3 color = albedoTexture.Sample(texSampler,inVert.texuv);
 	
 	// Start with ambient
-	float3 outColor = color*g_ambientColor;
+	float3 outColor = color*g_ambientColor.xyz;
 	
 	// Get our pixel normal
 	float3 normal = normalTexture.Sample(texSampler,inVert.texuv);
@@ -44,14 +44,14 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	if(normLen > 0)
 	{
 		// Compare with sun vector
-		float3 sunVec = mul( float4(g_sunDir,1), g_mView3x3);
+		float3 sunVec = mul( float4(g_sunDir.xyz,1), g_mView3x3);
 		float dotProd = dot(normal,sunVec);
 
 		// Clamp (0..1)		
 		dotProd = clamp(dotProd,0, 1);
 		
 		// Add in color due to sunlight
-		float3 sunVal = color*g_sunColor*dotProd;
+		float3 sunVal = color*g_sunColor.xyz*dotProd;
 		
 		outColor = outColor + sunVal;
 	}

@@ -17,9 +17,9 @@ cbuffer VSPerObjectConstants : register(b1)
 
 cbuffer PSPerFrameConstants : register(b2)
 {
-	float3	g_sunColor		: packoffset(c0) ;
-	float3	g_sunDir		: packoffset(c4) ;
-	float3	g_ambientColor	: packoffset(c8) ;
+	float4	g_sunColor		: packoffset(c0) ;
+	float4	g_sunDir		: packoffset(c1) ;
+	float4	g_ambientColor	: packoffset(c2) ;
 };
 
 
