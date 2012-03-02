@@ -4,8 +4,39 @@
 // ****************************************************************************
 // Alignment macros
 // ****************************************************************************
-#define ALIGNUP(v,a)		((v) + ((a) - (v)%(a)))
+//#define ALIGNUP(v,a)		(((v) + ((a) - 1))%(a))
+#define ALIGNUP_16(v)		(((v) + 15) & 0xfffffff0)
 #define ALIGNUP_POW2(v,a)	((a) + (((v) - 1) & ~((a) - 1)))
+
+inline int AlignWithMask(int value, int alignment, int mask)
+{
+	return (value + (alignment - 1)) & mask;
+}
+
+template<int Alignment>
+inline int Align(int value)
+{
+	return AlignWithMask(value,0,0);
+}
+
+template<>
+inline int Align<4>(int value)
+{
+	return AlignWithMask(value, 4, 0xffffffc0);
+}
+
+template<>
+inline int Align<16>(int value)
+{
+	return AlignWithMask(value, 16, 0xfffffff0);
+}
+
+template<>
+inline int Align<32>(int value)
+{
+	return AlignWithMask(value, 32, 0xffffffe0);
+}
+
 
 // ****************************************************************************
 // Bit counting

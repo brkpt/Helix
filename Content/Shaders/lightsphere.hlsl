@@ -2,18 +2,22 @@
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 #include "shared.hlsl"
 
-float3		pointLoc;			// Point light location
-float3		pointColor;			// Point light color
-float		pointRadius;		// Point light radius
-float		cameraNear;
-float		cameraFar;
-float		imageWidth;
-float		imageHeight;
-float		viewAspect;
-float		invTanHalfFOV;
-Texture2D	albedoTexture;
-Texture2D	normalTexture;
-Texture2D	depthTexture;
+cbuffer PSPointLightConstants : register(b3)
+{
+	float4		pointLoc		: register(c0);		// Point light location
+	float4		pointColor		: register(c1);		// Point light color
+	float		pointRadius		: register(c2);		// Point light radius
+	float		cameraNear		: register(c3);
+	float		cameraFar		: register(c4);
+	float		imageWidth		: register(c5);
+	float		imageHeight		: register(c6);
+	float		viewAspect		: register(c7);
+	float		invTanHalfFOV	: register(c8);
+}
+
+Texture2D	albedoTexture :	register(t0) ;
+Texture2D	normalTexture :	register(t1) ;
+Texture2D	depthTexture  :	register(t2) ;
 
 struct LightSphereVertex_in
 {
@@ -43,7 +47,11 @@ LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 {
 	// Get z/w from texture
-	int3 samplePos = int3(int2(inVert.pos.xy), 0);
+	float3 texPos = int3(int2(inVert.pos.xy), 0);
+	float3 samplePos;
+	samplePos.x = texPos.x/imageWidth;
+	samplePos.y = texPos.y/imageHeight;
+	samplePos.z = 0.0;
 	float depth = depthTexture.Load(samplePos).x;
 	
 	// Convert our x,y back to NDC (inverse viewport transform)
@@ -72,7 +80,7 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float3 diffuse3 = (pointColor*dotVal)/distToLightSquared;
 	float4 diffuse4 = float4(diffuse3,1);
 	
-	float4 outColor = albedoColor4 * diffuse4;
+	float4 outColor = albedoColor4 + (albedoColor4*diffuse4);
 	
 	return outColor;
 }

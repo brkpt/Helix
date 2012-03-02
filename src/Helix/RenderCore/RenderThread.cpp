@@ -6,6 +6,7 @@
 #include "VDecls.h"
 #include "Light.h"
 #include "Materials.h"
+#include "Utility/bits.h"
 
 namespace Helix {
 
@@ -78,6 +79,19 @@ struct PS_CONSTANT_BUFFER_FRAME
 	D3DXVECTOR4		m_ambientColor;
 };
 
+struct PS_POINTLIGHT_CONSTANTS
+{
+	D3DXVECTOR4	m_pointLoc;
+	D3DXVECTOR4	m_pointColor;
+	float		m_pointRadius;
+	float		m_cameraNear;
+	float		m_cameraFar;
+	float		m_imageWidth;
+	float		m_imageHeight;
+	float		m_viewAspect;
+	float		m_invTanHalfFOV;
+};
+
 struct RenderData
 {
 	D3DXMATRIX		worldMatrix;
@@ -110,6 +124,7 @@ bool			m_showLightLocs = false;
 ID3D11Buffer	*m_VSFrameConstants = NULL;
 ID3D11Buffer	*m_VSObjectConstants = NULL;
 ID3D11Buffer	*m_PSFrameConstants = NULL;
+ID3D11Buffer	*m_PointLightConstants = NULL;
 
 ID3D11SamplerState	*m_basicSampler;
 
@@ -649,18 +664,18 @@ void CreateRenderStates()
 	memset(&blendStateDesc,0,sizeof(blendStateDesc));
 	memset(&blendStateDesc,0,sizeof(blendStateDesc));
 	blendStateDesc.AlphaToCoverageEnable = false;
-	blendStateDesc.IndependentBlendEnable = true;
-	for(int i=0;i<8;i++)
-	{
-		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
-		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
-		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_DEST_COLOR;
-		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
-		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-	}
+
+	// Only use the first target state.
+	blendStateDesc.IndependentBlendEnable = false;
+	
+	blendStateDesc.RenderTarget[0].BlendEnable = FALSE;
+	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
+	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
 
 	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
 	_ASSERT( SUCCEEDED( hr ) );
@@ -702,16 +717,20 @@ void CreateConstantBuffers()
 	bufferDesc.MiscFlags = 0;
 	//bufferDesc.StructureByteStride = 0;
 
-	bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_FRAME );
+	bufferDesc.ByteWidth = Align<16>(sizeof( VS_CONSTANT_BUFFER_FRAME ));
 	HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSFrameConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-	bufferDesc.ByteWidth = sizeof( VS_CONSTANT_BUFFER_OBJECT );
+	bufferDesc.ByteWidth = Align<16>(sizeof( VS_CONSTANT_BUFFER_OBJECT ));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSObjectConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-	bufferDesc.ByteWidth = sizeof( PS_CONSTANT_BUFFER_FRAME );
+	bufferDesc.ByteWidth = Align<16>(sizeof( PS_CONSTANT_BUFFER_FRAME ));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PSFrameConstants );
+	_ASSERT( SUCCEEDED( hr ) );
+
+	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PointLightConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
 }
@@ -1121,6 +1140,10 @@ void RenderSunlight()
 // ****************************************************************************
 void RenderAmbientLight()
 {
+	// Reset our view
+	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
+	m_context->PSSetShaderResources( 0, 3, pSRV );
+
 	// m_D3DDevice->CreateSamplerState();
 	// m_context->PSSetSamplers(slot, count, *);
 	// m_context->PSSetShaderResources(slot, count *);
@@ -1172,147 +1195,121 @@ void RenderAmbientLight()
 // ****************************************************************************
 void RenderPointLight(Light &light)
 {
-	//ID3D11Device *device = m_D3DDevice;
-	//ID3D11DeviceContext *context = m_context;
+	// Get the mesh/material/shader/effect
+	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
+	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
+	HXShader *shader = HXGetShaderByName(lightSphereMat->m_shaderName);
 
-	//// Get the mesh/material/shader/effect
-	//Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	//HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
-	//HXShader *shader = HXGetShaderByName(lightSphereMat->m_shaderName);
-	//ID3DX11Effect *effect = shader->m_pEffect;
+	D3DXVECTOR3 lightPos(light.point.m_position);
 
-	//// Albedo texture
-	//ID3DX11EffectShaderResourceVariable *albedoResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-	//_ASSERT(albedoResource != NULL);
-	//HRESULT hr = albedoResource->SetResource(m_SRView[ALBEDO]);
-	//_ASSERT( SUCCEEDED(hr) );
+	// Set pointlight parameters
+	// Set our per frame VS constants
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT(SUCCEEDED(hr)) ;
 
-	//// Normal texture
-	//ID3DX11EffectShaderResourceVariable *normalResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	//_ASSERT(normalResource != NULL);
-	//hr = normalResource->SetResource(m_SRView[NORMAL]);
-	//_ASSERT( SUCCEEDED(hr) );
+	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
 
-	//// Depth texture
-	//ID3DX11EffectShaderResourceVariable *depthResource= effect->GetVariableByName("depthTexture")->AsShaderResource();
-	//_ASSERT(depthResource != NULL);
-	//hr = depthResource->SetResource(m_SRView[DEPTH]);
-	//_ASSERT( SUCCEEDED(hr) );
+	plConstants->m_cameraNear = m_cameraNear;
+	plConstants->m_cameraFar = m_cameraFar;
+	plConstants->m_imageWidth = m_imageWidth;
+	plConstants->m_imageHeight = m_imageHeight;
+//	plConstants->m_fovY = m_fovY;
+	plConstants->m_viewAspect = m_viewAspect;
+	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+	plConstants->m_pointLoc = D3DXVECTOR4(lightPos.x, lightPos.y, lightPos.z, 1.0f);
+	plConstants->m_pointRadius = 5.0f;
 
-	//// Set common parameters
-	//ID3DX11EffectScalarVariable *scalarVar = effect->GetVariableByName("cameraNear")->AsScalar();
-	//hr = scalarVar->SetFloat(m_cameraNear);
+	// Color%
+	D3DXVECTOR4 vecData(light.m_color.r,light.m_color.g,light.m_color.b, 1.0f);
+	plConstants->m_pointColor = vecData;
 
-	//scalarVar = effect->GetVariableByName("cameraFar")->AsScalar();
-	//hr = scalarVar->SetFloat(m_cameraFar);
+	m_context->Unmap(m_PointLightConstants,0);
+	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
 
-	//scalarVar = effect->GetVariableByName("imageWidth")->AsScalar();
-	//hr = scalarVar->SetFloat(m_imageWidth);
+	// Setup a world matrix for the light position and size
+	D3DXMATRIX scaleMat,transMat, worldMat;
+	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
+	D3DXMatrixTranslation(&transMat,lightPos.x, lightPos.y, lightPos.z);
+	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
 
-	//scalarVar = effect->GetVariableByName("imageHeight")->AsScalar();
-	//hr = scalarVar->SetFloat(m_imageHeight);
+	// Set the world*view matrix for the point light
+	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	D3DXMATRIX worldView;
+	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
 
-	//scalarVar = effect->GetVariableByName("fovY")->AsScalar();
-	//hr = scalarVar->SetFloat(m_fovY);
+	hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT(SUCCEEDED(hr)) ;
+	
+	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	//scalarVar = effect->GetVariableByName("viewAspect")->AsScalar();
-	//hr = scalarVar->SetFloat(m_viewAspect);
+	D3DXMatrixTranspose(&objConst->m_worldViewMatrix, &worldView);
+	m_context->Unmap(m_VSObjectConstants, 0);
 
-	//scalarVar = effect->GetVariableByName("invTanHalfFOV")->AsScalar();
-	//hr = scalarVar->SetFloat(m_invTanHalfFOV);
+	m_context->PSSetConstantBuffers(1, 1, &m_VSObjectConstants);
 
-	//// Setup a world matrix for the light position and size
-	//D3DXMATRIX scaleMat,transMat, worldMat;
-	//D3DXVECTOR3 lightPos(light.point.m_position);
-	//D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
-	//D3DXMatrixTranslation(&transMat,lightPos.x, lightPos.y, lightPos.z);
-	//D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+	// Set the input layout 
+	m_context->IASetInputLayout(shader->m_decl->m_layout);
 
-	//// Set the world*view matrix for the point light
-	//D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	//D3DXMATRIX worldView;
-	//D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-	//HXSetSharedParameter("WorldView",worldView);
+	// Set our IB/VB
+	unsigned int stride = shader->m_decl->m_vertexSize;
+	unsigned int offset = 0;
+	ID3D11Buffer *vb = lightSphere->GetVertexBuffer();
+	ID3D11Buffer *ib = lightSphere->GetIndexBuffer();
+	m_context->IASetVertexBuffers(0,1,&vb,&stride,&offset);
+	m_context->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
 
-	//// Position
-	//ID3DX11EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
-	//_ASSERT( vecVar != NULL);
-	//vecVar->SetFloatVector(lightPos);
+	// Set our prim type
+	m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-	//// Color
-	//D3DXVECTOR3 vecData(light.m_color.a,light.m_color.g,light.m_color.b);
-	//vecVar = effect->GetVariableByName("pointColor")->AsVector();
-	//_ASSERT( vecVar != NULL);
-	//vecVar->SetFloatVector(vecData);
+	// Set our states
+	m_context->RSSetState(m_RState);
 
-	//// Radius
-	//scalarVar = effect->GetVariableByName("pointRadius")->AsScalar();
-	//hr = scalarVar->SetFloat(5.0f);
+	// Set the shaders
+	m_context->VSSetShader(shader->m_vshader,NULL, 0);
+	m_context->PSSetShader(shader->m_pshader,NULL, 0);
+	m_context->HSSetShader(NULL, NULL, 0);
+	m_context->GSSetShader(NULL, NULL, 0);
+	m_context->DSSetShader(NULL, NULL, 0);
 
-	//// Set the input layout 
-	//context->IASetInputLayout(shader->m_decl->m_layout);
-
-	//// Set our IB/VB
-	//unsigned int stride = shader->m_decl->m_vertexSize;
-	//unsigned int offset = 0;
-	//ID3D11Buffer *vb = lightSphere->GetVertexBuffer();
-	//ID3D11Buffer *ib = lightSphere->GetIndexBuffer();
-	//context->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-	//context->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
-
-	//// Set our prim type
-	//context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-	//// Set our states
-	//context->RSSetState(m_RState);
-
-	//D3D11_TECHNIQUE_DESC techDesc;
-	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//technique->GetDesc(&techDesc);
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//	context->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
-	//}
-
-	//// Clear the inputs on the shader
-	//hr = albedoResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
-
-	//hr = normalResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
-
-	//hr = depthResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
-
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//}
+	// Draw
+	m_context->DrawIndexed(lightSphere->NumIndices(), 0, 0);
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void RenderLights()
 {
-	//ID3D11Device *device = m_D3DDevice;
-	//ID3D11DeviceContext *context = m_context;
+	// Reset our view
+	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
+	m_context->PSSetShaderResources( 0, 3, pSRV );
 
-	//// Set our textures as inputs
-	//// Go render all lights
-	//for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
-	//{
-	//	Light &light = m_renderLights[iLightIndex];
+	// Set our textures as inputs
+	// Albedo texture
+	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
 
-	//	switch(light.m_type)
-	//	{
-	//		case Light::POINT: 
-	//			RenderPointLight(light);
-	//			break;
-	//	}
+	// Normal texture
+	m_context->PSSetShaderResources(1, 1, &m_SRView[NORMAL]);
 
-	//}
+	// Depth texture
+	m_context->PSSetShaderResources(2, 1, &m_SRView[DEPTH]);
 
+	// Go render all lights
+	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
+	{
+		Light &light = m_renderLights[iLightIndex];
+
+		switch(light.m_type)
+		{
+			case Light::POINT: 
+				RenderPointLight(light);
+				break;
+		}
+
+	}
+
+	// Reset our view
+	m_context->PSSetShaderResources( 0, 3, pSRV );
 }
 
 // ****************************************************************************
@@ -1405,8 +1402,11 @@ void FillGBuffer()
 	// Done with per-frame VS constants
 	m_context->Unmap(m_VSFrameConstants, NULL);
 
-	// Set the per frame VS constants in slot 0
+	// Set the per frame constants in slot 0 of the vertex shader
 	m_context->VSSetConstantBuffers(0, 1, &m_VSFrameConstants);
+
+	// Set the per frame constants in slot 0 of the pixel shader
+	m_context->PSSetConstantBuffers(0, 1, &m_VSFrameConstants);
 
 	// Go through all of our render objects
 	RenderData *obj = m_submissionBuffers[m_renderIndex];
