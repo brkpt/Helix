@@ -17,4 +17,5 @@ src/ipch/
 *.PIXRun
 *.sdf
 *.opensdf
+*.swp
 
