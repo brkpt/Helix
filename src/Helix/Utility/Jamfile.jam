@@ -1,0 +1,20 @@
+SubDir TOP src Helix Utility ;
+
+SRCS = 
+	bits.h
+	lookup3.c
+	pstdint.h
+	Timer.cpp
+	Timer.h
+	Container/Array.h
+	Container/Array.inl
+	Container/ElementTraits.h
+	Memory/FixedAlloc.h
+	Memory/HeapAlloc.h
+	String/SimpleString.h
+	String/String.cpp
+	String.String.h
+;
+
+C.Library Utility : $(SRCS) ;
+

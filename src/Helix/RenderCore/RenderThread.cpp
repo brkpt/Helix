@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <process.h>
 #include <crtdbg.h>
 #include "RenderThread.h"
@@ -48,7 +47,8 @@ ID3D11Buffer *				m_quadIB = NULL;
 ID3D11RasterizerState *		m_RState = NULL;
 ID3D11BlendState *			m_GBufferBlendState = NULL;
 ID3D11DepthStencilState *	m_GBufferDSState = NULL;
-ID3D11BlendState *			m_lightingBlendState = NULL;
+ID3D11BlendState *			m_ambientBlendState = NULL;
+ID3D11BlendState *			m_pointLightBlendState = NULL;
 ID3D11DepthStencilState *	m_lightingDSState = NULL;
 
 D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
@@ -660,24 +660,65 @@ void CreateRenderStates()
 	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
 	_ASSERT( SUCCEEDED( hr ) );
 
-	// Create a blend state for light blending
-	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	// Create a blend state for ambient light blending
 	memset(&blendStateDesc,0,sizeof(blendStateDesc));
 	blendStateDesc.AlphaToCoverageEnable = false;
 
 	// Only use the first target state.
-	blendStateDesc.IndependentBlendEnable = false;
+	blendStateDesc.IndependentBlendEnable = TRUE;
 	
-	blendStateDesc.RenderTarget[0].BlendEnable = FALSE;
+	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
 	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
-	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
 	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
 
-	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
+	for(int i=1;i<8;i++)
+	{
+		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
+		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
+		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	}
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_ambientBlendState);
+	_ASSERT( SUCCEEDED( hr ) );
+
+	// Create a blend state for ambient light blending
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+
+	// Only use the first target state.
+	blendStateDesc.IndependentBlendEnable = TRUE;
+	
+	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
+	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+
+	for(int i=1;i<8;i++)
+	{
+		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
+		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
+		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	}
+
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_pointLightBlendState);
 	_ASSERT( SUCCEEDED( hr ) );
 
 	// Create a SamplerState
@@ -1144,13 +1185,33 @@ void RenderAmbientLight()
 	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
 	m_context->PSSetShaderResources( 0, 3, pSRV );
 
-	// m_D3DDevice->CreateSamplerState();
-	// m_context->PSSetSamplers(slot, count, *);
-	// m_context->PSSetShaderResources(slot, count *);
+	FLOAT blendFactor[4] = {0,0,0,0};
+	m_context->OMSetBlendState(m_ambientBlendState,blendFactor,0xffffffff);
 
-	HRESULT hr = E_FAIL;
-	//ID3D11Device *device = m_D3DDevice;
-	//ID3D11DeviceContext *context = m_context;
+	// Set up constants
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
+
+	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+
+	// *************
+	// Setup ambient color
+	// *************
+	D3DXVECTOR4 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+	vecData.w = 0.0f;
+
+	// Make sure it is normalized
+	D3DXVec4Normalize(&vecData, &vecData);
+
+	PSFrameConstants->m_ambientColor = vecData;
+
+	// Send it to the hardware in slot 2
+	m_context->Unmap(m_PSFrameConstants, 0);
+	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
 
 	// Set our textures as inputs
 	HXShader *shader = HXGetShaderByName(m_ambientMat->m_shaderName);
@@ -1195,6 +1256,9 @@ void RenderAmbientLight()
 // ****************************************************************************
 void RenderPointLight(Light &light)
 {
+	FLOAT blendFactor[4] = {0,0,0,0};
+	m_context->OMSetBlendState(m_pointLightBlendState,blendFactor,0xffffffff);
+
 	// Get the mesh/material/shader/effect
 	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
 	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
@@ -1524,35 +1588,7 @@ void DoLighting()
 
 	// Switch to final backbuffer/depth/stencil
 	context->OMSetRenderTargets(1,&m_backBufferView, m_depthStencilDSView/*m_backDepthStencilView*/);
-
 	context->OMSetDepthStencilState(m_lightingDSState,0);
-	FLOAT blendFactor[4] = {0,0,0,0};
-	context->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
-
-	// Set up constants
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// *************
-	// Setup ambient color
-	// *************
-	D3DXVECTOR4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 0.0f;
-
-	// Make sure it is normalized
-	D3DXVec4Normalize(&vecData, &vecData);
-
-	PSFrameConstants->m_ambientColor = vecData;
-
-	// Send it to the hardware in slot 2
-	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
 
 	// Render the scene with ambient into the backbuffer
 	RenderAmbientLight();

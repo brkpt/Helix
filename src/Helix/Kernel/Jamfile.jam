@@ -1,0 +1,19 @@
+SubDir TOP src Helix Kernel ;
+
+SRCS = 
+	Callback.h
+	Helix.cpp
+	Helix.h
+	RefCount.h
+	resource.h
+	KernelPCH.cpp
+	KernelPCH.h
+	Win32DX10.cpp
+	Win32DX10.h
+;
+
+C.IncludeDirectories Kernel : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
+C.UseDirectX Kernel ;
+C.PrecompiledHeader Kernel : KernelPCH : $(SRCS) ;
+C.Library Kernel : $(SRCS) ;
+

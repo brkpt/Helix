@@ -1,6 +1,5 @@
 // ****************************************************************************
 // ****************************************************************************
-#include "stdafx.h"
 #include "Win32DX10.h"
 #include "RenderCore/RenderThread.h"
 #include "RenderCore/RenderMgr.h"

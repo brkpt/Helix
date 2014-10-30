@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <process.h>
 #include "Kernel/Callback.h"
 #include "ThreadLoad.h"

@@ -1,4 +1,4 @@
-SubDir Content Scenes ;
+SubDir TOP Content Scenes ;
 
 IncludeModule CopyFile ;
 
@@ -8,7 +8,7 @@ IncludeModule CopyFile ;
 		holodeck
 		;
 	
-	local targetDir = $(AppRoot)Build/Scenes ;
+	local targetDir = $(IMAGEDIR)/Scenes ;
 	Depends content : scenes ;
 	
 	for dir in $(sceneDirs)

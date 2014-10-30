@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Helix.h"
 #include "RenderCore/Materials.h"
 #include "RenderCore/Shaders.h"

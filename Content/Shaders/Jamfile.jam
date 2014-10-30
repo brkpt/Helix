@@ -1,4 +1,4 @@
-SubDir Content Shaders ;
+SubDir TOP Content Shaders ;
 
 IncludeModule CopyFile ;
 
@@ -29,7 +29,7 @@ IncludeModule CopyFile ;
 		;
 		
 	local sources = [ FGristFiles $(SHADER_FILES) ] ;
-	local targetDir = $(AppRoot)Build/Shaders ;
+	local targetDir = $(IMAGEDIR)/Shaders ;
 	Depends content : shaders ;
 	
 	for src in $(sources)

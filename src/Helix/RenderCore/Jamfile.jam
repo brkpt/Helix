@@ -1,0 +1,34 @@
+SubDir TOP src Helix RenderCore ;
+
+SRCS = 
+	Instance.cpp
+	Instance.h
+	InstanceManager.cpp
+	InstanceManager.h
+	Light.cpp
+	Light.h
+	Materials.cpp
+	Materials.h
+	Mesh.cpp
+	Mesh.h
+	MeshManager.cpp
+	MeshManager.h
+	RenderMgr.h
+	RenderThread.cpp
+	RenderThread.h
+	SceneLoader.cpp
+	SceneLoader.h
+	Shaders.cpp
+	Shaders.h
+	RenderCorePCH.cpp
+	RenderCorePCH.h
+	Textures.cpp
+	Textures.h
+	VDecls.cpp
+	VDecls.h
+;
+
+C.IncludeDirectories RenderCore : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
+C.UseDirectX RenderCore ;
+C.PrecompiledHeader RenderCore : RenderCorePCH : $(SRCS) ;
+C.Library RenderCore : $(SRCS) ;

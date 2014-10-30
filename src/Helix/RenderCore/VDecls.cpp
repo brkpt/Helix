@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <D3D10Effect.h>
 #include "VDecls.h"
 #include "RenderMgr.h"

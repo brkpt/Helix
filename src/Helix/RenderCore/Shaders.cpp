@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Shaders.h"
 #include "RenderMgr.h"
 #include "ThreadLoad/ThreadLoad.h"

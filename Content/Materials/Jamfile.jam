@@ -1,4 +1,4 @@
-SubDir Content Materials ;
+SubDir TOP Content Materials ;
 
 IncludeModule CopyFile ;
 
@@ -19,7 +19,7 @@ IncludeModule CopyFile ;
 		;
 		
 	local sources = [ FGristFiles $(MATERIAL_FILES) ] ;
-	local targetDir = $(AppRoot)Build/Materials ;
+	local targetDir = $(IMAGEDIR)/Materials ;
 	Depends content : materials ;
 	
 	for src in $(sources)

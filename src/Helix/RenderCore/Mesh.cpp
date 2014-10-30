@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "VDecls.h"
 #include "RenderMgr.h"
 #include "Materials.h"

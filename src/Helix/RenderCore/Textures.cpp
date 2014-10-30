@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Textures.h"
 #include "RenderMgr.h"
 

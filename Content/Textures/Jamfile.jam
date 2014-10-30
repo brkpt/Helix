@@ -1,4 +1,4 @@
-SubDir Content Textures ;
+SubDir TOP Content Textures ;
 
 IncludeModule CopyFile ;
 
@@ -11,7 +11,7 @@ IncludeModule CopyFile ;
 		;
 		
 	local sources = [ FGristFiles $(TEXTURE_FILES) ] ;
-	local targetDir = $(AppRoot)Build/Textures ;
+	local targetDir = $(IMAGEDIR)/Textures ;
 	Depends content : textures ;
 	
 	for src in $(sources)

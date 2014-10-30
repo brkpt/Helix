@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Materials.h"
 
 typedef std::map<const std::string, HXMaterial *>	MaterialMap;

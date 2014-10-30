@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include <time.h>
 #include "LightManager.h"
 #include "RenderCore/Light.h"
@@ -109,9 +108,12 @@ void LightManager::CreateNewLights()
 			pos.z = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
 			
 			D3DXCOLOR &color = m_lightColors[m_numLights];
-			color.r = static_cast<float>(rand())/32767.0f;
-			color.g = static_cast<float>(rand())/32767.0f;
-			color.b = static_cast<float>(rand())/32767.0f;
+			color.r = 1.0f;
+			color.g = 0.0f;
+			color.b = 0.0f;
+			//color.r = static_cast<float>(rand())/32767.0f;
+			//color.g = static_cast<float>(rand())/32767.0f;
+			//color.b = static_cast<float>(rand())/32767.0f;
 
 			m_numLights++;
 		}

@@ -1,8 +1,8 @@
-SubDir Content ;
+SubDir TOP Content ;
 
 #SubInclude Content Effects ;
-SubInclude Content Materials ;
-SubInclude Content Meshes ;
-SubInclude Content Scenes ;
-SubInclude Content Shaders ;
-SubInclude Content Textures ;
+SubInclude TOP Content Materials ;
+SubInclude TOP Content Meshes ;
+SubInclude TOP Content Scenes ;
+SubInclude TOP Content Shaders ;
+SubInclude TOP Content Textures ;

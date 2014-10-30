@@ -1,4 +1,4 @@
-SubDir Content Meshes ;
+SubDir TOP Content Meshes ;
 
 IncludeModule CopyFile ;
 
@@ -11,7 +11,7 @@ IncludeModule CopyFile ;
 		;
 		
 	local sources = [ FGristFiles $(MESH_FILES) ] ;
-	local targetDir = $(AppRoot)Build/Meshes ;
+	local targetDir = $(IMAGEDIR)/Meshes ;
 	Depends content : meshes ;
 	
 	for src in $(sources)

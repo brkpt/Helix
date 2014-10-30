@@ -1,3 +1,0 @@
-ALL_LOCATE_TARGET = c:/Projects/Win32DX9/temp-$(PLATFORM)-$(CONFIG) ;
-
-include c:/jamplus/bin/scripts/DumpJamTargetInfo.jam ;

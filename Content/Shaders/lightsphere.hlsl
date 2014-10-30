@@ -80,7 +80,7 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float3 diffuse3 = (pointColor*dotVal)/distToLightSquared;
 	float4 diffuse4 = float4(diffuse3,1);
 	
-	float4 outColor = albedoColor4 + (albedoColor4*diffuse4);
+	float4 outColor = albedoColor4*diffuse4;
 	
 	return outColor;
 }

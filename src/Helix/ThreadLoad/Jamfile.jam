@@ -1,0 +1,15 @@
+SubDir src Helix ThreadLoad ;
+
+SRCS = 
+	ThreadLoadPCH.cpp
+	ThreadLoadPCH.h
+	ThreadLoad.cpp
+	ThreadLoad.h
+	ThreadLoad.inl
+;
+
+C.IncludeDirectories ThreadLoad : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
+C.UseDirectX ThreadLoad ;
+C.PrecompiledHeader ThreadLoad : ThreadLoadPCH : $(SRCS) ;
+C.Library ThreadLoad : $(SRCS) ;
+

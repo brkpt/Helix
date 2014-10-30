@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Grid.h"
 #include "TheGame.h"
 #include "Camera.h"
