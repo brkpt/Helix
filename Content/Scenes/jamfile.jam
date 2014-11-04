@@ -19,6 +19,7 @@ IncludeModule CopyFile ;
 		#echo srcFile - $(srcFile) ;
 		local targetFile = $(dir:S=.lua) ;
 		CopyFile scenes : $(targetDir)/$(targetFile) : $(srcFile) ;
+		NotFile scenes ;
 	}
 
 }

@@ -13,7 +13,7 @@ SRCS =
 	Memory/HeapAlloc.h
 	String/SimpleString.h
 	String/String.cpp
-	String.String.h
+	String/String.h
 ;
 
 C.Library Utility : $(SRCS) ;

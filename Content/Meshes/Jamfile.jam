@@ -19,5 +19,6 @@ IncludeModule CopyFile ;
 		local srcFile = $(src:BS) ;
 		local targetFile = $(src:BS) ;
 		CopyFile meshes : $(targetDir)/$(src) : $(src) ;
+		NotFile meshes ;
 	}
 }

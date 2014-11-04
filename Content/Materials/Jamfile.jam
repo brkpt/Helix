@@ -27,5 +27,6 @@ IncludeModule CopyFile ;
 		local srcFile = $(src:BS) ;
 		local targetFile = $(src:BS) ;
 		CopyFile materials : $(targetDir)/$(src) : $(src) ;
+		NotFile materials ;
 	}
 }

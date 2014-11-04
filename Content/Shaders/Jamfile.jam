@@ -37,5 +37,6 @@ IncludeModule CopyFile ;
 		local srcFile = $(src:BS) ;
 		local targetFile = $(src:BS) ;
 		CopyFile shaders : $(targetDir)/$(src) : $(src) ;
+		NotFile shaders ;
 	}
 }
