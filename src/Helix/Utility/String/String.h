@@ -1537,39 +1537,27 @@ public:
 	StringT( const XCHAR* pszSrc ) :
 		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
-		if( !CheckImplicitLoad( pszSrc ) )
-		{
-			// nDestLength is in XCHARs
-			*this = pszSrc;
-		}
+		// nDestLength is in XCHARs
+		*this = pszSrc;
 	}
 
 	StringT( LPCSTR pszSrc, StringManagerBase* pStringMgr ) :
 		ThisSimpleString( pStringMgr )
 	{
-		if( !CheckImplicitLoad( pszSrc ) )
-		{
-			// nDestLength is in XCHARs
-			*this = pszSrc;
-		}
+		// nDestLength is in XCHARs
+		*this = pszSrc;
 	}
 
 	explicit StringT( const YCHAR* pszSrc ) :
 		ThisSimpleString( StringTraits::GetDefaultManager() )
 	{
-		if( !CheckImplicitLoad( pszSrc ) )
-		{
-			*this = pszSrc;
-		}
+		*this = pszSrc;
 	}
 
 	StringT( LPCWSTR pszSrc, StringManagerBase* pStringMgr ) :
 		ThisSimpleString( pStringMgr )
 	{
-		if( !CheckImplicitLoad( pszSrc ) )
-		{
-			*this = pszSrc;
-		}
+		*this = pszSrc;
 	}
 
 	// This template will compile only for
@@ -1844,13 +1832,13 @@ public:
 
 	int Collate( PCXSTR psz ) const throw()
 	{
-		_ASSERT( AtlIsValidString( psz ) );
+		_ASSERT(  psz );
 		return( StringTraits::StringCollate( GetString(), psz ) );
 	}
 
 	int CollateNoCase( PCXSTR psz ) const throw()
 	{
-		_ASSERT( AtlIsValidString( psz ) );
+		_ASSERT( psz );
 		return( StringTraits::StringCollateIgnore( GetString(), psz ) );
 	}
 
@@ -2149,7 +2137,7 @@ public:
 	{
 		// iStart is in XCHARs
 		_ASSERT( iStart >= 0 );
-		_ASSERT( AtlIsValidString( pszSub ) );
+		_ASSERT( pszSub );
 
 		if(pszSub == NULL)
 		{
@@ -2172,7 +2160,7 @@ public:
 	// Find the first occurrence of any of the characters in string 'pszCharSet'
 	int FindOneOf( PCXSTR pszCharSet ) const throw()
 	{
-		_ASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( pszCharSet );
 		PCXSTR psz = StringTraits::StringScanSet( GetString(), pszCharSet );
 		return( (psz == NULL) ? -1 : int( psz-GetString() ) );
 	}
@@ -2529,7 +2517,7 @@ public:
 	// Return the substring consisting of the leftmost characters in the set 'pszCharSet'
 	StringT SpanIncluding( PCXSTR pszCharSet ) const
 	{
-		_ASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( pszCharSet );
 		if(pszCharSet == NULL)
 			_ASSERT(0)
 
@@ -2539,7 +2527,7 @@ public:
 	// Return the substring consisting of the leftmost characters not in the set 'pszCharSet'
 	StringT SpanExcluding( PCXSTR pszCharSet ) const
 	{
-		_ASSERT( AtlIsValidString( pszCharSet ) );
+		_ASSERT( pszCharSet );
 		if(pszCharSet == NULL)
 			_ASSERT(0);
 
@@ -2559,7 +2547,7 @@ public:
 	void __cdecl AppendFormat( PCXSTR pszFormat, ... );
 	void AppendFormatV( PCXSTR pszFormat, va_list args )
 	{
-		_ASSERT( AtlIsValidString( pszFormat ) );
+		_ASSERT( pszFormat );
 
 		int nCurrentLength = GetLength();
 		int nAppendLength = StringTraits::GetFormattedLength( pszFormat, args );
@@ -2848,7 +2836,7 @@ private:
 template< typename BaseType, class StringTraits >
 inline void __cdecl StringT<BaseType, StringTraits>::Format( PCXSTR pszFormat, ... )
 {
-	_ASSERT( AtlIsValidString( pszFormat ) );
+	_ASSERT( pszFormat );
 
 	va_list argList;
 	va_start( argList, pszFormat );
