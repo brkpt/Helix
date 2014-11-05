@@ -1,0 +1,14 @@
+SubDir TOP src Helix Math ;
+
+SRCS =
+	MathPCH.cpp
+	MathPCH.h
+	Vector.cpp
+	Vector.h
+;
+
+#C.IncludeDirectories Math : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
+#C.UseDirectX RenderCore ;
+C.PrecompiledHeader Math : MathPCH : $(SRCS) ;
+C.Library Math : $(SRCS) ;
+

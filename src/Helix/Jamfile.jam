@@ -5,5 +5,6 @@ SubInclude TOP src Helix Kernel ;
 SubInclude TOP src Helix RenderCore ;
 SubInclude TOP src Helix ThreadLoad ;
 SubInclude TOP src Helix Utility ;
+SubInclude TOP src Helix Math ;
 
 
