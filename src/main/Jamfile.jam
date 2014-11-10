@@ -18,7 +18,6 @@ SRCS =
 	WinInput.h
 ;
 
-echo AppRoot - $(AppRoot) ;
 C.IncludeDirectories DeferredShader : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
 C.LinkDirectories DeferredShader : $(LUAPLUS)/lib ;
 C.UseDirectX DeferredShader : link ;
