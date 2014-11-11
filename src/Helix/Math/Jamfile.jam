@@ -3,6 +3,9 @@ SubDir TOP src Helix Math ;
 SRCS =
 	MathPCH.cpp
 	MathPCH.h
+	MathDefs.h
+	Matrix.cpp
+	Matrix.h
 	Vector.cpp
 	Vector.h
 ;

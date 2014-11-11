@@ -138,6 +138,20 @@ Vector3 & Vector3::operator/=(const float scalar)
 	return *this;
 }
 
+// ****************************************************************************
+// Transform this vector by matrix
+// ****************************************************************************
+Vector3 Vector3::operator*(const Matrix3x3 & rhs) const
+{
+	Vector3 result;
+	result.x = x*rhs.r[0][0] + y*rhs.r[0][1] + z*rhs.r[0][2];
+	result.y = y*rhs.r[1][0] + y*rhs.r[1][1] + z*rhs.r[1][2];
+	result.z = z*rhs.r[2][0] + y*rhs.r[2][1] + z*rhs.r[2][2];
+	return result;
+}
+
+// ****************************************************************************
+// ****************************************************************************
 float Vector3::Dot(const Vector3 &v2) const
 {
 	float retVal = x*v2.x + y*v2.y + z*v2.z;

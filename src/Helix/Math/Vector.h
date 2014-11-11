@@ -1,8 +1,11 @@
 #ifndef HVECTOR_H 
 #define HVECTOR_H
 
+
 namespace Helix
 {
+class Matrix3x3;
+
 struct Vector3
 {
 	Vector3();
@@ -14,6 +17,7 @@ struct Vector3
 	static float	Dot(const Vector3 &v1, const Vector3 &v2);
 	Vector3			Cross(const Vector3 &v2) const;
 
+	// Vector operations
 	Vector3		operator+(const Vector3 &rhs) const;
 	Vector3		operator-(const Vector3 &rhs) const;
 	Vector3		operator*(const float scalar) const;
@@ -22,6 +26,9 @@ struct Vector3
 	Vector3 &	operator-=(const Vector3 &rhs);
 	Vector3 &	operator*=(const float scalar);
 	Vector3 &	operator/=(const float scalar);
+
+	// Vector transforms
+	Vector3 	operator*(const Matrix3x3 &rhs) const;
 
 	void Zero() { x = 0.f; y = 0.f; z = 0.f; }
 
