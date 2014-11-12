@@ -4,6 +4,8 @@
 #include "Vector.h"
 
 namespace Helix {
+
+// 3x3 Matrix
 class Matrix3x3
 {
 public:
@@ -11,21 +13,57 @@ public:
 	Matrix3x3(const Matrix3x3 &other);
 	Matrix3x3(const Vector3 &r1, const Vector3 &r2, const Vector3 &r3);
 
+	// Matrix setting
 	Matrix3x3 & SetIdentity();
 	Matrix3x3 &	SetTransformXRotation(float radians);
 	Matrix3x3 & SetTransformYRotation(float radians);
 	Matrix3x3 & SetTransformZRotation(float radians);
 
+	// Matrix concatenation
 	Matrix3x3		operator*(const Matrix3x3 &rhs);
-	Vector3			operator*(const Vector3 &rhs);
 
+	// Vector transform
+	Vector3			operator*(const Vector3 &rhs) const;
+
+	static const int	NUM_ELEMENTS = 9;
+	static const int	NUM_ROWS = 3;
+	static const int	NUM_COLS = 3;
 	union
 	{
-		float	e[9];
-		float	r[3][3];
+		float	e[NUM_ELEMENTS];
+		float	r[NUM_ROWS][NUM_COLS];
 	};
 };
 
+// 4x4 Matrix
+class Matrix4x4
+{
+public:
+	Matrix4x4();
+	Matrix4x4(const Matrix4x4 &other);
+	Matrix4x4(const Vector4 &r1, const Vector4 &r2, const Vector4 &r3, const Vector4 &r4);
+
+	// Matrix setting
+	Matrix4x4 & SetIdentity();
+	Matrix4x4 &	SetTransformXRotation(float radians);
+	Matrix4x4 & SetTransformYRotation(float radians);
+	Matrix4x4 & SetTransformZRotation(float radians);
+
+	// Matrix concatenation
+	Matrix4x4		operator*(const Matrix4x4 &rhs);
+
+	// Vector transform
+	Vector4			operator*(const Vector4 &rhs) const;
+
+	static const int	NUM_ELEMENTS = 12;
+	static const int	NUM_ROWS = 4;
+	static const int	NUM_COLS = 4;
+	union
+	{
+		float	e[12];
+		float	r[4][4];
+	};
+};
 } // namespace Helix
 
 #endif // MATRIX_H

@@ -27,9 +27,6 @@ struct Vector3
 	Vector3 &	operator*=(const float scalar);
 	Vector3 &	operator/=(const float scalar);
 
-	// Vector transforms
-	Vector3 	operator*(const Matrix3x3 &rhs) const;
-
 	void Zero() { x = 0.f; y = 0.f; z = 0.f; }
 
 	// statics
@@ -41,7 +38,12 @@ struct Vector4
 	Vector4();
 	Vector4(const float x, const float y, const float z, float w);
 	Vector4(const Vector4 &other);
-	Vector4(const float init[3]);
+	Vector4(const float init[4]);
+
+	float			Dot(const Vector4 &rhs) const;
+	static float	Dot(const Vector4 &v1, const Vector4 &v2);
+
+	// Operators
 	Vector4		operator+(const Vector4 &rhs) const;
 	Vector4		operator-(const Vector4 &rhs) const;
 	Vector4		operator*(const float scalar) const;

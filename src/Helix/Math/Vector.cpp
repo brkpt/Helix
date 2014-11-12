@@ -1,6 +1,7 @@
 #include "Vector.h"
 
 // ****************************************************************************
+// Global operators
 // ****************************************************************************
 Helix::Vector3 operator*(const float lhs, const Helix::Vector3 &rhs)
 {
@@ -14,8 +15,6 @@ Helix::Vector3 operator/(const float lhs, const Helix::Vector3 &rhs)
 	return result;
 }
 
-// ****************************************************************************
-// ****************************************************************************
 Helix::Vector4 operator*(const float lhs, const Helix::Vector4 &rhs)
 {
 	Helix::Vector4 result = rhs*lhs;
@@ -32,17 +31,18 @@ Helix::Vector4 operator/(const float lhs, const Helix::Vector4 &rhs)
 namespace Helix {
 
 // ****************************************************************************
+// Vector3
 // ****************************************************************************
 Vector3::Vector3()
-	: x(0.f)
-	, y(0.f)
-	, z(0.f)
+: x(0.f)
+, y(0.f)
+, z(0.f)
 {}
 
 Vector3::Vector3(const float _x, const float _y, const float _z)
-	: x(_x)
-	, y(_y)
-	, z(_z)
+: x(_x)
+, y(_y)
+, z(_z)
 {}
 
 Vector3::Vector3(const Vector3 &other)
@@ -59,6 +59,20 @@ Vector3::Vector3(const float *in)
 	z = in[2];
 }
 
+// ****************************************************************************
+// ****************************************************************************
+float Vector3::Dot(const Vector3 &v2) const
+{
+	float retVal = x*v2.x + y*v2.y + z*v2.z;
+	return retVal;
+}
+
+// Static C-style version that takes two vectors
+float Vector3::Dot(const Vector3 &v1, const Vector3 &v2)
+{
+	return v1.Dot(v2);
+}
+
 Vector3 Vector3::Cross(const Vector3 &other) const
 {
 	Vector3 result;
@@ -68,6 +82,8 @@ Vector3 Vector3::Cross(const Vector3 &other) const
 	return result;
 }
 
+// ****************************************************************************
+// ****************************************************************************
 Vector3 Vector3::operator+(const Vector3 &other) const
 {
 	Vector3 result;
@@ -139,44 +155,20 @@ Vector3 & Vector3::operator/=(const float scalar)
 }
 
 // ****************************************************************************
-// Transform this vector by matrix
-// ****************************************************************************
-Vector3 Vector3::operator*(const Matrix3x3 & rhs) const
-{
-	Vector3 result;
-	result.x = x*rhs.r[0][0] + y*rhs.r[0][1] + z*rhs.r[0][2];
-	result.y = y*rhs.r[1][0] + y*rhs.r[1][1] + z*rhs.r[1][2];
-	result.z = z*rhs.r[2][0] + y*rhs.r[2][1] + z*rhs.r[2][2];
-	return result;
-}
-
-// ****************************************************************************
-// ****************************************************************************
-float Vector3::Dot(const Vector3 &v2) const
-{
-	float retVal = x*v2.x + y*v2.y + z*v2.z;
-	return retVal;
-}
-
-float Vector3::Dot(const Vector3 &v1, const Vector3 &v2)
-{
-	return v1.Dot(v2);
-}
-
-// ****************************************************************************
+// Vector4
 // ****************************************************************************
 Vector4::Vector4()
-	: x(0.f)
-	, y(0.f)
-	, z(0.f)
-	, w(0.f)
+: x(0.f)
+, y(0.f)
+, z(0.f)
+, w(0.f)
 {}
 
 Vector4::Vector4(const float _x, const float _y, const float _z, const float _w)
-	: x(_x)
-	, y(_y)
-	, z(_z)
-	, w(_w)
+: x(_x)
+, y(_y)
+, z(_z)
+, w(_w)
 {}
 
 Vector4::Vector4(const Vector4 &other)
@@ -195,15 +187,29 @@ Vector4::Vector4(const float *in)
 	w = in[3];
 }
 
+// ****************************************************************************
+// ****************************************************************************
+float Vector4::Dot(const Vector4 &v2) const
+{
+	float result = x*v2.x + y*v2.y + z*v2.z + w*v2.w;
+	return result;
+}
+
+float Vector4::Dot(const Vector4 &v1, const Vector4 &v2)
+{
+	float result = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z + v1.w*v2.w;
+	return result;
+}
+
+// ****************************************************************************
+// ****************************************************************************
 Vector4 Vector4::operator+(const Vector4 &other) const
 {
 	Vector4 result;
-
 	result.x = x + other.x;
 	result.y = y + other.y;
 	result.z = z + other.z;
-	result.w = z + other.w;
-
+	result.w = w + other.w;
 	return result;
 }
 
@@ -233,7 +239,7 @@ Vector4 Vector4::operator/(const float scalar) const
 	result.x = x / scalar;
 	result.y = y / scalar;
 	result.z = z / scalar;
-	result.w = z / scalar;
+	result.w = w / scalar;
 	return result;
 }
 
