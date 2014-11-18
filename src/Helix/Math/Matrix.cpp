@@ -364,5 +364,36 @@ Vector4 Matrix4x4::operator*(const Vector4 & rhs) const
 	return result;
 }
 
+// ****************************************************************************
+// ****************************************************************************
+Matrix4x4 & Matrix4x4::SetProjectionFOV(float fovY, float aspect, float nearZ, float farZ)
+{
+	SetIdentity();
+	float yScale = 1.0f / tan(fovY / 2.0f);
+	float xScale = yScale / aspect;
 
+	r[0][0] = xScale;
+	r[1][1] = yScale;
+	r[2][2] = farZ / (farZ - nearZ);
+	r[2][3] = 1.0f;
+	r[3][2] = (-1.0f * farZ) / (farZ - nearZ);
+	r[3][3] = 0.0f;
+
+	return *this;
+}
+
+// ****************************************************************************
+// ***************************************************************************
+Matrix4x4 & Matrix4x4::SetProjection(float width, float height, float nearZ, float farZ)
+{
+	SetIdentity();
+	r[0][0] = 2.0f * nearZ / width;
+	r[1][1] = 2.0f * nearZ / height;
+	r[2][2] = farZ / (farZ - nearZ);
+	r[2][3] = 1.0f;
+	r[3][2] = (nearZ * farZ) / (nearZ - farZ);
+	r[3][3] = 0.0f;
+
+	return *this;
+}
 } // namespace Helix

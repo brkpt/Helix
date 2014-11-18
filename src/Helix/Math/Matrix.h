@@ -45,9 +45,15 @@ public:
 
 	// Matrix setting
 	Matrix4x4 & SetIdentity();
+
+	// Left handed rotations
 	Matrix4x4 &	SetTransformXRotation(float radians);
 	Matrix4x4 & SetTransformYRotation(float radians);
 	Matrix4x4 & SetTransformZRotation(float radians);
+
+	// Projection matrix - left handed (view down +z)
+	Matrix4x4 & SetProjection(float width, float height, float nearZ, float farZ);
+	Matrix4x4 & SetProjectionFOV(float fovY, float aspect, float nearZ, float farZ);
 
 	// Matrix concatenation
 	Matrix4x4		operator*(const Matrix4x4 &rhs);
