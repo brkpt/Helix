@@ -396,4 +396,16 @@ Matrix4x4 & Matrix4x4::SetProjection(float width, float height, float nearZ, flo
 
 	return *this;
 }
+// ****************************************************************************
+// ***************************************************************************
+Matrix4x4 & Matrix4x4::SetTranslation(float x, float y, float z)
+{
+	SetIdentity();
+	r[0][3] = x;
+	r[1][3] = y;
+	r[2][3] = z;
+
+	return *this;
+}
+
 } // namespace Helix

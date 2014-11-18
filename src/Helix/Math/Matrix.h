@@ -55,6 +55,9 @@ public:
 	Matrix4x4 & SetProjection(float width, float height, float nearZ, float farZ);
 	Matrix4x4 & SetProjectionFOV(float fovY, float aspect, float nearZ, float farZ);
 
+	// Translation matrix
+	Matrix4x4 & SetTranslation(float x, float y, float z);
+
 	// Matrix concatenation
 	Matrix4x4		operator*(const Matrix4x4 &rhs);
 
