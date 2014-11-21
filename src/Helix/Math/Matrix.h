@@ -64,7 +64,14 @@ public:
 	// Vector transform
 	Vector4			operator*(const Vector4 &rhs) const;
 
-	static const int	NUM_ELEMENTS = 12;
+	// Scale operation
+	void Scale(float factor);
+
+	// Determinant/Inversion
+	float	Determinant() const;
+	bool	Invert();
+
+	static const int	NUM_ELEMENTS = 16;
 	static const int	NUM_ROWS = 4;
 	static const int	NUM_COLS = 4;
 	union
