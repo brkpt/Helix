@@ -88,7 +88,7 @@ Matrix3x3 & Matrix3x3::SetIdentity()
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix3x3 & Matrix3x3::SetTransformXRotation(float radians)
+Matrix3x3 & Matrix3x3::SetXRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);
@@ -102,7 +102,7 @@ Matrix3x3 & Matrix3x3::SetTransformXRotation(float radians)
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix3x3 & Matrix3x3::SetTransformYRotation(float radians)
+Matrix3x3 & Matrix3x3::SetYRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);
@@ -116,7 +116,7 @@ Matrix3x3 & Matrix3x3::SetTransformYRotation(float radians)
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix3x3 & Matrix3x3::SetTransformZRotation(float radians)
+Matrix3x3 & Matrix3x3::SetZRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);
@@ -254,7 +254,7 @@ Matrix4x4 & Matrix4x4::SetIdentity()
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix4x4 & Matrix4x4::SetTransformXRotation(float radians)
+Matrix4x4 & Matrix4x4::SetXRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);
@@ -268,7 +268,7 @@ Matrix4x4 & Matrix4x4::SetTransformXRotation(float radians)
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix4x4 & Matrix4x4::SetTransformYRotation(float radians)
+Matrix4x4 & Matrix4x4::SetYRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);
@@ -282,7 +282,7 @@ Matrix4x4 & Matrix4x4::SetTransformYRotation(float radians)
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix4x4 & Matrix4x4::SetTransformZRotation(float radians)
+Matrix4x4 & Matrix4x4::SetZRotation(float radians)
 {
 	SetIdentity();
 	float cosTheta = cos(radians);

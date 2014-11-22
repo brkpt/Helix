@@ -15,9 +15,9 @@ public:
 
 	// Matrix setting
 	Matrix3x3 & SetIdentity();
-	Matrix3x3 &	SetTransformXRotation(float radians);
-	Matrix3x3 & SetTransformYRotation(float radians);
-	Matrix3x3 & SetTransformZRotation(float radians);
+	Matrix3x3 &	SetXRotation(float radians);
+	Matrix3x3 & SetYRotation(float radians);
+	Matrix3x3 & SetZRotation(float radians);
 
 	// Matrix concatenation
 	Matrix3x3		operator*(const Matrix3x3 &rhs);
@@ -47,9 +47,9 @@ public:
 	Matrix4x4 & SetIdentity();
 
 	// Left handed rotations
-	Matrix4x4 &	SetTransformXRotation(float radians);
-	Matrix4x4 & SetTransformYRotation(float radians);
-	Matrix4x4 & SetTransformZRotation(float radians);
+	Matrix4x4 &	SetXRotation(float radians);
+	Matrix4x4 & SetYRotation(float radians);
+	Matrix4x4 & SetZRotation(float radians);
 
 	// Projection matrix - left handed (view down +z)
 	Matrix4x4 & SetProjection(float width, float height, float nearZ, float farZ);
