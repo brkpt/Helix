@@ -36,7 +36,7 @@ struct Vector3
 struct Vector4
 {
 	Vector4();
-	Vector4(const float x, const float y, const float z, float w);
+	Vector4(const float x, const float y, const float z, float w=1.0f);
 	Vector4(const Vector4 &other);
 	Vector4(const float init[4]);
 
