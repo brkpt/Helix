@@ -57,6 +57,7 @@ public:
 
 	// Translation matrix
 	Matrix4x4 & SetTranslation(float x, float y, float z);
+	Matrix4x4 & SetTranslation(Vector4 &vec);
 
 	// Matrix concatenation
 	Matrix4x4		operator*(const Matrix4x4 &rhs);
