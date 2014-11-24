@@ -69,8 +69,10 @@ public:
 	void Scale(float factor);
 
 	// Determinant/Inversion
-	float	Determinant() const;
-	bool	Invert();
+	float		Determinant() const;
+	Matrix4x4 &	Cofactor(const Matrix4x4 &other);
+	bool		Invert();
+	Matrix4x4 &	Transpose();
 
 	static const int	NUM_ELEMENTS = 16;
 	static const int	NUM_ROWS = 4;
