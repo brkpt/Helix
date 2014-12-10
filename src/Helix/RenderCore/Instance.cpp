@@ -6,7 +6,7 @@ namespace Helix
 // ****************************************************************************
 Instance::Instance()
 {
-	D3DXMatrixIdentity(&m_worldMatrix);
+	m_worldMatrix.SetIdentity();
 }
 
 // ****************************************************************************

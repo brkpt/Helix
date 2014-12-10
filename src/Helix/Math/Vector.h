@@ -15,9 +15,14 @@ struct Vector3
 
 	float			Dot(const Vector3 &v2) const;
 	static float	Dot(const Vector3 &v1, const Vector3 &v2);
-	Vector3			Cross(const Vector3 &v2) const;
+
+	// Sets the vector to be the cross of the two given vectors
+	Vector3	&		Cross(const Vector3 &v1, const Vector3 &v2) ;
+	float			Length();
+	Vector3 &		Normalize();
 
 	// Vector operations
+	Vector3	&	operator=(const Vector3 &rhs);
 	Vector3		operator+(const Vector3 &rhs) const;
 	Vector3		operator-(const Vector3 &rhs) const;
 	Vector3		operator*(const float scalar) const;
@@ -42,8 +47,11 @@ struct Vector4
 
 	float			Dot(const Vector4 &rhs) const;
 	static float	Dot(const Vector4 &v1, const Vector4 &v2);
+	float			Length();
+	Vector4 &		Normalize();
 
 	// Operators
+	Vector4 &	operator=(const Vector4 &rhs);
 	Vector4		operator+(const Vector4 &rhs) const;
 	Vector4		operator-(const Vector4 &rhs) const;
 	Vector4		operator*(const float scalar) const;

@@ -22,7 +22,7 @@ public:
 
 private:
 
-	void	OrthoNormalization(D3DXMATRIX &mat);
+	void	OrthoNormalization(Helix::Matrix4x4 &mat);
 
 	Helix::Instance *	m_instance;
 	INT					m_iCurrentEffect;

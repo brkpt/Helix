@@ -32,9 +32,9 @@ private:
 
 	static const int NUM_LIGHTS = 100;
 	int				m_numLights;
-	D3DXVECTOR3		m_lightPositions[NUM_LIGHTS];
-	D3DXVECTOR3		m_lightVel[NUM_LIGHTS];
-	D3DXCOLOR		m_lightColors[NUM_LIGHTS];
+	Helix::Vector3	m_lightPositions[NUM_LIGHTS];
+	Helix::Vector3	m_lightVel[NUM_LIGHTS];
+	Helix::Color	m_lightColors[NUM_LIGHTS];
 	bool			m_lightKill[NUM_LIGHTS];
 
 	Helix::Timer	m_timer;

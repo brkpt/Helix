@@ -1,3 +1,4 @@
+#include "Math/MathDefs.h"
 #include "Camera.h"
 #include "TheGame.h"
 
@@ -5,24 +6,24 @@
 // ****************************************************************************
 Camera::Camera(void)
 {
-	D3DXMatrixIdentity(&m_worldMatrix);
-	m_position = D3DXVECTOR3(0.0f,0.0f,0.0f);
-	m_up = D3DXVECTOR3(0.0f,1.0f,0.0f);
-	m_focalPoint = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+	m_worldMatrix.SetIdentity();
+	m_position = Helix::Vector3(0.0f,0.0f,0.0f);
+	m_up = Helix::Vector3(0.0f,1.0f,0.0f);
+	m_focalPoint = Helix::Vector3(0.0f, 0.0f, 1.0f);
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void Camera::MoveForwardCameraRelative(const float &dist)
 {
-	D3DXVECTOR3 cameraDir;
-	cameraDir.x = m_worldMatrix.m[2][0];
-	cameraDir.y = m_worldMatrix.m[2][1];
-	cameraDir.z = m_worldMatrix.m[2][2];
+	Helix::Vector3 cameraDir;
+	cameraDir.x = m_worldMatrix.r[2][0];
+	cameraDir.y = m_worldMatrix.r[2][1];
+	cameraDir.z = m_worldMatrix.r[2][2];
 
-	D3DXMATRIX t;
-	D3DXMatrixTranslation(&t,cameraDir.x*dist,cameraDir.y*dist,cameraDir.z*dist);
-	D3DXMatrixMultiply(&m_worldMatrix,&m_worldMatrix,&t);
+	Helix::Matrix4x4 t;
+	t.SetTranslation(cameraDir.x*dist, cameraDir.y*dist, cameraDir.z*dist);
+	m_worldMatrix = m_worldMatrix * t;
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -40,13 +41,13 @@ void Camera::Update(void)
 	{
 		if(mouseState.mouseDeltaY != 0)
 		{
-			D3DXVECTOR3 t(0.0f, -1.0f, 0.0f);
+			Helix::Vector3 t(0.0f, -1.0f, 0.0f);
 			t.y = mouseState.mouseDeltaY * PIXELS_TO_DISTANCE;
 			Dolly(t);
 		}
 		if(mouseState.mouseDeltaX != 0)
 		{
-			D3DXVECTOR3 t(m_worldMatrix.m[0][0], m_worldMatrix.m[0][1], m_worldMatrix.m[0][2]);
+			Helix::Vector3 t(m_worldMatrix.r[0][0], m_worldMatrix.r[0][1], m_worldMatrix.r[0][2]);
 			t = t * mouseState.mouseDeltaX * PIXELS_TO_DISTANCE;
 			Dolly(t);
 		}
@@ -76,12 +77,12 @@ void Camera::Update(void)
 
 	if(game->KeyDown('w') || game->KeyDown('W'))
 	{
-		Dolly(D3DXVECTOR3(0.0f, 0.03f, 0.0f));
+		Dolly(Helix::Vector3(0.0f, 0.03f, 0.0f));
 	}
 
 	if(game->KeyDown('x') || game->KeyDown('X'))
 	{
-		Dolly(D3DXVECTOR3(0.0f, -0.03f, 0.0f));
+		Dolly(Helix::Vector3(0.0f, -0.03f, 0.0f));
 	}
 
 	if(game->KeyDown('r') || game->KeyDown('R'))
@@ -96,26 +97,25 @@ void Camera::Update(void)
 void Camera::Pan(const float &radians)
 {
 	// Translate back to origin, rotate around Y, translate back
-	D3DXMATRIX t,tr;
-	D3DXMatrixTranslation(&t,m_worldMatrix.m[3][0],m_worldMatrix.m[3][1],m_worldMatrix.m[3][2]);
-	D3DXMatrixTranslation(&tr,-m_worldMatrix.m[3][0],-m_worldMatrix.m[3][1],-m_worldMatrix.m[3][2]);
+	Helix::Matrix4x4 t,tr;
+	t.SetTranslation(m_worldMatrix.r[3][0],m_worldMatrix.r[3][1],m_worldMatrix.r[3][2]);
+	tr.SetTranslation(-m_worldMatrix.r[3][0],-m_worldMatrix.r[3][1],-m_worldMatrix.r[3][2]);
 
-	D3DXMATRIX r;
-	D3DXMatrixRotationY(&r,radians);
+	Helix::Matrix4x4 r;
+	r.SetYRotation(radians);
 
-	D3DXMATRIX temp;
-	D3DXMatrixMultiply(&temp,&m_worldMatrix,&tr);
-	D3DXMatrixMultiply(&temp,&temp,&r);
-	D3DXMatrixMultiply(&m_worldMatrix,&temp,&t);
+	Helix::Matrix4x4 temp = m_worldMatrix*tr;
+	temp = temp * r;
+	m_worldMatrix = temp * t;
 }
 
 // ****************************************************************************
 // ****************************************************************************
-void Camera::Dolly(const D3DXVECTOR3 & translation)
+void Camera::Dolly(const Helix::Vector3 & translation)
 {
-	D3DXMATRIX m;
-	D3DXMatrixTranslation(&m,translation.x,translation.y,translation.z);
-	D3DXMatrixMultiply(&m_worldMatrix,&m_worldMatrix,&m);
+	Helix::Matrix4x4 m;
+	m.SetTranslation(translation.x,translation.y,translation.z);
+	m_worldMatrix = m_worldMatrix * m;
 }
 
 // ****************************************************************************
@@ -123,10 +123,10 @@ void Camera::Dolly(const D3DXVECTOR3 & translation)
 void Camera::Tilt(const float &radians)
 {
 	// Rotate around X, then transform back
-	D3DXMATRIX m;
+	Helix::Matrix4x4 m;
 
-	D3DXMatrixRotationX(&m,radians);
-	D3DXMatrixMultiply(&m_worldMatrix,&m,&m_worldMatrix);
+	m.SetXRotation(radians);
+	m_worldMatrix = m * m_worldMatrix;
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -158,27 +158,28 @@ void Camera::BuildMatrices(void)
 	//m_worldMatrix.m[3][1] = m_position.y;
 	//m_worldMatrix.m[3][2] = m_position.z;
 
-	D3DXMatrixInverse(&m_viewMatrix,NULL,&m_worldMatrix);
+	m_viewMatrix = m_worldMatrix;
+	m_viewMatrix.Invert();
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void Camera::BuildProjectionMatrix(float fovY, float fAspect, float fNear, float fFar)
 {
-	D3DXMatrixPerspectiveFovLH(&m_projMatrix,fovY,fAspect,fNear,fFar);
+	m_projMatrix.SetProjectionFOV(fovY, fAspect, fNear, fFar);
 }
 
 // ****************************************************************************
 // ****************************************************************************
-void Camera::SetDir(const D3DXVECTOR3 &forw)
+void Camera::SetDir(const Helix::Vector3 &forw)
 {
-	m_worldMatrix.m[2][0] = forw.x;
-	m_worldMatrix.m[2][1] = forw.y;
-	m_worldMatrix.m[2][2] = forw.z;
-	m_worldMatrix.m[2][3] = 0;
+	m_worldMatrix.r[2][0] = forw.x;
+	m_worldMatrix.r[2][1] = forw.y;
+	m_worldMatrix.r[2][2] = forw.z;
+	m_worldMatrix.r[2][3] = 0;
 
-	m_worldMatrix.m[1][0] = m_up.x;
-	m_worldMatrix.m[1][1] = m_up.y;
-	m_worldMatrix.m[1][2] = m_up.z;
-	m_worldMatrix.m[1][3] = 0;
+	m_worldMatrix.r[1][0] = m_up.x;
+	m_worldMatrix.r[1][1] = m_up.y;
+	m_worldMatrix.r[1][2] = m_up.z;
+	m_worldMatrix.r[1][3] = 0;
 }

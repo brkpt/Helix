@@ -45,7 +45,7 @@ Light * SubmittedLights()
 
 // ****************************************************************************
 // ****************************************************************************
-void AddPointLight(const D3DXVECTOR3& position, const D3DXCOLOR &color, const float innerRadius, const float outerRadius)
+void AddPointLight(const Helix::Vector3 & position, const Helix::Color &color, const float innerRadius, const float outerRadius)
 {
 	Light &light = m_lights[m_lightIndex];
 
@@ -53,9 +53,9 @@ void AddPointLight(const D3DXVECTOR3& position, const D3DXCOLOR &color, const fl
 	light.m_color = color;
 
 	// Bit of a hack here
-	// Treat the underlying storage as a D3DXVECTOR3 type and use the assignment operator
+	// Treat the underlying storage as a Vector3 type and use the assignment operator
 	// to copy values over
-	*((D3DXVECTOR3 *)&light.point.m_position) = position;
+	*((Helix::Vector3 *)&light.point.m_position) = position;
 
 	light.point.m_innerRadius = innerRadius;
 	light.point.m_outerRadius = outerRadius;

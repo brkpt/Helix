@@ -1,3 +1,4 @@
+#include <Math.h>
 #include "Vector.h"
 
 // ****************************************************************************
@@ -73,13 +74,44 @@ float Vector3::Dot(const Vector3 &v1, const Vector3 &v2)
 	return v1.Dot(v2);
 }
 
-Vector3 Vector3::Cross(const Vector3 &other) const
+// ****************************************************************************
+// Sets the vector to be the cross of the two given vectors.
+// ****************************************************************************
+Vector3 & Vector3::Cross(const Vector3 &v1, const Vector3 &v2 )
 {
-	Vector3 result;
-	result.x = y*other.z - z*other.y;
-	result.y = z*other.x - x*other.z;
-	result.z = x*other.y - y*other.z;
-	return result;
+	x = v1.y*v2.z - v1.z*v2.y;
+	y = v1.z*v2.x - v1.x*v2.z;
+	z = v1.x*v2.y - v1.y*v2.z;
+	return *this;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+float Vector3::Length()
+{
+	float len = sqrtf(x*x + y*y + z*z);
+	return len;
+}
+// ****************************************************************************
+// ****************************************************************************
+Vector3 & Vector3::Normalize()
+
+{
+	float len = Length();
+	x = x / len;
+	y = y / len;
+	z = z / len;
+	return *this;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Vector3 & Vector3::operator=(const Vector3 &other)
+{
+	x = other.x;
+	y = other.y;
+	z = other.z;
+	return *this;
 }
 
 // ****************************************************************************
@@ -199,6 +231,37 @@ float Vector4::Dot(const Vector4 &v1, const Vector4 &v2)
 {
 	float result = v1.x*v2.x + v1.y*v2.y + v1.z*v2.z + v1.w*v2.w;
 	return result;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+float Vector4::Length()
+{
+	float len = sqrtf(x*x + y*y + z*z + w*w);
+	return len;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Vector4 & Vector4::Normalize()
+{
+	float len = Length();
+	x = x / len;
+	y = y / len;
+	z = z / len;
+	w = w / len;
+	return *this;
+}
+
+// ****************************************************************************
+// ****************************************************************************
+Vector4 & Vector4::operator=(const Vector4 &other)
+{
+	x = other.x;
+	y = other.y;
+	z = other.z;
+	w = other.w;
+	return *this;
 }
 
 // ****************************************************************************

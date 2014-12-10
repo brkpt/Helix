@@ -2,6 +2,7 @@
 Build/
 Temp/
 src/ipch/
+project.vim
 *.log
 *.ncb
 *.suo

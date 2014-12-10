@@ -1,3 +1,4 @@
+#include <D3DX11.h>
 #include "Textures.h"
 #include "RenderMgr.h"
 

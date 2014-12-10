@@ -75,8 +75,9 @@ bool WinApp::InitializeDirectX(void)
 #endif
 	IDXGISwapChain *swapChain;
 	ID3D11DeviceContext *context;
+	D3D_FEATURE_LEVEL featureLevel; // foo
 	HRESULT hr = D3D11CreateDeviceAndSwapChain( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0,
-											D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice, NULL, &context );
+											 D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice, &featureLevel, &context );
 
 	_ASSERT( SUCCEEDED(hr) );
 
@@ -238,7 +239,7 @@ int WinApp::Run(void)
 	// Main message loop:
 	while( msg.message!=WM_QUIT )
 	{
-		if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
+	if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
 		{
 			TranslateMessage( &msg );
 			DispatchMessage( &msg );

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include "Math/Matrix.h"
 
 struct HXVertexDecl;
 
@@ -30,7 +31,7 @@ struct HXShader
 void		HXInitializeShaders();
 HXShader *	HXGetShaderByName(const std::string &shaderName);
 HXShader *	HXLoadShader(const std::string &shaderName);
-void		HXSetSharedParameter(const std::string &paramName, D3DXMATRIX &matrix);
+void		HXSetSharedParameter(const std::string &paramName, Helix::Matrix4x4 &matrix);
 
 
 #endif // SHADERS_H

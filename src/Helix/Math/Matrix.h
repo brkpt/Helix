@@ -18,6 +18,7 @@ public:
 	Matrix3x3 &	SetXRotation(float radians);
 	Matrix3x3 & SetYRotation(float radians);
 	Matrix3x3 & SetZRotation(float radians);
+	Matrix3x3 & Transpose();
 
 	// Matrix concatenation
 	Matrix3x3		operator*(const Matrix3x3 &rhs);
@@ -59,6 +60,12 @@ public:
 	Matrix4x4 & SetTranslation(float x, float y, float z);
 	Matrix4x4 & SetTranslation(Vector4 &vec);
 
+	// Scaling
+	Matrix4x4 & SetScale(float x, float y, float z, float w=1.0f);
+
+	// Transpose
+	Matrix4x4 & Transpose();
+
 	// Matrix concatenation
 	Matrix4x4		operator*(const Matrix4x4 &rhs);
 
@@ -70,9 +77,8 @@ public:
 
 	// Determinant/Inversion
 	float		Determinant() const;
-	Matrix4x4 &	Cofactor(const Matrix4x4 &other);
+	Matrix4x4 &	Cofactor(const Matrix4x4 & other);
 	bool		Invert();
-	Matrix4x4 &	Transpose();
 
 	static const int	NUM_ELEMENTS = 16;
 	static const int	NUM_ROWS = 4;

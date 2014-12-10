@@ -2,6 +2,10 @@
 // ****************************************************************************
 #include <time.h>
 #include "TheGame.h"
+#include "Math/Vector.h"
+#include "Math/Matrix.h"
+#include "Math/Color.h"
+#include "Math/MathDefs.h"
 #include "RenderCore/VDecls.h"
 #include "RenderCore/Shaders.h"
 #include "Kernel/Helix.h"
@@ -126,13 +130,13 @@ void TheGame::LoadScene(const std::string &levelName)
 
 	m_camera = new Camera;
 
-	m_camera->SetPosition(D3DXVECTOR3(0.0f, 1.0f, -4.0f));
-	m_camera->SetUp(D3DXVECTOR3(0.0f, 1.0f, 0.0f));
-	m_camera->SetFocalPoint(D3DXVECTOR3(0.0f, 0.0f, 0.0f));
+	m_camera->SetPosition(Helix::Vector3(0.0f, 1.0f, -4.0f));
+	m_camera->SetUp(Helix::Vector3(0.0f, 1.0f, 0.0f));
+	m_camera->SetFocalPoint(Helix::Vector3(0.0f, 0.0f, 0.0f));
 	float aspectRatio = (float)m_windowWidth/(float)m_windowHeight;
-	m_camera->BuildProjectionMatrix((float)D3DX_PI/4.0f,aspectRatio,1.0f,200.0f);
+	m_camera->BuildProjectionMatrix((float)Helix::PI/4.0f,aspectRatio,1.0f,200.0f);
 
-	D3DXVECTOR3 sunDir(0.0f, -1.0f, 1.0f);
+	Helix::Vector3 sunDir(0.0f, -1.0f, 1.0f);
 	Helix::SetSunlightDir( sunDir );
 
 	DXGI_RGB tempColor = { 1.0f,0.25f, 0.25f};

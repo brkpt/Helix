@@ -1,5 +1,6 @@
 #include <process.h>
 #include <crtdbg.h>
+#include <DXGI.h>
 #include "RenderThread.h"
 #include "RenderMgr.h"
 #include "VDecls.h"
@@ -51,38 +52,38 @@ ID3D11BlendState *			m_ambientBlendState = NULL;
 ID3D11BlendState *			m_pointLightBlendState = NULL;
 ID3D11DepthStencilState *	m_lightingDSState = NULL;
 
-D3DXVECTOR3					m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
+Helix::Vector3				m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
 DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
 
 struct VS_CONSTANT_BUFFER_FRAME
 {
-	D3DXMATRIX		m_viewMatrix;
-	D3DXMATRIX		m_projMatrix;
-	D3DXMATRIX		m_invViewMatrix;
-	D3DXMATRIX		m_view3x3;
-	D3DXMATRIX		m_invViewProj;
-	D3DXMATRIX		m_invProj;
+	Helix::Matrix4x4		m_viewMatrix;
+	Helix::Matrix4x4		m_projMatrix;
+	Helix::Matrix4x4		m_invViewMatrix;
+	Helix::Matrix4x4		m_view3x3;
+	Helix::Matrix4x4		m_invViewProj;
+	Helix::Matrix4x4		m_invProj;
 };
 
 struct VS_CONSTANT_BUFFER_OBJECT
 {
-	D3DXMATRIX		m_worldViewMatrix;
-	D3DXMATRIX		m_worldViewIT;
-	D3DXMATRIX		m_invWorldViewProj;
+	Helix::Matrix4x4		m_worldViewMatrix;
+	Helix::Matrix4x4		m_worldViewIT;
+	Helix::Matrix4x4		m_invWorldViewProj;
 };
 
 struct PS_CONSTANT_BUFFER_FRAME
 {
-	D3DXVECTOR4		m_sunDirection;
-	D3DXVECTOR4		m_sunColor;
-	D3DXVECTOR4		m_ambientColor;
+	Helix::Vector4		m_sunDirection;
+	Helix::Vector4		m_sunColor;
+	Helix::Vector4		m_ambientColor;
 };
 
 struct PS_POINTLIGHT_CONSTANTS
 {
-	D3DXVECTOR4	m_pointLoc;
-	D3DXVECTOR4	m_pointColor;
+	Helix::Vector4	m_pointLoc;
+	Helix::Vector4	m_pointColor;
 	float		m_pointRadius;
 	float		m_cameraNear;
 	float		m_cameraFar;
@@ -94,17 +95,17 @@ struct PS_POINTLIGHT_CONSTANTS
 
 struct RenderData
 {
-	D3DXMATRIX		worldMatrix;
-	std::string		meshName;
-	std::string		materialName;
-	RenderData *	next;
+	Helix::Matrix4x4	worldMatrix;
+	std::string			meshName;
+	std::string			materialName;
+	RenderData *		next;
 };
 
-int				m_submissionIndex = 0;
-int				m_renderIndex = 0;
-RenderData *	m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
-D3DXMATRIX		m_viewMatrix[NUM_SUBMISSION_BUFFERS];
-D3DXMATRIX		m_projMatrix[NUM_SUBMISSION_BUFFERS];
+int					m_submissionIndex = 0;
+int					m_renderIndex = 0;
+RenderData *		m_submissionBuffers[NUM_SUBMISSION_BUFFERS];
+Helix::Matrix4x4	m_viewMatrix[NUM_SUBMISSION_BUFFERS];
+Helix::Matrix4x4	m_projMatrix[NUM_SUBMISSION_BUFFERS];
 
 Light			m_renderLights[MAX_LIGHTS];
 int				m_numRenderLights = 0;
@@ -184,10 +185,10 @@ inline bool ReleaseMutex()
 
 // ****************************************************************************
 // ****************************************************************************
-void SetSunlightDir(const D3DXVECTOR3 &dir)
+void SetSunlightDir(Helix::Vector3 &dir)
 {
 	// Normalize our vector
-	D3DXVec3Normalize(&m_sunlightDir,&dir);
+	dir.Normalize();
 }
 
 // ****************************************************************************
@@ -231,7 +232,7 @@ bool RenderThreadReady()
 void CreateBackbufferViews()
 {
 	// Get the back buffer and desc
-	ID3D11Texture2D* pBuffer;
+	ID3D11Texture2D* pBuffer = NULL;
 	HRESULT hr = m_swapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBuffer );
 	_ASSERT( SUCCEEDED(hr) );
 
@@ -938,7 +939,7 @@ void SubmitInstance(Instance &inst)
 
 // ****************************************************************************
 // ****************************************************************************
-void SubmitViewMatrix(D3DXMATRIX &mat)
+void SubmitViewMatrix(Helix::Matrix4x4 &mat)
 {
 	AcquireMutex();
 	m_viewMatrix[m_submissionIndex] = mat;
@@ -948,7 +949,7 @@ void SubmitViewMatrix(D3DXMATRIX &mat)
 	m_cameraFar = 200.0f;
 	m_imageWidth = 1024.0f;
 	m_imageHeight = 768.0f;
-	m_fovY = (float)D3DX_PI/4.0f; //D3DXToRadian(45);
+	m_fovY = (float)Helix::PI/4.0f; //D3DXToRadian(45);
 	m_viewAspect = m_imageWidth/m_imageHeight;
 
 	float d = .5f * m_imageHeight * 1.0f/tan(m_fovY/2.0f);
@@ -961,7 +962,7 @@ void SubmitViewMatrix(D3DXMATRIX &mat)
 
 // ****************************************************************************
 // ****************************************************************************
-void SubmitProjMatrix(D3DXMATRIX &mat)
+void SubmitProjMatrix(Helix::Matrix4x4 &mat)
 {
 	AcquireMutex();
 	m_projMatrix[m_submissionIndex] = mat;
@@ -980,21 +981,21 @@ void ShowLightLocations()
 	//ID3DX11Effect *effect = shader->GetEffect();
 
 	//// Set the world*view matrix for the point light
-	//D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
+	//Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
 
 	//// TODO: Get the world matrix from the object.  
 	//// Use I for now
-	//D3DXMATRIX scaleMat;
-	//D3DXMatrixScaling(&scaleMat,1.0f, 1.0f, 1.0f);
-	//D3DXMATRIX transMat;
-	//D3DXMatrixTranslation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
+	//Helix::Matrix4x4 scaleMat;
+	//Helix::Matrix4x4Scaling(&scaleMat,1.0f, 1.0f, 1.0f);
+	//Helix::Matrix4x4 transMat;
+	//Helix::Matrix4x4Translation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
 
-	//D3DXMATRIX worldMat;
-	//D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+	//Helix::Matrix4x4 worldMat;
+	//Helix::Matrix4x4Multiply(&worldMat,&scaleMat,&transMat);
 
 	//// Calculate the WorldView matrix
-	//D3DXMATRIX worldView;
-	//D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	//Helix::Matrix4x4 worldView;
+	//Helix::Matrix4x4Multiply(&worldView,&worldMat,&viewMat);
 	//Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
 
 	//// Position
@@ -1112,7 +1113,7 @@ void RenderSunlight()
 	//// Reverse the direction so that it points towards the sun. 
 	//// This makes it easier in the shader since the light vector
 	//// and the normal will be in the same direction.
-	//D3DXVECTOR3 vecData = -m_sunlightDir;
+	//Helix::Vector3 vecData = -m_sunlightDir;
 
 	//// Make sure vector is normalized
 	//D3DXVec3Normalize(&vecData, &vecData);
@@ -1198,14 +1199,14 @@ void RenderAmbientLight()
 	// *************
 	// Setup ambient color
 	// *************
-	D3DXVECTOR4 vecData;
+	Helix::Vector4 vecData;
 	vecData.x = m_ambientColor.Red;
 	vecData.y = m_ambientColor.Green;
 	vecData.z = m_ambientColor.Blue;
 	vecData.w = 0.0f;
 
 	// Make sure it is normalized
-	D3DXVec4Normalize(&vecData, &vecData);
+	vecData.Normalize();
 
 	PSFrameConstants->m_ambientColor = vecData;
 
@@ -1264,7 +1265,7 @@ void RenderPointLight(Light &light)
 	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
 	HXShader *shader = HXGetShaderByName(lightSphereMat->m_shaderName);
 
-	D3DXVECTOR3 lightPos(light.point.m_position);
+	Helix::Vector3 lightPos(light.point.m_position);
 
 	// Set pointlight parameters
 	// Set our per frame VS constants
@@ -1281,33 +1282,34 @@ void RenderPointLight(Light &light)
 //	plConstants->m_fovY = m_fovY;
 	plConstants->m_viewAspect = m_viewAspect;
 	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-	plConstants->m_pointLoc = D3DXVECTOR4(lightPos.x, lightPos.y, lightPos.z, 1.0f);
+	plConstants->m_pointLoc = Helix::Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f);
 	plConstants->m_pointRadius = 5.0f;
 
 	// Color%
-	D3DXVECTOR4 vecData(light.m_color.r,light.m_color.g,light.m_color.b, 1.0f);
+	Helix::Vector4 vecData(light.m_color.r,light.m_color.g,light.m_color.b, 1.0f);
 	plConstants->m_pointColor = vecData;
 
 	m_context->Unmap(m_PointLightConstants,0);
 	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
 
 	// Setup a world matrix for the light position and size
-	D3DXMATRIX scaleMat,transMat, worldMat;
-	D3DXMatrixScaling(&scaleMat,5.0f, 5.0f, 5.0f);
-	D3DXMatrixTranslation(&transMat,lightPos.x, lightPos.y, lightPos.z);
-	D3DXMatrixMultiply(&worldMat,&scaleMat,&transMat);
+	Helix::Matrix4x4 scaleMat,transMat, worldMat;
+	scaleMat.SetScale(5.0f, 5.0f, 5.0f);
+	transMat.SetTranslation(lightPos.x, lightPos.y, lightPos.z);
+	worldMat = scaleMat*transMat;
 
 	// Set the world*view matrix for the point light
-	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	D3DXMATRIX worldView;
-	D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
+	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
+	Helix::Matrix4x4 worldView = worldMat * viewMat;
 
 	hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 	
 	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	D3DXMatrixTranspose(&objConst->m_worldViewMatrix, &worldView);
+	Helix::Matrix4x4 worldViewTr = worldView;
+	worldViewTr.Transpose();
+	memcpy(&objConst->m_worldViewMatrix, &worldViewTr.e, sizeof(Helix::Matrix4x4));
 	m_context->Unmap(m_VSObjectConstants, 0);
 
 	m_context->PSSetConstantBuffers(1, 1, &m_VSObjectConstants);
@@ -1429,39 +1431,50 @@ void FillGBuffer()
 	VS_CONSTANT_BUFFER_FRAME *vsFrameConstants = reinterpret_cast<VS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
 
 	// Setup camera parameters
-	D3DXMATRIX projMat = m_projMatrix[m_renderIndex];
-	D3DXMatrixTranspose(&vsFrameConstants->m_projMatrix, &projMat);
+	Helix::Matrix4x4 projMat = m_projMatrix[m_renderIndex];
+	Helix::Matrix4x4 projMatTr = projMat;
+	projMatTr.Transpose();
+	memcpy(&vsFrameConstants->m_projMatrix, &projMatTr.e, sizeof(Helix::Matrix4x4));
 
 	// Get the view matrix
-	D3DXMATRIX viewMat = m_viewMatrix[m_renderIndex];
-	D3DXMatrixTranspose(&vsFrameConstants->m_viewMatrix, &viewMat);
+	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
+	Helix::Matrix4x4 viewMatTr = viewMat;
+	viewMatTr.Transpose();
+	memcpy(&vsFrameConstants->m_viewMatrix, &viewMatTr.e, sizeof(Helix::Matrix4x4));
 
 	// View inverse
-	D3DXMATRIX invView;
-	D3DXMATRIX *invRet = D3DXMatrixInverse(&invView,NULL,&viewMat);
-	_ASSERT(invRet = &invView);
-	D3DXMatrixTranspose(&vsFrameConstants->m_invViewMatrix, &invView);
+	Helix::Matrix4x4 invView = viewMat;
+	invView.Invert();
+//	_ASSERT(invRet = &invView);
+	Helix::Matrix4x4 invViewTr = invView;
+	invViewTr.Transpose();
+	memcpy(&vsFrameConstants->m_invViewMatrix, &invViewTr.e, sizeof(Helix::Matrix4x4));
 
 	// Inverse view/proj
-	D3DXMATRIX viewProj;
-	D3DXMatrixMultiply(&viewProj,&viewMat,&projMat);
-	D3DXMATRIX invViewProj;
-	invRet = D3DXMatrixInverse(&invViewProj,NULL,&viewProj);
-	_ASSERT(invRet == &invViewProj);
-	D3DXMatrixTranspose(&vsFrameConstants->m_invViewProj, &invViewProj);
+	Helix::Matrix4x4 viewProj = viewMat * projMat;
+	Helix::Matrix4x4 invViewProj = viewProj;
+	invViewProj.Invert();
+//	_ASSERT(invRet == &invViewProj);
+	Helix::Matrix4x4 invViewProjTr = invViewProj;
+	invViewProjTr.Transpose();
+	memcpy(&vsFrameConstants->m_invViewProj, &invViewProjTr.e, sizeof(Helix::Matrix4x4));
 
 	// Inverse projection
-	D3DXMATRIX invProj;
-	D3DXMatrixInverse(&invProj,NULL,&projMat);
-	_ASSERT(invRet = &invProj);
-	D3DXMatrixTranspose(&vsFrameConstants->m_invProj, &invProj);
+	Helix::Matrix4x4 invProj = projMat;
+	invProj.Invert();
+//	_ASSERT(invRet = &invProj);
+	Helix::Matrix4x4 invProjTr = invProj;
+	invProjTr.Transpose();
+	memcpy(&vsFrameConstants->m_invProj, &invProjTr.e, sizeof(Helix::Matrix4x4));
 
 	// The upper 3x3 of the view matrx
 	// Used to transform directional lights
-	D3DXMATRIX view3x3 = viewMat;
-	view3x3._14 = view3x3._24 = view3x3._34 = view3x3._41 = view3x3._42 = view3x3._43 = 0;
-	view3x3._44 = 1;
-	D3DXMatrixTranspose(&vsFrameConstants->m_view3x3, &view3x3);
+	Helix::Matrix4x4 view3x3 = viewMat;
+	view3x3.r[0][3] = view3x3.r[1][3] = view3x3.r[2][3] = view3x3.r[3][0] = view3x3.r[3][1] = view3x3.r[3][2] = 0.f;
+	view3x3.r[3][3] = 1.f;
+	Helix::Matrix4x4 view3x3Tr = viewMat;
+	view3x3Tr.Transpose();
+	memcpy(&vsFrameConstants->m_view3x3, &view3x3Tr.e, sizeof(Helix::Matrix4x4));
 
 	// Done with per-frame VS constants
 	m_context->Unmap(m_VSFrameConstants, NULL);
@@ -1489,33 +1502,32 @@ void FillGBuffer()
 
 		// TODO: Get the world matrix from the object.  
 		// Use I for now
-		D3DXMATRIX worldMat;
-		D3DXMatrixIdentity(&worldMat);
+		Helix::Matrix4x4 worldMat;
 
 		// Calculate the WorldView matrix
-		D3DXMATRIX worldView;
-		D3DXMatrixMultiply(&worldView,&worldMat,&viewMat);
-		D3DXMatrixTranspose(&vsObjectConstants->m_worldViewMatrix, &worldView);
+		Helix::Matrix4x4 worldView = worldMat * viewMat;
+		Helix::Matrix4x4 worldViewTr = worldView;
+		worldViewTr.Transpose();
+		memcpy(vsObjectConstants, &worldView.e, sizeof(Helix::Matrix4x4));
 
-		D3DXMATRIX worldViewProj;
-		D3DXMatrixMultiply(&worldViewProj,&worldView,&projMat);
-
-		D3DXMATRIX invWorldViewProj;
-		invRet = D3DXMatrixInverse(&invWorldViewProj,NULL,&worldViewProj);
-		_ASSERT(invRet == &invWorldViewProj);
+		Helix::Matrix4x4 worldViewProj = worldView * projMat;
+		Helix::Matrix4x4 invWorldViewProj = worldViewProj;
+		invWorldViewProj.Invert();
 
 		vsObjectConstants->m_invWorldViewProj = invWorldViewProj;
 
 		// Generate the inverse transpose of the WorldView matrix
 		// We don't use any non uniform scaling, so we can just send down the 
 		// upper 3x3 of the world view matrix
-		D3DXMATRIX worldViewIT;
-		worldViewIT = worldView;
-		worldViewIT._14 = worldViewIT._24 = worldViewIT._34 = worldViewIT._41 = worldViewIT._42 = worldViewIT._43 = 0;
-		worldViewIT._44 = 1;
-		D3DXMatrixTranspose(&worldViewIT,&worldViewIT);
-		invRet = D3DXMatrixInverse(&worldViewIT,NULL,&worldViewIT);
-		_ASSERT(invRet == &worldViewIT);
+		Helix::Matrix4x4 worldViewIT = worldView;
+		worldViewIT.r[0][3] = worldViewIT.r[1][3]= worldViewIT.r[2][3] = worldViewIT.r[3][0] = worldViewIT.r[3][1] = worldViewIT.r[3][2] = 0;
+		worldViewIT.r[3][3] = 1;
+		Helix::Matrix4x4 worldViewITTr = worldViewIT;
+		worldViewITTr.Transpose();
+		worldViewITTr.Invert();
+//		Helix::Matrix4x4Transpose(&worldViewIT,&worldViewIT);
+//		invRet = Helix::Matrix4x4Inverse(&worldViewIT,NULL,&worldViewIT);
+//		_ASSERT(invRet == &worldViewIT);
 
 		vsObjectConstants->m_worldViewIT = worldViewIT;
 
@@ -1598,7 +1610,7 @@ void DoLighting()
 	//device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render our lights
-	RenderLights();
+	//RenderLights();
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();

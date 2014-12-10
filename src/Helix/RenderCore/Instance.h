@@ -21,14 +21,14 @@ public:
 	const std::string &	GetName() const { return m_name; }
 	void				SetMeshName(const std::string &name) { m_meshName = name; }
 	const std::string &	GetMeshName() const { return m_meshName; }
-	const D3DXMATRIX &	GetWorldMatrix() const { return m_worldMatrix; }
+	const Helix::Matrix4x4 &	GetWorldMatrix() const { return m_worldMatrix; }
 //	void				Render(int pass);
 
 private:
 	std::string		m_name;
 	std::string		m_meshName;
 
-	D3DXMATRIX		m_worldMatrix;
+	Helix::Matrix4x4		m_worldMatrix;
 };
 } // namespace
 

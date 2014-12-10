@@ -1,6 +1,8 @@
 SubDir TOP src Helix Math ;
 
 SRCS =
+	Color.cpp
+	Color.h
 	MathPCH.cpp
 	MathPCH.h
 	MathDefs.h

@@ -7,7 +7,10 @@
 // | a  b | = a*d - b*c
 // | c  d |
 // ****************************************************************************
-#define MAT2X2_DET(a,b,c,d) (((a) * (d)) - ((b) * (c)))
+inline float Matrix2x2_Determinant(float a,float b, float c, float d)
+{
+	return a*d - b*c;
+}
 
 // ****************************************************************************
 // 3x3 matrix determinant
@@ -17,8 +20,10 @@
 // | d  e  f | 
 // | g  h  i |
 // ****************************************************************************
-#define MAT3X3_DET(a,b,c,d,e,f,g,h,i) \
-	(((a) * MAT2X2_DET(e,f,h,i)) - ((b) * MAT2X2_DET(d,f,g,i)) + ((c) * MAT2X2_DET(d,e,g,h)))
+inline float Matrix3x3_Determinant(float a, float b, float c, float d, float e, float f, float g, float h, float i)
+{
+	return a * Matrix2x2_Determinant(e,f,h,i) - b * Matrix2x2_Determinant(d,f,g,i) + c * Matrix2x2_Determinant(d,e,g,h);
+}
 
 // ****************************************************************************
 // 4x4 matrix determinant
@@ -29,9 +34,10 @@
 // | i  j  k  l |
 // | m  n  o  p |
 // ****************************************************************************
-#define MAT4X4_DET(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) \
-	(((a) * MAT3X3_DET(f,g,h,j,k,l,n,o,p)) - ((b) * MAT3X3_DET(e,g,h,i,k,l,m,o,p)) + \
-	 ((c) * MAT3X3_DET(e,f,h,i,j,l,m,n,p)) - ((d) * MAT3X3_DET(e,f,g,i,j,k,m,n,o))) 
+inline float Matrix4x4_Determinant(float a,float b,float c,float d,float e,float f,float g,float h,float i,float j,float k,float l,float m,float n,float o,float p) 
+{
+	return a * Matrix3x3_Determinant(f,g,h,j,k,l,n,o,p) - b * Matrix3x3_Determinant(e,g,h,i,k,l,m,o,p) + c * Matrix3x3_Determinant(e,f,h,i,j,l,m,n,p) - d * Matrix3x3_Determinant(e,f,g,i,j,k,m,n,o);
+}
 
 namespace Helix {
 
@@ -128,6 +134,23 @@ Matrix3x3 & Matrix3x3::SetZRotation(float radians)
 	return *this;
 }
 
+// ****************************************************************************
+// ****************************************************************************
+Matrix3x3 & Matrix3x3::Transpose()
+{
+	Matrix3x3 t(*this);
+
+	r[0][1] = t.r[1][0];
+	r[0][2] = t.r[2][0];
+
+	r[1][0] = t.r[0][1];
+	r[1][2] = t.r[2][1];
+
+	r[2][0] = t.r[0][2];
+	r[2][1] = t.r[1][2];
+
+	return *this;
+}
 // ****************************************************************************
 // Transform vector by matrix
 // ****************************************************************************
@@ -455,9 +478,22 @@ Matrix4x4 & Matrix4x4::SetTranslation(Vector4 &vec)
 
 // ****************************************************************************
 // ***************************************************************************
-float Matrix4x4::Determinant() const
+Matrix4x4 &  Matrix4x4::SetScale(float x, float y, float z, float w)
 {
-	float result = MAT4X4_DET(r[0][0], r[0][1], r[0][2], r[0][3],
+	SetIdentity();
+	r[0][0] = x;
+	r[1][1] = y;
+	r[2][2] = z;
+	r[3][3] = w;
+
+	return *this;
+}
+
+// ****************************************************************************
+// ***************************************************************************
+inline float Matrix4x4::Determinant() const
+{
+	float result = Matrix4x4_Determinant(r[0][0], r[0][1], r[0][2], r[0][3],
 							r[1][0], r[1][1], r[1][2], r[1][3],
 							r[2][0], r[2][1], r[2][2], r[2][3],
 							r[3][0], r[3][1], r[3][2], r[3][3]);
@@ -466,7 +502,7 @@ float Matrix4x4::Determinant() const
 
 // ****************************************************************************
 // ****************************************************************************
-void Matrix4x4::Scale(float factor)
+inline void Matrix4x4::Scale(float factor)
 {
 	for(int i=0;i<NUM_ELEMENTS;i++)
 		e[i] *= factor;
@@ -476,7 +512,7 @@ void Matrix4x4::Scale(float factor)
 
 // ****************************************************************************
 // ****************************************************************************
-Matrix4x4 & Matrix4x4::Transpose()
+inline Matrix4x4 & Matrix4x4::Transpose()
 {
 	Matrix4x4 t(*this);
 
@@ -507,55 +543,55 @@ Matrix4x4 & Matrix4x4::Transpose()
 // ****************************************************************************
 Matrix4x4 & Matrix4x4::Cofactor(const Matrix4x4 &other)
 {
-	r[0][0] = MAT3X3_DET(	other.r[1][1], other.r[1][2], other.r[1][3],
+	r[0][0] = Matrix3x3_Determinant(	other.r[1][1], other.r[1][2], other.r[1][3],
 							other.r[2][1], other.r[2][2], other.r[2][3],
 							other.r[3][1], other.r[3][2], other.r[3][3]);
-	r[0][1] = -1.0f * MAT3X3_DET(	other.r[1][0], other.r[1][2], other.r[1][3],
+	r[0][1] = -1.0f * Matrix3x3_Determinant(	other.r[1][0], other.r[1][2], other.r[1][3],
 									other.r[2][0], other.r[2][2], other.r[2][3],
 									other.r[3][0], other.r[3][2], other.r[3][3]);
-	r[0][2] = MAT3X3_DET(	other.r[1][0], other.r[1][1], other.r[1][3],
+	r[0][2] = Matrix3x3_Determinant(	other.r[1][0], other.r[1][1], other.r[1][3],
 							other.r[2][0], other.r[2][1], other.r[2][3], 
 							other.r[3][0], other.r[3][1], other.r[3][3]);
-	r[0][3] = -1.0f * MAT3X3_DET(	other.r[1][0], other.r[1][1], other.r[1][2],
+	r[0][3] = -1.0f * Matrix3x3_Determinant(	other.r[1][0], other.r[1][1], other.r[1][2],
 									other.r[2][0], other.r[2][1], other.r[2][2],
 									other.r[3][0], other.r[3][1], other.r[3][2]);
 
-	r[1][0] = -1.0f * MAT3X3_DET(	other.r[0][1], other.r[0][2], other.r[0][3],
+	r[1][0] = -1.0f * Matrix3x3_Determinant(	other.r[0][1], other.r[0][2], other.r[0][3],
 									other.r[2][1], other.r[2][2], other.r[2][3],
 									other.r[3][1], other.r[3][2], other.r[3][3]);
-	r[1][1] = MAT3X3_DET(	other.r[0][0], other.r[0][2], other.r[0][3],
+	r[1][1] = Matrix3x3_Determinant(	other.r[0][0], other.r[0][2], other.r[0][3],
 							other.r[2][0], other.r[2][2], other.r[2][3],
 							other.r[3][0], other.r[3][2], other.r[3][3]);
-	r[1][2] = -1.0f * MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][3],
+	r[1][2] = -1.0f * Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][3],
 									other.r[2][0], other.r[2][1], other.r[2][3],
 									other.r[3][0], other.r[3][1], other.r[3][3]);
-	r[1][3] = MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][2],
+	r[1][3] = Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][2],
 							other.r[2][0], other.r[2][1], other.r[2][2],
 							other.r[3][0], other.r[3][1], other.r[3][2]);
 
-	r[2][0] = MAT3X3_DET(	other.r[0][1], other.r[0][2], other.r[0][3],
+	r[2][0] = Matrix3x3_Determinant(	other.r[0][1], other.r[0][2], other.r[0][3],
 							other.r[1][1], other.r[1][2], other.r[1][3],
 							other.r[3][1], other.r[3][2], other.r[3][3]);
-	r[2][1] = -1.0f * MAT3X3_DET(	other.r[0][0], other.r[0][2], other.r[0][3],
+	r[2][1] = -1.0f * Matrix3x3_Determinant(	other.r[0][0], other.r[0][2], other.r[0][3],
 									other.r[1][0], other.r[1][2], other.r[1][3],
 									other.r[3][0], other.r[3][2], other.r[3][3]);
-	r[2][2] = MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][3],
+	r[2][2] = Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][3],
 							other.r[1][0], other.r[1][1], other.r[1][3],
 							other.r[3][0], other.r[3][1], other.r[3][3]);
-	r[2][3] = -1.0f * MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][2],
+	r[2][3] = -1.0f * Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][2],
 									other.r[1][0], other.r[1][1], other.r[1][2],
 									other.r[3][0], other.r[3][1], other.r[3][2]);
 
-	r[3][0] = -1.0f * MAT3X3_DET(	other.r[0][1], other.r[0][2], other.r[0][3],
+	r[3][0] = -1.0f * Matrix3x3_Determinant(	other.r[0][1], other.r[0][2], other.r[0][3],
 									other.r[1][1], other.r[1][2], other.r[1][3],
 									other.r[2][1], other.r[2][2], other.r[2][3]);
-	r[3][1] = MAT3X3_DET(	other.r[0][0], other.r[0][2], other.r[0][3],
+	r[3][1] = Matrix3x3_Determinant(	other.r[0][0], other.r[0][2], other.r[0][3],
 							other.r[1][0], other.r[1][2], other.r[1][3],
 							other.r[2][0], other.r[2][2], other.r[2][3]);
-	r[3][2] = -1.0f * MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][3],
+	r[3][2] = -1.0f * Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][3],
 									other.r[1][0], other.r[1][1], other.r[1][3],
 									other.r[2][0], other.r[2][1], other.r[2][3]);
-	r[3][3] = MAT3X3_DET(	other.r[0][0], other.r[0][1], other.r[0][2],
+	r[3][3] = Matrix3x3_Determinant(	other.r[0][0], other.r[0][1], other.r[0][2],
 							other.r[1][0], other.r[1][1], other.r[1][2],
 							other.r[2][0], other.r[2][1], other.r[2][2]);
 

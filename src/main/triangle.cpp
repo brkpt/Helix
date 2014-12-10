@@ -21,30 +21,30 @@ Triangle::~Triangle(void)
 
 // ****************************************************************************
 // ****************************************************************************
-void Triangle::OrthoNormalization(D3DXMATRIX &mat)
+void Triangle::OrthoNormalization(Helix::Matrix4x4 &mat)
 {
-	D3DXVECTOR3 xAxis(mat._11, mat._12, mat._13);
-	D3DXVECTOR3 xAxisNorm;
-	D3DXVec3Normalize(&xAxisNorm,&xAxis);
+	Helix::Vector3 xAxis(mat.r[0][0], mat.r[0][1], mat.r[0][2]);
+	Helix::Vector3 xAxisNorm = xAxis;
+	xAxisNorm.Normalize();
 
-	D3DXVECTOR3 yAxis(mat._21, mat._22, mat._23);
-	D3DXVECTOR3 yAxisNorm;
-	D3DXVec3Normalize(&yAxisNorm,&yAxis);
+	Helix::Vector3 yAxis(mat.r[1][2], mat.r[1][1], mat.r[1][2]);
+	Helix::Vector3 yAxisNorm = yAxis;
+	yAxisNorm.Normalize();
 
-	D3DXVECTOR3 zAxis;
-	D3DXVec3Cross(&zAxis,&xAxis,&yAxis);
-	D3DXVECTOR3 zAxisNorm;
-	D3DXVec3Normalize(&zAxisNorm,&zAxis);
+	Helix::Vector3 zAxis;
+	zAxis.Cross(xAxis, yAxis);
+	Helix::Vector3 zAxisNorm = zAxis;
+	zAxisNorm.Normalize();
 
-	mat._11 = xAxisNorm.x;
-	mat._12 = xAxisNorm.y;
-	mat._13 = xAxisNorm.z;
-	mat._21 = yAxisNorm.x;
-	mat._22 = yAxisNorm.y;
-	mat._23 = yAxisNorm.z;
-	mat._31 = zAxisNorm.x;
-	mat._32 = zAxisNorm.y;
-	mat._33 = zAxisNorm.z;
+	mat.r[0][0] = xAxisNorm.x;
+	mat.r[0][1] = xAxisNorm.y;
+	mat.r[0][2] = xAxisNorm.z;
+	mat.r[1][0] = yAxisNorm.x;
+	mat.r[1][1] = yAxisNorm.y;
+	mat.r[1][2] = yAxisNorm.z;
+	mat.r[2][0] = zAxisNorm.x;
+	mat.r[2][1] = zAxisNorm.y;
+	mat.r[2][2] = zAxisNorm.z;
 }
 
 // ****************************************************************************

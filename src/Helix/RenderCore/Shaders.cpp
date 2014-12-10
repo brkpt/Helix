@@ -1,3 +1,4 @@
+#include <D3DX11.h>
 #include "Shaders.h"
 #include "RenderMgr.h"
 #include "ThreadLoad/ThreadLoad.h"
@@ -23,22 +24,22 @@ struct AsyncData
 
 struct CONSTANT_BUFFER_FRAME
 {
-	D3DXVECTOR3		sunDirection;
-	D3DXVECTOR3		sunColor;
-	D3DXVECTOR3		ambientColor;
-	D3DXMATRIX		projMatrix;
-	D3DXMATRIX		invProj;
+	Helix::Vector3		sunDirection;
+	Helix::Vector3		sunColor;
+	Helix::Vector3		ambientColor;
+	Helix::Matrix4x4	projMatrix;
+	Helix::Matrix4x4	invProj;
 };
 
 struct CONSTANT_BUFFFER_OBJECT
 {
-	D3DXMATRIX		worldViewMatrix;
-	D3DXMATRIX		viweMatrix;
-	D3DXMATRIX		invViewMatrix;
-	D3DXMATRIX		view3x3;
-	D3DXMATRIX		worldViewIT;
-	D3DXMATRIX		invWorldViewProj;
-	D3DXMATRIX		invViewProj;
+	Helix::Matrix4x4	worldViewMatrix;
+	Helix::Matrix4x4	viweMatrix;
+	Helix::Matrix4x4	invViewMatrix;
+	Helix::Matrix4x4	view3x3;
+	Helix::Matrix4x4	worldViewIT;
+	Helix::Matrix4x4	invWorldViewProj;
+	Helix::Matrix4x4	invViewProj;
 };
 
 // ****************************************************************************
@@ -187,7 +188,7 @@ HXShader * HXLoadShader(const std::string &shaderName)
 
 // ****************************************************************************
 // ****************************************************************************
-void HXSetSharedParameter(const std::string &paramName, D3DXMATRIX &matrix)
+void HXSetSharedParameter(const std::string &paramName, Helix::Matrix4x4 &matrix)
 {
 	//// Get the shared parameter
 	//ID3D11Effect* pPoolEffect = m_shaderState->m_effectPool->AsEffect();

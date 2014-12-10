@@ -36,11 +36,11 @@ void LightManager::UpdateLights()
 {
 	for(int lightIndex=0;lightIndex < m_numLights; lightIndex++)
 	{
-		D3DXVECTOR3 accel(0.0f, -9.8f, 0.0f);
-		D3DXVECTOR3 deltaVel = accel*m_frameTime;
+		Helix::Vector3 accel(0.0f, -9.8f, 0.0f);
+		Helix::Vector3 deltaVel = accel*m_frameTime;
 		m_lightVel[lightIndex] += deltaVel;
 
-		D3DXVECTOR3 deltaPos = m_lightVel[lightIndex]*m_frameTime;
+		Helix::Vector3 deltaPos = m_lightVel[lightIndex]*m_frameTime;
 		m_lightPositions[lightIndex] = m_lightPositions[lightIndex] + deltaPos;
 	}
 }
@@ -64,9 +64,9 @@ void LightManager::KillDeadLights()
 			if(lightIndex < m_numLights-1)
 			{
 				int count = m_numLights - lightIndex - 1;
-				memmove(&m_lightPositions[lightIndex], &m_lightPositions[lightIndex+1], count*sizeof(D3DXVECTOR3));
-				memmove(&m_lightVel[lightIndex], &m_lightVel[lightIndex+1], count*sizeof(D3DXVECTOR3));
-				memmove(&m_lightColors[lightIndex], &m_lightColors[lightIndex+1], count*sizeof(D3DXCOLOR));
+				memmove(&m_lightPositions[lightIndex], &m_lightPositions[lightIndex+1], count*sizeof(Helix::Vector3));
+				memmove(&m_lightVel[lightIndex], &m_lightVel[lightIndex+1], count*sizeof(Helix::Vector3));
+				memmove(&m_lightColors[lightIndex], &m_lightColors[lightIndex+1], count*sizeof(Helix::Vector4));
 				memmove(&m_lightKill[lightIndex], &m_lightKill[lightIndex+1], count*sizeof(bool));
 			}
 			
@@ -97,17 +97,18 @@ void LightManager::KillDeadLights()
 // ****************************************************************************
 void LightManager::CreateNewLights()
 {
+	return;
 	if(m_lightBatchTime > 100.0f)
 	{
 		// Create 10 lights
 		for(int i=0;i<10 && m_numLights < NUM_LIGHTS;i++)
 		{
-			D3DXVECTOR3 &pos = m_lightPositions[m_numLights];
+			Helix::Vector3 &pos = m_lightPositions[m_numLights];
 			pos.x = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
 			pos.y = 10.0f + 3.0f * static_cast<float>(rand())/32767.0;
 			pos.z = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
 			
-			D3DXCOLOR &color = m_lightColors[m_numLights];
+			Helix::Color &color = m_lightColors[m_numLights];
 			color.r = 1.0f;
 			color.g = 0.0f;
 			color.b = 0.0f;
@@ -128,8 +129,8 @@ void LightManager::SubmitLights()
 {
 	for(int iLightIndex=0;iLightIndex<m_numLights;iLightIndex++)
 	{
-		D3DXVECTOR3 &pos = m_lightPositions[iLightIndex];
-		D3DXCOLOR &color = m_lightColors[iLightIndex];
+		Helix::Vector3 &pos = m_lightPositions[iLightIndex];
+		Helix::Color &color = m_lightColors[iLightIndex];
 		Helix::AddPointLight(pos,color,1.0f,5.0f);
 	}
 }
