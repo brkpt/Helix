@@ -85,8 +85,8 @@ public:
 	static const int	NUM_COLS = 4;
 	union
 	{
-		float	e[12];
-		float	r[4][4];
+		float	e[NUM_ELEMENTS];
+		float	r[NUM_ROWS][NUM_COLS];
 	};
 };
 } // namespace Helix
