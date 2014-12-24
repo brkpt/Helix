@@ -1,6 +1,6 @@
-#include <D3DX11.h>
 #include "Textures.h"
 #include "RenderMgr.h"
+#include "WICTextureLoader.h"
 
 typedef std::map<const std::string, HXTexture *>	TextureMap;
 
@@ -47,19 +47,24 @@ HXTexture * HXGetTextureByName(const std::string &textureName)
 // ****************************************************************************
 bool TextureLoad(HXTexture *tex, const std::string &filename)
 {
+	// Load the file
 	std::string fullPath = "Textures/";
 	fullPath += filename;
+	HANDLE hFile = CreateFile(fullPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	_ASSERT(hFile != INVALID_HANDLE_VALUE);
 
+	DWORD fileSize = GetFileSize(hFile, NULL);
+	_ASSERT(fileSize != INVALID_FILE_SIZE);
+	uint8_t *buffer = new uint8_t[fileSize];
+	DWORD bytesRead = 0;
+	BOOL retVal = ReadFile(hFile, buffer, fileSize, &bytesRead, NULL);
+	_ASSERT(retVal);
+
+	// Create the texture 
 	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
+	HRESULT hr = DirectX::CreateWICTextureFromMemory(pDevice, buffer, fileSize, &tex->m_resource, &tex->m_shaderView);
+	delete buffer;
 
-	D3DX11_IMAGE_LOAD_INFO loadInfo;
-	ZeroMemory( &loadInfo, sizeof(D3DX11_IMAGE_LOAD_INFO) );
-	loadInfo.BindFlags = D3D10_BIND_SHADER_RESOURCE;
-	loadInfo.Format = DXGI_FORMAT_BC1_UNORM;
-
-	tex->m_type = HXTexture::SHADER_VIEW;
-	ID3D11ShaderResourceView *pSRView = NULL;
-	HRESULT hr = D3DX11CreateShaderResourceViewFromFile( pDevice, fullPath.c_str(), &loadInfo, NULL, &tex->m_shaderView, NULL );
 	return SUCCEEDED(hr);
 }
 

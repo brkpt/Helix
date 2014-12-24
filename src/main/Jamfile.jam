@@ -23,14 +23,23 @@ SRCS =
 #C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dx11.lib lua52-static.$(CONFIG).lib ;
 
 # VS2013
+C.Defines * : _WIN32_WINNT=_WIN32_WINNT_WIN7 ;
 C.LinkDirectories DeferredShader : $(LUAPLUS)/lib/vs2013 ;
-C.LinkPrebuiltLibraries DeferredShader : user32.lib dxgi.lib d3d11.lib d3dx11.lib lua52-luaplus-static.$(CONFIG).lib ;
+#C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dcompiler.lib d3dx11d.lib d3dx9d.lib dxerr.lib dxguid.lib winmm.lib comctl32.lib lua52-luaplus-static.$(CONFIG).lib ;
+C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dcompiler.lib winmm.lib comctl32.lib lua52-luaplus-static.$(CONFIG).lib ;
 #C.C++Flags * : /GS- ;
+# d3d11.lib;d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)
 
 C.IncludeDirectories DeferredShader : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
-C.UseDirectX DeferredShader : link ;
+
+# Link in D3DX 11 lib in VS2013
+# C.LinkDirectories DeferredShader : "$(DXSDK_DIR)/lib/x86" ;
+#C.LinkDirectories DeferredShader : "$(TOP)/lib" ;
+#C.LinkPrebuiltLibraries DeferredShader : d3dx11d.lib ;
+
+# C.UseDirectX DeferredShader : link ;
 C.PrecompiledHeader DeferredShader : DeferredShaderPCH : $(SRCS) ;
-C.LinkLibraries DeferredShader : Kernel RenderCore ThreadLoad Utility Math ;
+C.LinkLibraries DeferredShader : Kernel RenderCore ThreadLoad Utility Math DXTK ;
 C.OutputPath DeferredShader : $(IMAGEDIR) ;
 C.Application DeferredShader : $(SRCS) : windows ;
 

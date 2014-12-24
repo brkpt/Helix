@@ -1,0 +1,67 @@
+SubDir TOP src DXTK ;
+
+DXTK_SRCS = 
+	src/AlphaTestEffect.cpp
+	src/BasicEffect.cpp
+	src/BinaryReader.cpp
+	src/CommonStates.cpp
+	src/DDSTextureLoader.cpp
+	src/DGSLEffect.cpp
+	src/DGSLEffectFactory.cpp
+	src/DualTextureEffect.cpp
+	src/EffectCommon.cpp
+	src/EffectFactory.cpp
+	src/EnvironmentMapEffect.cpp
+	src/GamePad.cpp
+	src/GeometricPrimitive.cpp
+	src/Model.cpp
+	src/ModelLoadCMO.cpp
+	src/ModelLoadSDKMESH.cpp
+	src/ModelLoadVBO.cpp
+	src/pch.cpp
+	src/PrimitiveBatch.cpp
+	src/ScreenGrab.cpp
+	src/SimpleMath.cpp
+	src/SkinnedEffect.cpp
+	src/SpriteBatch.cpp
+	src/SpriteFont.cpp
+	src/VertexTypes.cpp
+	src/WICTextureLoader.cpp
+#	src/XboxDDSTextureLoader.cpp
+	src/AlignedNew.h
+	src/Bezier.h
+	src/BinaryReader.h
+	src/ConstantBuffer.h
+	src/dds.h
+	src/DemandCreate.h
+	src/EffectCommon.h
+	src/pch.h
+	src/PlatformHelpers.h
+	src/SharedResourcePool.h
+;
+
+DXTK_INC =
+	inc/Audio.h
+	inc/CommonStates.h
+	inc/DDSTextureLoader.h
+	inc/DirectXHelpers.h
+	inc/Effects.h
+	inc/GamePad.h
+	inc/GeometricPrimitive.h
+	inc/Model.h
+	inc/PrimitiveBatch.h
+	inc/ScreenGrab.h
+	inc/SimpleMath.h
+	inc/SimpleMath.inl
+	inc/SpriteBatch.h
+	inc/SpriteFont.h
+	inc/VertexTypes.h
+	inc/WICTextureLoader.h
+#	inc/XboxDDSTextureLoader.h
+;
+
+C.IncludeDirectories DXTK : $(SUBDIR)/inc $(SUBDIR)/src ;
+#C.PrecompiledHeader DXTK : pch : $(DXTK_SRCS) ;
+C.Library DXTK : $(DXTK_SRCS) $(DXTK_INC) ;
+
+

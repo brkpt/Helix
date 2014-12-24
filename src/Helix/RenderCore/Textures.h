@@ -6,7 +6,7 @@
 
 struct HXTexture
 {
-	HXTexture() : m_type(INVALID), m_raw(NULL) {}
+	HXTexture() : m_type(INVALID), m_raw(NULL), m_resource(NULL) {}
 	explicit HXTexture(ID3D11ShaderResourceView *view)	: m_type(SHADER_VIEW), m_shaderView(view) {}
 	explicit HXTexture(ID3D11RenderTargetView *view)	: m_type(TARGET_VIEW), m_targetView(view) {}
 	explicit HXTexture(ID3D11DepthStencilView *view)	: m_type(DEPTHSTENCIL_VIEW), m_depthStencilView(view) {}
@@ -19,6 +19,7 @@ struct HXTexture
 		ID3D11DepthStencilView *	m_depthStencilView;
 		void *						m_raw;
 	};
+	ID3D11Resource	*m_resource;
 };
 
 void		HXInitializeTextures();

@@ -18,5 +18,6 @@ IMAGEDIR = $(AppRoot)/build/image ;
 
 SubInclude TOP src ;
 SubInclude TOP Content ;
+SubInclude TOP redist ;
 
 Depends DeferredShader : content ;

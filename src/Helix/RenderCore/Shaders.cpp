@@ -1,4 +1,4 @@
-#include <D3DX11.h>
+#include <D3Dcompiler.h>
 #include "Shaders.h"
 #include "RenderMgr.h"
 #include "ThreadLoad/ThreadLoad.h"
@@ -102,9 +102,9 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	std::string fxPath = "Shaders/";
 	fxPath += fxName;
 
-	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY;
+	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY;
 #if defined(_DEBUG)
-	dwShaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION | D3D10_SHADER_DEBUG ;
+	dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG ;
 #endif
 
 	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
@@ -112,7 +112,18 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	// Load the vertex shader
 	ID3DBlob *errorBlob = NULL;
 	ID3DBlob *pShaderBlob = NULL;
-	HRESULT hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, vsEntry.c_str(),vsProfile.c_str(),dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	HANDLE hFile = CreateFile(fxPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	_ASSERT(hFile != INVALID_HANDLE_VALUE) ;
+	DWORD fileSize = GetFileSize(hFile, NULL);
+	_ASSERT(fileSize != INVALID_FILE_SIZE) ;
+	uint8_t *shaderBuffer = new uint8_t[fileSize];
+	DWORD bytesRead = 0;
+	BOOL retVal = ReadFile(hFile, shaderBuffer, fileSize, &bytesRead, NULL);
+	_ASSERT(retVal);
+	_ASSERT(bytesRead == fileSize);
+	CloseHandle(hFile);
+	HRESULT hr = D3DCompile(shaderBuffer, fileSize, "Shaders\\", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntry.c_str(), vsProfile.c_str(), dwShaderFlags, 0, &pShaderBlob, &errorBlob);
+	// HRESULT hr = D3DCompileFromFileA(fxPath.c_str(), NULL, NULL, vsEntry.c_str(),vsProfile.c_str(),dwShaderFlags, 0, &pShaderBlob, &errorBlob);
 	if(hr != S_OK)
 	{
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
@@ -132,7 +143,8 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	pShaderBlob->Release();
 	pShaderBlob = NULL;
 
-	hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
+	hr = D3DCompile(shaderBuffer, fileSize, "Shaders\\", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, &pShaderBlob, &errorBlob);
+	//hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
 	if(hr != S_OK)
 	{
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
@@ -141,6 +153,7 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	if(errorBlob)
 		errorBlob->Release();
 	errorBlob = NULL;
+	delete shaderBuffer;
 
 	// Now create the pixel shader
 	hr = pDevice->CreatePixelShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_pshader);

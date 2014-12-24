@@ -1,0 +1,17 @@
+SubDir TOP redist ;
+
+REDIST_FILES = 
+	d3dcompiler_46.dll
+	d3dcsx_46.dll
+;
+
+redist_sources = [ FGristFiles $(REDIST_FILES) ] ;
+
+for src in $(redist_sources) 
+{
+	CopyFile Redist : $(IMAGEDIR)/$(src) : $(src) ;
+	NotFile Redist ;
+}
+
+Depends DeferredShader : Redist ;
+

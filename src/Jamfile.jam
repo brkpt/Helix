@@ -2,4 +2,5 @@ SubDir TOP src ;
 
 SubInclude TOP src Helix ;
 SubInclude TOP src main ;
+SubInclude TOP src DXTK ;
 

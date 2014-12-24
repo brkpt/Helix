@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include "LuaPlus.h"
 #include "Kernel/Win32DX10.h"
 #include "Math/Matrix.h"

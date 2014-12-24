@@ -28,7 +28,6 @@ SRCS =
 	VDecls.h
 ;
 
-C.IncludeDirectories RenderCore : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
-C.UseDirectX RenderCore ;
+C.IncludeDirectories RenderCore : $(HELIX) $(LUA)/src $(LUAPLUS)/include $(TOP)/src/dxtk/inc ;
 C.PrecompiledHeader RenderCore : RenderCorePCH : $(SRCS) ;
 C.Library RenderCore : $(SRCS) ;
