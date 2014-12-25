@@ -130,7 +130,8 @@ void TheGame::LoadScene(const std::string &levelName)
 
 	m_camera = new Camera;
 
-	m_camera->SetPosition(Helix::Vector3(0.0f, 0.0f, 0.0f));
+	//m_camera->SetPosition(Helix::Vector3(0.0f, 0.0f, 0.0f));
+	m_camera->SetPosition(Helix::Vector3(0.0f, 1.0f, -8.0f));
 	m_camera->SetUp(Helix::Vector3(0.0f, 1.0f, 0.0f));
 	m_camera->SetFocalPoint(Helix::Vector3(0.0f, 0.0f, 0.0f));
 	float aspectRatio = (float)m_windowWidth/(float)m_windowHeight;
