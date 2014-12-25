@@ -1610,7 +1610,7 @@ void DoLighting()
 	//device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render our lights
-	//RenderLights();
+	RenderLights();
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();

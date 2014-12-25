@@ -97,7 +97,6 @@ void LightManager::KillDeadLights()
 // ****************************************************************************
 void LightManager::CreateNewLights()
 {
-	return;
 	if(m_lightBatchTime > 100.0f)
 	{
 		// Create 10 lights
