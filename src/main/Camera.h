@@ -15,9 +15,9 @@ public:
 	void	Update(void);
 	void	SetPosition(const Helix::Vector3 &pos)
 	{
-		m_worldMatrix.r[3][0] = pos.x;
-		m_worldMatrix.r[3][1] = pos.y;
-		m_worldMatrix.r[3][2] = pos.z;
+		m_worldMatrix.r[0][3] = pos.x;
+		m_worldMatrix.r[1][3] = pos.y;
+		m_worldMatrix.r[2][3] = pos.z;
 	}
 
 	void	SetUp(const Helix::Vector3 &up)
