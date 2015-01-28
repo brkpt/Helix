@@ -9,7 +9,7 @@ SRCS =
 ;
 
 C.IncludeDirectories ThreadLoad : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
-C.UseDirectX ThreadLoad ;
+#C.UseDirectX ThreadLoad ;
 C.PrecompiledHeader ThreadLoad : ThreadLoadPCH : $(SRCS) ;
 C.Library ThreadLoad : $(SRCS) ;
 

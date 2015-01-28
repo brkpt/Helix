@@ -13,7 +13,7 @@ SRCS =
 ;
 
 C.IncludeDirectories Kernel : $(HELIX) $(LUA)/src $(LUAPLUS)/include ;
-C.UseDirectX Kernel ;
+#C.UseDirectX Kernel ;
 C.PrecompiledHeader Kernel : KernelPCH : $(SRCS) ;
 C.Library Kernel : $(SRCS) ;
 
