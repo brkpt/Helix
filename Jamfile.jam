@@ -20,4 +20,9 @@ SubInclude TOP src ;
 SubInclude TOP Content ;
 SubInclude TOP redist ;
 
-Depends DeferredShader : content ;
+# UserAddToFileList 
+# 	$(TOP)/Content/Shaders/ambient.hlsl
+# 	;
+
+Depends DeferredShader : Content ;
+NotFile Content ;

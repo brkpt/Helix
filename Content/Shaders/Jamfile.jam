@@ -2,41 +2,43 @@ SubDir TOP Content Shaders ;
 
 IncludeModule CopyFile ;
 
-{
-	local SHADER_FILES =
-		shared.hlsl
-		ambient.lua
-		ambient.hlsl
-		diffuse.lua
-		diffuse.hlsl
-		pos3.lua
-		pos3_tex1.lua
-		pos3_norm3_tex1.lua
-		pos4_tex1.lua
-		shared.lua
-		texture.lua
-		texture.hlsl
-		dirlight.lua
-		dirlight.hlsl
-		pointlight.lua
-		pointlight.hlsl
-		lightsphere.lua
-		lightsphere.hlsl
-		shownormals.lua
-		shownormals.hlsl
-		showlightloc.lua
-		showlightloc.hlsl
-		;
-		
-	local sources = [ FGristFiles $(SHADER_FILES) ] ;
-	local targetDir = $(IMAGEDIR)/Shaders ;
-	Depends content : shaders ;
+SHADER_FILES =
+	shared.hlsl
+	ambient.lua
+	ambient.hlsl
+	diffuse.lua
+	diffuse.hlsl
+	pos3.lua
+	pos3_tex1.lua
+	pos3_norm3_tex1.lua
+	pos4_tex1.lua
+	shared.lua
+	texture.lua
+	texture.hlsl
+	dirlight.lua
+	dirlight.hlsl
+	pointlight.lua
+	pointlight.hlsl
+	lightsphere.lua
+	lightsphere.hlsl
+	shownormals.lua
+	shownormals.hlsl
+	showlightloc.lua
+	showlightloc.hlsl
+	;
 	
-	for src in $(sources)
-	{
-		local srcFile = $(src:BS) ;
-		local targetFile = $(src:BS) ;
-		CopyFile shaders : $(targetDir)/$(src) : $(src) ;
-		NotFile shaders ;
-	}
+local sources = [ FGristFiles $(SHADER_FILES) ] ;
+local targetDir = $(IMAGEDIR)/Shaders ;
+
+for src in $(sources)
+{
+	local srcFile = $(src:BS) ;
+	local targetFile = $(src:BS) ;
+	CopyFile Shaders : $(targetDir)/$(src) : $(src) ;
+	NotFile Shaders ;
 }
+
+Project Shaders : $(SHADER_FILES) ;
+Workspace DeferredShader : Shaders ;
+Depends DeferredShader : Shaders ;
+

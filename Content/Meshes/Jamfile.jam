@@ -2,23 +2,24 @@ SubDir TOP Content Meshes ;
 
 IncludeModule CopyFile ;
 
-{
-	local MESH_FILES =
-		cube.lua
-		Triangle.lua
-		holodeck.lua
-		LightSphere.lua
-		;
-		
-	local sources = [ FGristFiles $(MESH_FILES) ] ;
-	local targetDir = $(IMAGEDIR)/Meshes ;
-	Depends content : meshes ;
+MESH_FILES =
+	cube.lua
+	Triangle.lua
+	holodeck.lua
+	LightSphere.lua
+	;
 	
-	for src in $(sources)
-	{
-		local srcFile = $(src:BS) ;
-		local targetFile = $(src:BS) ;
-		CopyFile meshes : $(targetDir)/$(src) : $(src) ;
-		NotFile meshes ;
-	}
+local sources = [ FGristFiles $(MESH_FILES) ] ;
+local targetDir = $(IMAGEDIR)/Meshes ;
+
+for src in $(sources)
+{
+	local srcFile = $(src:BS) ;
+	local targetFile = $(src:BS) ;
+	CopyFile Meshes : $(targetDir)/$(src) : $(src) ;
+	NotFile Meshes ;
 }
+
+Project Meshes : $(MESH_FILES) ;
+Workspace DeferredShader : Meshes ;
+Depends DeferredShader : Meshes ;

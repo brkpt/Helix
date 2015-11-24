@@ -2,23 +2,25 @@ SubDir TOP Content Textures ;
 
 IncludeModule CopyFile ;
 
-{
-	local TEXTURE_FILES =
-		Carsen_crop.png
-		Grid.png
-		WoodGrain.png
-		parquet-wood-floor-thumb2560693.png
-		;
-		
-	local sources = [ FGristFiles $(TEXTURE_FILES) ] ;
-	local targetDir = $(IMAGEDIR)/Textures ;
-	Depends content : textures ;
+TEXTURE_FILES =
+	Carsen_crop.png
+	Grid.png
+	WoodGrain.png
+	parquet-wood-floor-thumb2560693.png
+	;
 	
-	for src in $(sources)
-	{
-		local srcFile = $(src:BS) ;
-		local targetFile = $(src:BS) ;
-		CopyFile textures : $(targetDir)/$(src) : $(src) ;
-		NotFile textures ;
-	}
+local sources = [ FGristFiles $(TEXTURE_FILES) ] ;
+local targetDir = $(IMAGEDIR)/Textures ;
+
+for src in $(sources)
+{
+	local srcFile = $(src:BS) ;
+	local targetFile = $(src:BS) ;
+	CopyFile Textures : $(targetDir)/$(src) : $(src) ;
+	NotFile Textures ;
 }
+
+Project Textures : $(TEXTURE_FILES) ;
+Workspace DeferredShader : Textures ;
+Depends DeferredShader : Textures ;
+

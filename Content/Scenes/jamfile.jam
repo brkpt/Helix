@@ -2,24 +2,25 @@ SubDir TOP Content Scenes ;
 
 IncludeModule CopyFile ;
 
-{
-	local sceneDirs = 
-		giant
-		holodeck
-		;
-	
-	local targetDir = $(IMAGEDIR)/Scenes ;
-	Depends content : scenes ;
-	
-	for dir in $(sceneDirs)
-	{
-		# Assumes scene name is the same name as dir
-		local srcFile = [ FGristFiles $(dir)/$(dir:S=.lua) ] ;
-		
-		#echo srcFile - $(srcFile) ;
-		local targetFile = $(dir:S=.lua) ;
-		CopyFile scenes : $(targetDir)/$(targetFile) : $(srcFile) ;
-		NotFile scenes ;
-	}
+sceneDirs = 
+	giant
+	holodeck
+	;
 
+local targetDir = $(IMAGEDIR)/Scenes ;
+
+for dir in $(sceneDirs)
+{
+	# Assumes scene name is the same name as dir
+	local srcFile = [ FGristFiles $(dir)/$(dir:S=.lua) ] ;
+	SCENE_FILES += $(srcFile) ;
+	
+	#echo srcFile - $(srcFile) ;
+	local targetFile = $(dir:S=.lua) ;
+	CopyFile Scenes : $(targetDir)/$(targetFile) : $(srcFile) ;
+	NotFile Scenes ;
 }
+
+Project Scenes : $(SCENE_FILES) ;
+Workspace DeferredShader : Scenes ;
+Depends DeferredShader : Scenes ;
