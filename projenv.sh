@@ -11,5 +11,6 @@ if [ ! -d tmp ]; then
 	scripts/generatefilelist.sh
 	scripts/generatetags.sh
 fi
+gv
 
 
