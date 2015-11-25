@@ -36,7 +36,7 @@ LightSpherePixel_in LightSphereVertexShader(LightSphereVertex_in inVert)
 {
 	LightSpherePixel_in outVert;
 
-	float3 viewPos = mul( float4(inVert.pos,1), g_mWorldView );
+	float3 viewPos = (float3)(mul( float4(inVert.pos,1), g_mWorldView ));
 	float4 projPos = mul( float4(viewPos,1), g_mProjection );
 	outVert.pos = projPos;
 	
@@ -69,7 +69,7 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	float4 worldPos = mul(viewPos,g_mInvView);
 	
 	// Calculate lighting normal in world space
-	float3 posToLight = pointLoc - worldPos.xyz;
+	float3 posToLight = pointLoc.xyz - worldPos.xyz;
 	float distToLightSquared = dot(posToLight,posToLight);
 	float3 posToLightNorm = normalize(posToLight);
 	float3 fragNorm = normalTexture.Load(samplePos).xyz;
@@ -77,7 +77,7 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 
 	float3 albedoColor3 = albedoTexture.Sample(texSampler,samplePos.xy).rgb;
 	float4 albedoColor4 = float4(albedoColor3,1);
-	float3 diffuse3 = (pointColor*dotVal)/distToLightSquared;
+	float3 diffuse3 = (float3)((pointColor*dotVal)/distToLightSquared);
 	float4 diffuse4 = float4(diffuse3,1);
 	
 	float4 outColor = albedoColor4*diffuse4;

@@ -30,7 +30,7 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {
 	QuadPS_in outVert;
 
-	float3 P = mul( float4(inVert.pos,1), g_mWorldView );
+	float3 P = (float3)(mul( float4(inVert.pos,1), g_mWorldView ));
 	outVert.pos = mul( float4(P,1), g_mProjection );
 	return outVert;
 }

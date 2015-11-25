@@ -30,9 +30,9 @@ AmbientPS_in AmbientVShader(AmbientVS_in inVert)
 float4 AmbientPShader(AmbientPS_in inVert) : SV_TARGET0
 {
 	// Get our depth value
-	float3 albedoColor = albedoTexture.Sample(texSampler,inVert.texuv);
+	float3 albedoColor = (float3)(albedoTexture.Sample(texSampler,inVert.texuv));
 	
-	float4 outColor = float4(albedoColor * g_ambientColor,1.0);
+	float4 outColor = float4(albedoColor * g_ambientColor.xyz,1.0);
 	return outColor;
 }
 

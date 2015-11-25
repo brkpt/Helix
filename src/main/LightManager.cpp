@@ -34,21 +34,22 @@ LightManager::~LightManager()
 // ****************************************************************************
 void LightManager::UpdateLights()
 {
-	for(int lightIndex=0;lightIndex < m_numLights; lightIndex++)
-	{
-		Helix::Vector3 accel(0.0f, -9.8f, 0.0f);
-		Helix::Vector3 deltaVel = accel*m_frameTime;
-		m_lightVel[lightIndex] += deltaVel;
+	//for(int lightIndex=0;lightIndex < m_numLights; lightIndex++)
+	//{
+	//	Helix::Vector3 accel(0.0f, -9.8f, 0.0f);
+	//	Helix::Vector3 deltaVel = accel*m_frameTime;
+	//	m_lightVel[lightIndex] += deltaVel;
 
-		Helix::Vector3 deltaPos = m_lightVel[lightIndex]*m_frameTime;
-		m_lightPositions[lightIndex] = m_lightPositions[lightIndex] + deltaPos;
-	}
+	//	Helix::Vector3 deltaPos = m_lightVel[lightIndex]*m_frameTime;
+	//	m_lightPositions[lightIndex] = m_lightPositions[lightIndex] + deltaPos;
+	//}
 }
 
 // ****************************************************************************
 // ****************************************************************************
 void LightManager::KillDeadLights()
 {
+	return;
 	for(int lightIndex=0;lightIndex < m_numLights; lightIndex++)
 	{
 		if(m_lightPositions[lightIndex].y < -20.0f)
@@ -97,29 +98,41 @@ void LightManager::KillDeadLights()
 // ****************************************************************************
 void LightManager::CreateNewLights()
 {
-	if(m_lightBatchTime > 100.0f)
+	static bool created = false;
+	if (!created)
 	{
-		// Create 10 lights
-		for(int i=0;i<10 && m_numLights < NUM_LIGHTS;i++)
-		{
-			Helix::Vector3 &pos = m_lightPositions[m_numLights];
-			pos.x = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
-			pos.y = 10.0f + 3.0f * static_cast<float>(rand())/32767.0;
-			pos.z = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
-			
-			Helix::Color &color = m_lightColors[m_numLights];
-			color.r = 1.0f;
-			color.g = 0.0f;
-			color.b = 0.0f;
-			//color.r = static_cast<float>(rand())/32767.0f;
-			//color.g = static_cast<float>(rand())/32767.0f;
-			//color.b = static_cast<float>(rand())/32767.0f;
-
-			m_numLights++;
-		}
-
-		m_lightBatchTime = 0.0f;
+		m_lightPositions[0].x = 0.0f;
+		m_lightPositions[0].y = 1.0f;
+		m_lightPositions[0].z = 4.0f;
+		m_lightColors[0].r = 1.0f;
+		m_lightColors[0].g = 0.0f;
+		m_lightColors[0].b = 0.0f;
+		m_numLights = 1;
+		created = true;
 	}
+	//if(m_lightBatchTime > 1000.0f)
+	//{
+	//	// Create 10 lights
+		//for(int i=0;i<10 && m_numLights < NUM_LIGHTS;i++)
+		//{
+		//	Helix::Vector3 &pos = m_lightPositions[m_numLights];
+		//	pos.x = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
+		//	pos.y = 10.0f + 3.0f * static_cast<float>(rand())/32767.0;
+		//	pos.z = 20.0f * static_cast<float>(rand())/32767.0f - 10.0f;
+		//	
+		//	Helix::Color &color = m_lightColors[m_numLights];
+		//	color.r = 1.0f;
+		//	color.g = 0.0f;
+		//	color.b = 0.0f;
+		//	//color.r = static_cast<float>(rand())/32767.0f;
+		//	//color.g = static_cast<float>(rand())/32767.0f;
+		//	//color.b = static_cast<float>(rand())/32767.0f;
+
+		//	m_numLights++;
+		//}
+
+	//	m_lightBatchTime = 0.0f;
+	//}
 }
 
 // ****************************************************************************

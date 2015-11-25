@@ -2,8 +2,8 @@
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 #include "shared.hlsl"
 
-Texture2D	albedoTexture;
-Texture2D	normalTexture;
+Texture2D	albedoTexture : register(t0);
+Texture2D	normalTexture : register(t1);
 
 struct QuadVS_in
 {
@@ -28,23 +28,23 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 	return outVert;
 }
 
-float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
+float4 FullScreenQuadPS(QuadPS_in inVert) : SV_TARGET0
 {
 	// Get our albedo color
-	float3 color = albedoTexture.Sample(texSampler,inVert.texuv);
+	float3 color = (float3)(albedoTexture.Sample(texSampler,inVert.texuv));
 	
 	// Start with ambient
 	float3 outColor = color*g_ambientColor.xyz;
 	
 	// Get our pixel normal
-	float3 normal = normalTexture.Sample(texSampler,inVert.texuv);
+	float3 normal = (float3)(normalTexture.Sample(texSampler,inVert.texuv));
 	float normLen = length(normal);
 
 	// If we have a normal (ie: something was rendered at this pixel)
 	if(normLen > 0)
 	{
 		// Compare with sun vector
-		float3 sunVec = mul( float4(g_sunDir.xyz,1), g_mView3x3);
+		float3 sunVec = (float3)(mul( float4(g_sunDir.xyz,1), g_mView3x3));
 		float dotProd = dot(normal,sunVec);
 
 		// Clamp (0..1)		

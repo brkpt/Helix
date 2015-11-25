@@ -104,28 +104,33 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY;
 #if defined(_DEBUG)
-	dwShaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG ;
+	dwShaderFlags |= D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
 #endif
 
 	ID3D11Device *pDevice = Helix::RenderMgr::GetInstance().GetDevice();
 
-	// Load the vertex shader
-	ID3DBlob *errorBlob = NULL;
-	ID3DBlob *pShaderBlob = NULL;
+	// Load the .hlsl file
 	HANDLE hFile = CreateFile(fxPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	_ASSERT(hFile != INVALID_HANDLE_VALUE) ;
+	_ASSERT(hFile != INVALID_HANDLE_VALUE);
 	DWORD fileSize = GetFileSize(hFile, NULL);
-	_ASSERT(fileSize != INVALID_FILE_SIZE) ;
+	_ASSERT(fileSize != INVALID_FILE_SIZE);
 	uint8_t *shaderBuffer = new uint8_t[fileSize];
 	DWORD bytesRead = 0;
 	BOOL retVal = ReadFile(hFile, shaderBuffer, fileSize, &bytesRead, NULL);
 	_ASSERT(retVal);
 	_ASSERT(bytesRead == fileSize);
 	CloseHandle(hFile);
+
+	// Compile the .hlsl into our vertex and pixel shaders
+	// Compile the vertex shader
+	ID3DBlob *errorBlob = NULL;
+	ID3DBlob *pShaderBlob = NULL;
+
+	// Compile vertex shader
 	HRESULT hr = D3DCompile(shaderBuffer, fileSize, "Shaders\\", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntry.c_str(), vsProfile.c_str(), dwShaderFlags, 0, &pShaderBlob, &errorBlob);
-	// HRESULT hr = D3DCompileFromFileA(fxPath.c_str(), NULL, NULL, vsEntry.c_str(),vsProfile.c_str(),dwShaderFlags, 0, &pShaderBlob, &errorBlob);
 	if(hr != S_OK)
 	{
+		// Display any errors
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
 	}
 	_ASSERT(hr == S_OK);
@@ -133,33 +138,35 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 		errorBlob->Release();
 	errorBlob = NULL;
 
-	// Now create the vertex shader
+	// Create vertex shader
 	hr = pDevice->CreateVertexShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_vshader);
 	_ASSERT(hr == S_OK);
 
 	// Create the layout for the vertex shader
 	HXDeclBuildLayout(*(shader.m_decl),pShaderBlob);
 
+	// Compile the pixel shader
 	pShaderBlob->Release();
 	pShaderBlob = NULL;
-
 	hr = D3DCompile(shaderBuffer, fileSize, "Shaders\\", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, &pShaderBlob, &errorBlob);
 	//hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
 	if(hr != S_OK)
 	{
+		// Display any errors that occurred
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );
 	}
 	_ASSERT(hr == S_OK);
 	if(errorBlob)
 		errorBlob->Release();
 	errorBlob = NULL;
-	delete shaderBuffer;
 
 	// Now create the pixel shader
 	hr = pDevice->CreatePixelShader(pShaderBlob->GetBufferPointer(), pShaderBlob->GetBufferSize(), NULL, &shader.m_pshader);
 	_ASSERT(hr == S_OK);
 
 	pShaderBlob->Release();
+	pShaderBlob = NULL;
+	delete shaderBuffer;
 
 }
 

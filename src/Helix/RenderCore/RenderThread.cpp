@@ -54,7 +54,7 @@ ID3D11DepthStencilState *	m_lightingDSState = NULL;
 
 Helix::Vector3				m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 1.0f, 1.0f};	// Sunlight color
-DXGI_RGB					m_ambientColor = {0.25f, 0.25f, 0.25f};	// Ambient color
+DXGI_RGB					m_ambientColor = {1.00f, 1.0f, 1.0f};	// Ambient color
 
 struct VS_CONSTANT_BUFFER_FRAME
 {
@@ -1087,95 +1087,89 @@ void ShowNormals()
 // ****************************************************************************
 void RenderSunlight()
 {
-	//ID3D11Device *device = m_D3DDevice;
-	//ID3D11DeviceContext *context = m_context;
+	ID3D11Device *device = m_D3DDevice;
+	ID3D11DeviceContext *context = m_context;
 
-	//// Set our textures as inputs
-	//HXShader *shader = HXGetShaderByName(m_dirLightMat->m_shaderName);
-	//ID3DX11Effect *effect = shader->m_pEffect;
+	// Set our textures as inputs
+	HXShader *shader = HXGetShaderByName(m_dirLightMat->m_shaderName);
+	HXTexture *albedo = HXGetTextureByName("[albedotarget]");
+	ID3D11ShaderResourceView *albedoRV = albedo->m_shaderView;
+	m_context->PSSetShaderResources(0,1,&albedoRV);
 
-	//// Albedo texture
-	//ID3DX11EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("albedoTexture")->AsShaderResource();
-	//_ASSERT(shaderResource != NULL);
-	//HRESULT hr = shaderResource->SetResource(m_SRView[ALBEDO]);
-	//_ASSERT( SUCCEEDED(hr) );
+	HXTexture *normal = HXGetTextureByName("[normaltarget]");
+	ID3D11ShaderResourceView *normalRV = normal->m_shaderView;
+	m_context->PSSetShaderResources(1,1,&normalRV);
 
-	//// Normal texture
-	//shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	//_ASSERT(shaderResource != NULL);
-	//hr = shaderResource->SetResource(m_SRView[NORMAL]);
-	//_ASSERT( SUCCEEDED(hr) );
-
-	//// *************
-	//// Setup sunlight vector
-	//// *************
-
-	//// Reverse the direction so that it points towards the sun. 
-	//// This makes it easier in the shader since the light vector
-	//// and the normal will be in the same direction.
-	//Helix::Vector3 vecData = -m_sunlightDir;
-
-	//// Make sure vector is normalized
-	//D3DXVec3Normalize(&vecData, &vecData);
-
-	//// Store
-	//ID3DX11EffectVectorVariable *vecVar = effect->GetVariableByName("sunDir")->AsVector();
-	//_ASSERT( vecVar != NULL );
-	//vecVar->SetFloatVector(vecData);
-
-	//// Setup sunlight color
-	//vecData.x = m_sunlightColor.Red;
-	//vecData.y = m_sunlightColor.Green;
-	//vecData.z = m_sunlightColor.Blue;
-
-	//// Store
-	//vecVar = effect->GetVariableByName("sunColor")->AsVector();
-	//_ASSERT( vecVar != NULL);
-	//vecVar->SetFloatVector(vecData);
-
-	//// *************
-	//// Setup ambient color
-	//// *************
-	//vecData.x = m_ambientColor.Red;
-	//vecData.y = m_ambientColor.Green;
-	//vecData.z = m_ambientColor.Blue;
-
-	//// Make sure it is normalized
-	//D3DXVec3Normalize(&vecData, &vecData);
-
-	//vecVar = effect->GetVariableByName("ambientColor")->AsVector();
-	//_ASSERT( vecVar != NULL );
-	//vecVar->SetFloatVector(vecData);
-	//
-	//// Set our IB/VB
-	//unsigned int stride = shader->m_decl->m_vertexSize;
-	//unsigned int offset = 0;
-	//context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-	//context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
-
-	//// Set our prim type
-	//context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-
-	//// Set our states
-	//context->RSSetState(m_RState);
-
-	//D3D11_TECHNIQUE_DESC techDesc;
-	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//technique->GetDesc(&techDesc);
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//	context->DrawIndexed( 4, 0, 0 );
-	//}
-
-	//// Clear inputs on the shader
-	//hr = shaderResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
-
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//}
+//	// *************
+//	// Setup sunlight vector
+//	// *************
+//
+//	// Reverse the direction so that it points towards the sun. 
+//	// This makes it easier in the shader since the light vector
+//	// and the normal will be in the same direction.
+//	Helix::Vector3 vecData = -m_sunlightDir;
+//
+//	// Make sure vector is normalized
+//	D3DXVec3Normalize(&vecData, &vecData);
+//
+//	// Store
+//	ID3DX11EffectVectorVariable *vecVar = effect->GetVariableByName("sunDir")->AsVector();
+//	_ASSERT( vecVar != NULL );
+//	vecVar->SetFloatVector(vecData);
+//
+//	// Setup sunlight color
+//	vecData.x = m_sunlightColor.Red;
+//	vecData.y = m_sunlightColor.Green;
+//	vecData.z = m_sunlightColor.Blue;
+//
+//	// Store
+//	vecVar = effect->GetVariableByName("sunColor")->AsVector();
+//	_ASSERT( vecVar != NULL);
+//	vecVar->SetFloatVector(vecData);
+//
+//	// *************
+//	// Setup ambient color
+//	// *************
+//	vecData.x = m_ambientColor.Red;
+//	vecData.y = m_ambientColor.Green;
+//	vecData.z = m_ambientColor.Blue;
+//
+//	// Make sure it is normalized
+//	D3DXVec3Normalize(&vecData, &vecData);
+//
+//	vecVar = effect->GetVariableByName("ambientColor")->AsVector();
+//	_ASSERT( vecVar != NULL );
+//	vecVar->SetFloatVector(vecData);
+//	
+//	// Set our IB/VB
+//	unsigned int stride = shader->m_decl->m_vertexSize;
+//	unsigned int offset = 0;
+//	context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
+//	context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
+//
+//	// Set our prim type
+//	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+//
+//	// Set our states
+//	context->RSSetState(m_RState);
+//
+//	D3D11_TECHNIQUE_DESC techDesc;
+//	ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
+//	technique->GetDesc(&techDesc);
+//	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+//	{
+//		technique->GetPassByIndex( passIndex )->Apply( 0 );
+//		context->DrawIndexed( 4, 0, 0 );
+//	}
+//
+//	// Clear inputs on the shader
+//	hr = shaderResource->SetResource(NULL);
+//	_ASSERT(SUCCEEDED(hr));
+//
+//	for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
+//	{
+//		technique->GetPassByIndex( passIndex )->Apply( 0 );
+//	}
 }
 
 // ****************************************************************************
@@ -1203,10 +1197,10 @@ void RenderAmbientLight()
 	vecData.x = m_ambientColor.Red;
 	vecData.y = m_ambientColor.Green;
 	vecData.z = m_ambientColor.Blue;
-	vecData.w = 0.0f;
+	vecData.w = 1.0f;
 
 	// Make sure it is normalized
-	vecData.Normalize();
+	//vecData.Normalize();
 
 	PSFrameConstants->m_ambientColor = vecData;
 
@@ -1282,12 +1276,20 @@ void RenderPointLight(Light &light)
 //	plConstants->m_fovY = m_fovY;
 	plConstants->m_viewAspect = m_viewAspect;
 	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-	plConstants->m_pointLoc = Helix::Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f);
-	plConstants->m_pointRadius = 5.0f;
 
-	// Color%
-	Helix::Vector4 vecData(light.m_color.r,light.m_color.g,light.m_color.b, 1.0f);
-	plConstants->m_pointColor = vecData;
+	// Position
+	plConstants->m_pointLoc.x = lightPos.x;
+	plConstants->m_pointLoc.y = lightPos.y;
+	plConstants->m_pointLoc.z = lightPos.z;
+	plConstants->m_pointLoc.w = 1.0f;
+
+	// Color
+	plConstants->m_pointColor.x = light.m_color.r;
+	plConstants->m_pointColor.y = light.m_color.g;
+	plConstants->m_pointColor.z = light.m_color.b;
+	plConstants->m_pointColor.w = 1.0f;
+
+	plConstants->m_pointRadius = 5.0f;
 
 	m_context->Unmap(m_PointLightConstants,0);
 	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
@@ -1296,11 +1298,11 @@ void RenderPointLight(Light &light)
 	Helix::Matrix4x4 scaleMat,transMat, worldMat;
 	scaleMat.SetScale(5.0f, 5.0f, 5.0f);
 	transMat.SetTranslation(lightPos.x, lightPos.y, lightPos.z);
-	worldMat = scaleMat*transMat;
+	worldMat = transMat*scaleMat;
 
 	// Set the world*view matrix for the point light
 	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-	Helix::Matrix4x4 worldView = worldMat * viewMat;
+	Helix::Matrix4x4 worldView = viewMat * worldMat;
 
 	hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
@@ -1606,11 +1608,11 @@ void DoLighting()
 	RenderAmbientLight();
 
 	// Render with a directional sunlight vector
-	//RenderSunlight();
-	//device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+//	RenderSunlight();
+//	device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render our lights
-	RenderLights();
+//	RenderLights();
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();
