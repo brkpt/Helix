@@ -24,9 +24,9 @@ SRCS =
 
 # VS2013
 C.Defines * : _WIN32_WINNT=_WIN32_WINNT_WIN7 ;
-C.LinkDirectories DeferredShader : $(LUAPLUS)/lib/vs2013 ;
+C.LinkDirectories DeferredShader : $(LUAPLUS)/lib/vs2010 ;
 #C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dcompiler.lib d3dx11d.lib d3dx9d.lib dxerr.lib dxguid.lib winmm.lib comctl32.lib lua52-luaplus-static.$(CONFIG).lib ;
-C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dcompiler.lib winmm.lib comctl32.lib lua52-luaplus-static.$(CONFIG).lib ;
+C.LinkPrebuiltLibraries DeferredShader : user32.lib d3d11.lib d3dcompiler.lib winmm.lib comctl32.lib lua52-static.$(CONFIG).lib ;
 #C.C++Flags * : /GS- ;
 # d3d11.lib;d3dcompiler.lib;d3dx11d.lib;d3dx9d.lib;dxerr.lib;dxguid.lib;winmm.lib;comctl32.lib;%(AdditionalDependencies)
 
