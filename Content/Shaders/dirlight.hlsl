@@ -44,8 +44,8 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_TARGET0
 	if(normLen > 0)
 	{
 		// Compare with sun vector
-		float3 sunVec = (float3)(mul( float4(g_sunDir.xyz,1), g_mView3x3));
-		float dotProd = dot(normal,sunVec);
+		//float3 sunVec = (float3)(mul( float4(g_sunDir.xyz,1), g_mView3x3));
+		float dotProd = dot(normal,(float3)g_sunDir);
 
 		// Clamp (0..1)		
 		dotProd = clamp(dotProd,0, 1);
