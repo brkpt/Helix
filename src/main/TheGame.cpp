@@ -144,8 +144,8 @@ void TheGame::LoadScene(const std::string &levelName)
 	Helix::SetSunlightColor( tempColor );
 
 	tempColor.Red = 1.0f;
-	tempColor.Green = 0.25f;
-	tempColor.Blue = 0.25f;
+	tempColor.Green = 0.5f;
+	tempColor.Blue = 1.5f;
 	Helix::SetAmbientColor( tempColor );
 
 	Helix::LoadScene(levelName.c_str());

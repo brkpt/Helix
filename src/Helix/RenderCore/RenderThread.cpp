@@ -211,7 +211,9 @@ void SetSunlightColor(const DXGI_RGB &color)
 // ****************************************************************************
 void SetAmbientColor(const DXGI_RGB &color)
 {
-	m_ambientColor = color;
+	m_ambientColor.Red = max(1.0f, color.Red);
+	m_ambientColor.Green = max(1.0f, color.Green);
+	m_ambientColor.Blue = max(1.0f, color.Blue);
 }
 
 // ****************************************************************************
