@@ -10,7 +10,7 @@ CONFIGMAP=( [debug]="win32/debug" [release]="win32/release" )
 CONFIG=debug
 
 JAMOPTS=()
-while getopts "c:fgh" opt; do
+while getopts "c:fght:" opt; do
 	case $opt in 
 		# Set configuration
 		c)
@@ -40,6 +40,10 @@ while getopts "c:fgh" opt; do
 			echo "--------"
 			echo "-c [configuration]"
 			echo "  where [configuration] is debug|release"
+			;;
+
+		t)
+			JAMOPTS+=( "${OPTARG}" )
 			;;
 
 		/?)
