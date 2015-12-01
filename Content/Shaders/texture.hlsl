@@ -50,19 +50,4 @@ TexturePS_out TexturePixelShader(TexturePS_in In)
 	return outValue;
 }
 
-///technique10 DeferredRender 
-//<
-//	string vertexDesc="pos3_norm3_tex1";
-//	string position="float3";
-//	string normal="float3"; 
-//	string texcoord0="float2";
-//>
-//{
-//	pass P0
-//	{
-//		SetVertexShader( compile vs_4_0 TextureVertexShader() );
-//		SetGeometryShader( NULL );
-//		SetPixelShader( compile ps_4_0 TexturePixelShader() );
-//	}
-//}
 

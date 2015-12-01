@@ -2,17 +2,13 @@
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
 #include "shared.hlsl"
 
-float3		pointLoc;			// Point light location
-float3		pointColor;			// Point light color
-float		cameraNear;
-float		cameraFar;
-float		imageWidth;
-float		imageHeight;
-float		viewAspect;
-float		invTanHalfFOV;
 Texture2D	albedoTexture;
 Texture2D	normalTexture;
 Texture2D	depthTexture;
+
+SamplerState colorSampler : register(s0) ;
+SamplerState depthSampler : register(s1) ;
+SamplerState normalSampler : register(s2) ;
 
 struct QuadVS_in
 {
@@ -42,13 +38,4 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	return outColor;
 }
 
-//technique10 FullScreenQuad
-//{
-//	pass P0
-//	{
-//		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
-//		SetGeometryShader( NULL );
-//		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
-//	}
-//}
 

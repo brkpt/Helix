@@ -36,13 +36,4 @@ float4 AmbientPShader(AmbientPS_in inVert) : SV_TARGET0
 	return outColor;
 }
 
-//technique10 DeferredRender
-//{
-//	pass P0
-//	{
-//		SetVertexShader( CompileShader( vs_4_0, AmbientVShader() ) );
-//		SetGeometryShader( NULL );
-//		SetPixelShader( CompileShader( ps_4_0, AmbientPShader() ) );
-//	}
-//}
 

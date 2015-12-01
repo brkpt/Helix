@@ -1,18 +1,7 @@
 //Use:
 //  fxc /T fx_4_0 /Vi /Zi /Fo texture.fxo texture.fx
-#include "shared.hlsl"
 
-float3		pointLoc;			// Point light location
-float3		pointColor;			// Point light color
-float		cameraNear;
-float		cameraFar;
-float		imageWidth;
-float		imageHeight;
-float		viewAspect;
-float		invTanHalfFOV;
-Texture2D	albedoTexture;
-Texture2D	normalTexture;
-Texture2D	depthTexture;
+#include "shared.hlsl"
 
 struct QuadVS_in
 {
@@ -26,6 +15,10 @@ struct QuadPS_in
 	float2 texuv : TEXCOORD0;
 	float3 vEyeToScreen: TEXCOORD1;
 };
+
+Texture2D	albedoTexture : register(t0) ;
+Texture2D	depthTexture : register(t1) ;
+Texture2D	normalTexture :	register(t2);
 
 SamplerState colorSampler : register(s0) ;
 SamplerState depthSampler : register(s1) ;
@@ -55,7 +48,7 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float3 viewPos = normalize(inVert.vEyeToScreen) * depthValue;
 	
 	// Transform the light into view space
-	float3 pointLocView = (float3)(mul( float4(pointLoc,1), g_mWorldView ));
+	float3 pointLocView = (float3)(mul( pointLoc, g_mWorldView ));
 	float3 posToLight = pointLocView - viewPos;
 	float3 posToLightNorm = normalize(posToLight);
 	
@@ -65,17 +58,8 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	float dotVal = dot(posNorm,posToLightNorm);
 
 	float3 albedoColor = albedoTexture.Sample(colorSampler,float2(clipX,clipY)).xyz;
-	outColor = float4(albedoColor,1) * float4(pointColor*dotVal,1)/distToLight;
+	outColor = float4(albedoColor,1) * (pointColor*dotVal)/distToLight;
 	return outColor;
 }
 
-technique10 FullScreenQuad
-{
-	pass P0
-	{
-		SetVertexShader( CompileShader( vs_4_0, FullScreenQuadVS() ) );
-		SetGeometryShader( NULL );
-		SetPixelShader( CompileShader( ps_4_0, FullScreenQuadPS() ) );
-	}
-}
 
