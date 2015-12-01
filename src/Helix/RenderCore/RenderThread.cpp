@@ -85,7 +85,7 @@ struct PS_POINTLIGHT_CONSTANTS
 {
 	Helix::Vector4	m_pointLoc;
 	Helix::Vector4	m_pointColor;
-	float		m_pointRadius;
+	float		m_lightRadius;
 	float		m_cameraNear;
 	float		m_cameraFar;
 	float		m_imageWidth;
@@ -1292,58 +1292,57 @@ void RenderPointLight(Light &light)
 
 	// Set pointlight parameters
 	// Set our per frame VS constants
+	HRESULT hr = S_OK;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT(SUCCEEDED(hr)) ;
+//	HRESULT hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+//	_ASSERT(SUCCEEDED(hr)) ;
+//
+//	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
+//
+//	plConstants->m_cameraNear = m_cameraNear;
+//	plConstants->m_cameraFar = m_cameraFar;
+//	plConstants->m_imageWidth = m_imageWidth;
+//	plConstants->m_imageHeight = m_imageHeight;
+////	plConstants->m_fovY = m_fovY;
+//	plConstants->m_viewAspect = m_viewAspect;
+//	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+//	plConstants->m_pointRadius = 5.0f;
+//
+//	// Position
+//	plConstants->m_pointLoc.x = lightPos.x;
+//	plConstants->m_pointLoc.y = lightPos.y;
+//	plConstants->m_pointLoc.z = lightPos.z;
+//	plConstants->m_pointLoc.w = 1.0f;
+//
+//	// Color
+//	plConstants->m_pointColor.x = light.m_color.r;
+//	plConstants->m_pointColor.y = light.m_color.g;
+//	plConstants->m_pointColor.z = light.m_color.b;
+//	plConstants->m_pointColor.w = 1.0f;
+//
+//	m_context->Unmap(m_PointLightConstants,0);
+//	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
 
-	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
-
-	plConstants->m_cameraNear = m_cameraNear;
-	plConstants->m_cameraFar = m_cameraFar;
-	plConstants->m_imageWidth = m_imageWidth;
-	plConstants->m_imageHeight = m_imageHeight;
-//	plConstants->m_fovY = m_fovY;
-	plConstants->m_viewAspect = m_viewAspect;
-	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-
-	// Position
-	plConstants->m_pointLoc.x = lightPos.x;
-	plConstants->m_pointLoc.y = lightPos.y;
-	plConstants->m_pointLoc.z = lightPos.z;
-	plConstants->m_pointLoc.w = 1.0f;
-
-	// Color
-	plConstants->m_pointColor.x = light.m_color.r;
-	plConstants->m_pointColor.y = light.m_color.g;
-	plConstants->m_pointColor.z = light.m_color.b;
-	plConstants->m_pointColor.w = 1.0f;
-
-	plConstants->m_pointRadius = 5.0f;
-
-	m_context->Unmap(m_PointLightConstants,0);
-	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
-
-	// Setup a world matrix for the light position and size
-	Helix::Matrix4x4 scaleMat,transMat, worldMat;
-	scaleMat.SetScale(5.0f, 5.0f, 5.0f);
-	transMat.SetTranslation(lightPos.x, lightPos.y, lightPos.z);
-	worldMat = transMat*scaleMat;
-
-	// Set the world*view matrix for the point light
-	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-	Helix::Matrix4x4 worldView = viewMat * worldMat;
 
 	hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 	
 	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	Helix::Matrix4x4 worldViewTr = worldView;
-	worldViewTr.Transpose();
-	memcpy(&objConst->m_worldViewMatrix, &worldViewTr.e, sizeof(Helix::Matrix4x4));
+	// Setup a world matrix for the light position and size
+	Helix::Matrix4x4 scaleMat, transMat, worldMat;
+	scaleMat.SetScale(5.0f, 5.0f, 5.0f);
+	transMat.SetTranslation(lightPos.x, lightPos.y, lightPos.z);
+	worldMat = transMat * scaleMat ;
+	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
+	Helix::Matrix4x4 worldView = worldMat * viewMat; // viewMat * worldMat;
+
+	// Set the world*view matrix for the point light
+	objConst->m_worldViewMatrix = worldView;	
+
 	m_context->Unmap(m_VSObjectConstants, 0);
 
-	m_context->PSSetConstantBuffers(1, 1, &m_VSObjectConstants);
+	m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
 
 	// Set the input layout 
 	m_context->IASetInputLayout(shader->m_decl->m_layout);
@@ -1537,9 +1536,7 @@ void FillGBuffer()
 
 		// Calculate the WorldView matrix
 		Helix::Matrix4x4 worldView = worldMat * viewMat;
-		Helix::Matrix4x4 worldViewTr = worldView;
-		worldViewTr.Transpose();
-		memcpy(vsObjectConstants, &worldView.e, sizeof(Helix::Matrix4x4));
+		vsObjectConstants->m_worldViewMatrix = worldView;
 
 		Helix::Matrix4x4 worldViewProj = worldView * projMat;
 		Helix::Matrix4x4 invWorldViewProj = worldViewProj;
@@ -1634,7 +1631,7 @@ void DoLighting()
 	context->OMSetDepthStencilState(m_lightingDSState,0);
 
 	// Render the scene with ambient into the backbuffer
-	RenderAmbientLight();
+//	RenderAmbientLight();
 
 	// Render with a directional sunlight vector
 	RenderSunlight();
