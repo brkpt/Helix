@@ -143,9 +143,9 @@ void TheGame::LoadScene(const std::string &levelName)
 	DXGI_RGB tempColor = { 1.0f, 0.0f, 0.0f};
 	Helix::SetSunlightColor( tempColor );
 
-	tempColor.Red = 0.1f;
-	tempColor.Green = 0.1f;
-	tempColor.Blue = 0.1f;
+	tempColor.Red = 0.2f;
+	tempColor.Green = 0.2f;
+	tempColor.Blue = 0.2f;
 	Helix::SetAmbientColor( tempColor );
 
 	Helix::LoadScene(levelName.c_str());

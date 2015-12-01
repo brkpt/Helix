@@ -103,7 +103,7 @@ void LightManager::CreateNewLights()
 	{
 		m_lightPositions[0].x = 0.0f;
 		m_lightPositions[0].y = 1.0f;
-		m_lightPositions[0].z = 4.0f;
+		m_lightPositions[0].z = 3.0f;
 		m_lightColors[0].r = 1.0f;
 		m_lightColors[0].g = 0.0f;
 		m_lightColors[0].b = 0.0f;

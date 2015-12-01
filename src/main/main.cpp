@@ -26,6 +26,21 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPTSTR lpCmdL
 	Helix::Matrix4x4 m4 = m3;
 	inverted = m4.Invert();
 
+	Helix::Matrix4x4 scale;
+	scale.SetScale(5.0f, 5.0f, 5.0f);
+	Helix::Matrix4x4 trans;
+	trans.SetTranslation(0.0f, 0.0f, 3.0f);
+	Helix::Matrix4x4 rot;
+	rot.SetYRotation(Helix::PI/2.0f);
+	Helix::Vector4 pos(0.0f, 0.0f, 1.0f, 1.0f);
+
+	Helix::Vector4 v2 = scale * pos;
+	v2 = rot * pos ;
+	v2 = scale * rot * pos; 
+	v2 = trans * rot * pos;
+	v2 = trans * scale * rot * pos ;
+
+
 	TheGame	*game = TheGame::CreateInstance();
 
 	std::string levelName = lpCmdLine;

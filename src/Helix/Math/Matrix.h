@@ -3,6 +3,11 @@
 
 #include "Vector.h"
 
+// Matrices are post multiplied by column vectors
+// Correct chaining is left to right
+//
+// eg: result = trans * scale * rot * pos
+
 namespace Helix {
 
 // 3x3 Matrix
