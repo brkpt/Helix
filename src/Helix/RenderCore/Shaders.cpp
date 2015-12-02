@@ -150,7 +150,7 @@ void HXLoadShader(HXShader &shader, LuaPlus::LuaObject &shaderObj)
 	pShaderBlob = NULL;
 	hr = D3DCompile(shaderBuffer, fileSize, "Shaders\\", NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, &pShaderBlob, &errorBlob);
 	//hr = D3DX11CompileFromFile(fxPath.c_str(), NULL, NULL, psEntry.c_str(), psProfile.c_str(), dwShaderFlags, 0, NULL, &pShaderBlob, &errorBlob, NULL);
-	if(hr != S_OK)
+	if(hr != S_OK)	
 	{
 		// Display any errors that occurred
 		OutputDebugString(static_cast<char *>(errorBlob->GetBufferPointer()) );

@@ -72,6 +72,7 @@ struct VS_CONSTANT_BUFFER_OBJECT
 	Helix::Matrix4x4		m_worldViewMatrix;
 	Helix::Matrix4x4		m_worldViewIT;
 	Helix::Matrix4x4		m_invWorldViewProj;
+	float					m_viewAspect;
 };
 
 struct PS_CONSTANT_BUFFER_FRAME
@@ -90,7 +91,6 @@ struct PS_POINTLIGHT_CONSTANTS
 	float		m_cameraFar;
 	float		m_imageWidth;
 	float		m_imageHeight;
-	float		m_viewAspect;
 	float		m_invTanHalfFOV;
 };
 
@@ -733,10 +733,10 @@ void CreateRenderStates()
 	blendStateDesc.IndependentBlendEnable = TRUE;
 	
 	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_DEST_COLOR;
+	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
 	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
@@ -1283,48 +1283,13 @@ void RenderPointLight(Light &light)
 	FLOAT blendFactor[4] = {0,0,0,0};
 	m_context->OMSetBlendState(m_pointLightBlendState,blendFactor,0xffffffff);
 
-	// Get the mesh/material/shader/effect
-	Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	HXMaterial *lightSphereMat = HXGetMaterial(lightSphere->GetMaterialName());
-	HXShader *shader = HXGetShaderByName(lightSphereMat->m_shaderName);
+	Helix::Vector4 lightPos(light.point.m_position);
 
-	Helix::Vector3 lightPos(light.point.m_position);
-
-	// Set pointlight parameters
-	// Set our per frame VS constants
-	HRESULT hr = S_OK;
+	// Constants
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-//	HRESULT hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-//	_ASSERT(SUCCEEDED(hr)) ;
-//
-//	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
-//
-//	plConstants->m_cameraNear = m_cameraNear;
-//	plConstants->m_cameraFar = m_cameraFar;
-//	plConstants->m_imageWidth = m_imageWidth;
-//	plConstants->m_imageHeight = m_imageHeight;
-////	plConstants->m_fovY = m_fovY;
-//	plConstants->m_viewAspect = m_viewAspect;
-//	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-//	plConstants->m_pointRadius = 5.0f;
-//
-//	// Position
-//	plConstants->m_pointLoc.x = lightPos.x;
-//	plConstants->m_pointLoc.y = lightPos.y;
-//	plConstants->m_pointLoc.z = lightPos.z;
-//	plConstants->m_pointLoc.w = 1.0f;
-//
-//	// Color
-//	plConstants->m_pointColor.x = light.m_color.r;
-//	plConstants->m_pointColor.y = light.m_color.g;
-//	plConstants->m_pointColor.z = light.m_color.b;
-//	plConstants->m_pointColor.w = 1.0f;
-//
-//	m_context->Unmap(m_PointLightConstants,0);
-//	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
 
-
-	hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	// Set vertex shader point light constants
+	HRESULT hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 	
 	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
@@ -1340,9 +1305,43 @@ void RenderPointLight(Light &light)
 	// Set the world*view matrix for the point light
 	objConst->m_worldViewMatrix = worldView;	
 
-	m_context->Unmap(m_VSObjectConstants, 0);
+	// Set the view aspect
+	objConst->m_viewAspect = m_viewAspect;
 
+	m_context->Unmap(m_VSObjectConstants, 0);
 	m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
+
+	// Set pixel shader point light constants
+	hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT(SUCCEEDED(hr)) ;
+
+	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
+
+	// Position
+	plConstants->m_pointLoc.x = lightPos.x;
+	plConstants->m_pointLoc.y = lightPos.y;
+	plConstants->m_pointLoc.z = lightPos.z;
+	plConstants->m_pointLoc.w = 1.0f;
+
+	// Color
+	plConstants->m_pointColor.x = light.m_color.r;
+	plConstants->m_pointColor.y = light.m_color.g;
+	plConstants->m_pointColor.z = light.m_color.b;
+	plConstants->m_pointColor.w = 1.0f;
+
+	plConstants->m_lightRadius = 5.0f;
+	plConstants->m_cameraNear = m_cameraNear;
+	plConstants->m_cameraFar = m_cameraFar;
+	plConstants->m_imageWidth = m_imageWidth;
+	plConstants->m_imageHeight = m_imageHeight;
+//	plConstants->m_fovY = m_fovY;
+	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+
+	m_context->Unmap(m_PointLightConstants,0);
+	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
+
+	// Get the mesh/material/shader/effect
+	HXShader *shader = HXGetShaderByName(m_pointLightMat->m_shaderName);
 
 	// Set the input layout 
 	m_context->IASetInputLayout(shader->m_decl->m_layout);
@@ -1350,13 +1349,11 @@ void RenderPointLight(Light &light)
 	// Set our IB/VB
 	unsigned int stride = shader->m_decl->m_vertexSize;
 	unsigned int offset = 0;
-	ID3D11Buffer *vb = lightSphere->GetVertexBuffer();
-	ID3D11Buffer *ib = lightSphere->GetIndexBuffer();
-	m_context->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-	m_context->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
+	m_context->IASetVertexBuffers(0, 1, &m_quadVB, &stride, &offset);
+	m_context->IASetIndexBuffer(m_quadIB, DXGI_FORMAT_R16_UINT, 0);
 
 	// Set our prim type
-	m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+	m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
 	// Set our states
 	m_context->RSSetState(m_RState);
@@ -1369,7 +1366,7 @@ void RenderPointLight(Light &light)
 	m_context->DSSetShader(NULL, NULL, 0);
 
 	// Draw
-	m_context->DrawIndexed(lightSphere->NumIndices(), 0, 0);
+	m_context->DrawIndexed(4, 0, 0);
 }
 
 // ****************************************************************************
@@ -1634,11 +1631,11 @@ void DoLighting()
 //	RenderAmbientLight();
 
 	// Render with a directional sunlight vector
-	RenderSunlight();
+//	RenderSunlight();
 //	device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	// Render our lights
-//	RenderLights();
+	RenderLights();
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();

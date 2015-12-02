@@ -17,6 +17,7 @@ cbuffer VSPerObjectConstants : register(b1)
 	matrix		g_mWorldView		; // c0
 	matrix		g_mViewWorldIT		; // c4
 	matrix		g_mInvWorldViewProj	; // c8
+	float		viewAspect			; // c12
 };
 
 cbuffer PSPerFrameConstants : register(b2)
@@ -35,7 +36,6 @@ cbuffer PSPointLight : register(b3)
 	float	cameraFar		;
 	float	imageWidth		;
 	float	imageHeight		;
-	float	viewAspect		;
 	float	invTanHalfFOV	;
 };
 
