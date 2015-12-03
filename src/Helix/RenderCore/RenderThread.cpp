@@ -80,6 +80,11 @@ struct PS_CONSTANT_BUFFER_FRAME
 	Helix::Vector4		m_sunColor;
 	Helix::Vector4		m_sunDirection;
 	Helix::Vector4		m_ambientColor;
+	float				m_cameraNear;
+	float				m_cameraFar;
+	float				m_imageWidth;
+	float				m_imageHeight;
+	float				m_invTanHalfFOV;
 };
 
 struct PS_POINTLIGHT_CONSTANTS
@@ -87,11 +92,6 @@ struct PS_POINTLIGHT_CONSTANTS
 	Helix::Vector4	m_pointLoc;
 	Helix::Vector4	m_pointColor;
 	float		m_lightRadius;
-	float		m_cameraNear;
-	float		m_cameraFar;
-	float		m_imageWidth;
-	float		m_imageHeight;
-	float		m_invTanHalfFOV;
 };
 
 struct RenderData
@@ -1156,6 +1156,14 @@ void RenderSunlight()
 	vecData.w = 0.0f;
 	PSFrameConstants->m_sunColor = vecData;
 
+	// Camera information
+	PSFrameConstants->m_cameraNear = m_cameraNear;
+	PSFrameConstants->m_cameraFar = m_cameraFar;
+	PSFrameConstants->m_imageWidth = m_imageWidth;
+	PSFrameConstants->m_imageHeight = m_imageHeight;
+//	PSFrameConstants->m_fovY = m_fovY;
+	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+
 	// Send it to the hardware in slot 2
 	m_context->Unmap(m_PSFrameConstants, 0);
 	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
@@ -1329,13 +1337,8 @@ void RenderPointLight(Light &light)
 	plConstants->m_pointColor.z = light.m_color.b;
 	plConstants->m_pointColor.w = 1.0f;
 
+	// Light radius
 	plConstants->m_lightRadius = 5.0f;
-	plConstants->m_cameraNear = m_cameraNear;
-	plConstants->m_cameraFar = m_cameraFar;
-	plConstants->m_imageWidth = m_imageWidth;
-	plConstants->m_imageHeight = m_imageHeight;
-//	plConstants->m_fovY = m_fovY;
-	plConstants->m_invTanHalfFOV = m_invTanHalfFOV;
 
 	m_context->Unmap(m_PointLightConstants,0);
 	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
@@ -1386,6 +1389,47 @@ void RenderLights()
 
 	// Depth texture
 	m_context->PSSetShaderResources(2, 1, &m_SRView[DEPTH]);
+
+	// Configure the per-frame constants used by the point lights
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
+
+	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+
+	// Configure sun color
+	Helix::Vector4 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+	vecData.w = 1.0f;
+	PSFrameConstants->m_ambientColor = vecData;
+
+	// Configure sun direction
+	vecData.x = -m_sunlightDir.x;
+	vecData.y = -m_sunlightDir.y;
+	vecData.z = -m_sunlightDir.z;
+	vecData.w = 0.0f;
+	PSFrameConstants->m_sunDirection = vecData;
+
+	// Configure sun color
+	vecData.x = m_sunlightColor.Red;
+	vecData.y = m_sunlightColor.Green;
+	vecData.z = m_sunlightColor.Blue;
+	vecData.w = 0.0f;
+	PSFrameConstants->m_sunColor = vecData;
+
+	// Camera information
+	PSFrameConstants->m_cameraNear = m_cameraNear;
+	PSFrameConstants->m_cameraFar = m_cameraFar;
+	PSFrameConstants->m_imageWidth = m_imageWidth;
+	PSFrameConstants->m_imageHeight = m_imageHeight;
+//	PSFrameConstants->m_fovY = m_fovY;
+	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+
+	// Send it to the hardware in slot 2
+	m_context->Unmap(m_PSFrameConstants, 0);
+	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
 
 	// Go render all lights
 	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)

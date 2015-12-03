@@ -25,6 +25,11 @@ cbuffer PSPerFrameConstants : register(b2)
 	float4	g_sunColor		; // c0
 	float4	g_sunDir		; // c1
 	float4	g_ambientColor	; // c2;
+	float	g_cameraNear	; // c3;
+	float	g_cameraFar		; // c3;
+	float	g_imageWidth	; // c3;
+	float	g_imageHeight	; // c3;
+	float	g_invTanHalfFOV	; // c4;
 };
 
 cbuffer PSPointLight : register(b3)
@@ -32,11 +37,6 @@ cbuffer PSPointLight : register(b3)
 	float4	pointLoc		;
 	float4	pointColor		;
 	float	lightRadius		;
-	float	cameraNear		;
-	float	cameraFar		;
-	float	imageWidth		;
-	float	imageHeight		;
-	float	invTanHalfFOV	;
 };
 
 

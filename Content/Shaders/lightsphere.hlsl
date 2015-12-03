@@ -38,14 +38,14 @@ float4 LightSpherePixelShader(LightSpherePixel_in inVert) : SV_Target
 	// Get z/w from texture
 	float3 texPos = int3(int2(inVert.pos.xy), 0);
 	float3 samplePos;
-	samplePos.x = texPos.x/imageWidth;
-	samplePos.y = texPos.y/imageHeight;
+	samplePos.x = texPos.x/g_imageWidth;
+	samplePos.y = texPos.y/g_imageHeight;
 	samplePos.z = 0.0;
 	float depth = depthTexture.Load(samplePos).x;
 	
 	// Convert our x,y back to NDC (inverse viewport transform)
-	float halfWidth = imageWidth/2.0;
-	float halfHeight = imageHeight/2.0;
+	float halfWidth = g_imageWidth/2.0;
+	float halfHeight = g_imageHeight/2.0;
 	float clipX = (inVert.pos.x-halfWidth)/halfWidth;
 	float clipY = (inVert.pos.y-halfHeight)/-halfHeight;
 	float4 clipPos = float4(clipX, clipY, depth, 1.0);
