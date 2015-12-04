@@ -35,7 +35,6 @@ ID3D11Texture2D *			m_Texture[MAX_TARGETS];
 ID3D11RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D11ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-HXMaterial *				m_ambientMat = NULL;
 HXMaterial *				m_dirLightMat = NULL;
 HXMaterial *				m_pointLightMat = NULL;
 HXMaterial *				m_showNormalMat = NULL;
@@ -485,10 +484,6 @@ void CreateViews()
 // ****************************************************************************
 void LoadLightShaders()
 {
-	// Load our ambient light
-	m_ambientMat = HXLoadMaterial("ambient");
-	_ASSERT( m_ambientMat != NULL); 
-
 	// Load our directional light 
 	m_dirLightMat = HXLoadMaterial("dirlight");
 	_ASSERT( m_dirLightMat != NULL);
@@ -1249,81 +1244,6 @@ void RenderSunlight()
 	m_context->HSSetShader(NULL, NULL, 0);
 }
 
-// ****************************************************************************
-// ****************************************************************************
-void RenderAmbientLight()
-{
-	// Reset our view
-	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
-	m_context->PSSetShaderResources( 0, 3, pSRV );
-
-	FLOAT blendFactor[4] = {0,0,0,0};
-	m_context->OMSetBlendState(m_ambientBlendState,blendFactor,0xffffffff);
-
-	// Set up constants
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// *************
-	// Setup ambient color
-	// *************
-	Helix::Vector4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 1.0f;
-
-	// Make sure it is normalized
-	//vecData.Normalize();
-
-	PSFrameConstants->m_ambientColor = vecData;
-
-	// Send it to the hardware in slot 2
-	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
-
-	// Set our textures as inputs
-	HXShader *shader = HXGetShaderByName(m_ambientMat->m_shaderName);
-
-	// Set albedo texture as input
-	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
-
-	// Set the input layout 
-	m_context->IASetInputLayout(shader->m_decl->m_layout);
-
-	// Set our IB/VB
-	unsigned int stride = shader->m_decl->m_vertexSize;
-	unsigned int offset = 0;
-	m_context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-	m_context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
-
-	// Set our prim type
-	m_context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-
-	// Set our states
-	m_context->RSSetState(m_RState);
-
-	m_context->VSSetShader(shader->m_vshader,NULL, 0);
-	m_context->PSSetShader(shader->m_pshader,NULL, 0);
-	m_context->GSSetShader(NULL, NULL, 0);
-	m_context->DSSetShader(NULL, NULL, 0);
-	m_context->HSSetShader(NULL, NULL, 0);
-
-	m_context->DrawIndexed( 4, 0, 0 );
-
-	// Clear the inputs on the shader
-	//m_context->PSSetShaderResources(0, 1, NULL);
-
-	m_context->VSSetShader(NULL,NULL, 0);
-	m_context->GSSetShader(NULL,NULL, 0);
-	m_context->PSSetShader(NULL,NULL, 0);
-	m_context->DSSetShader(NULL, NULL, 0);
-	m_context->HSSetShader(NULL, NULL, 0);
-
-}
 // ****************************************************************************
 // ****************************************************************************
 void RenderPointLight(Light &light)
