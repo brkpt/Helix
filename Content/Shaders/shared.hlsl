@@ -1,7 +1,10 @@
+// ****************************************************************************
 // Constant buffers
 //
+// Pixel Shader model 5:
 // 15 buffers
 // 1024 constants of 4 elements apiece
+// ****************************************************************************
 cbuffer VSPerFrameConstants : register(b0)
 {
 	matrix		g_mView			; // c0
@@ -10,7 +13,7 @@ cbuffer VSPerFrameConstants : register(b0)
 	matrix		g_mView3x3		; // c12
 	matrix		g_mInvViewProj	; // c16
 	matrix		g_mInvProj		; // c20
-	float		viewAspect		; // c24
+	float		g_viewAspect	; // c24
 }
 
 cbuffer VSPerObjectConstants : register(b1)
@@ -38,5 +41,3 @@ cbuffer PSPointLight : register(b3)
 	float4	pointColor		;
 	float	lightRadius		;
 };
-
-

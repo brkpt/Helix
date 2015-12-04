@@ -42,7 +42,7 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 	outVert.pos = float4(inVert.pos,1.0);
 	outVert.texuv = inVert.texuv;
 	//out.vEyetoScreen= float3(Input.ScreenPos.x * ViewAspect, Input.ScreenPos.y, invTanHalfFOV)
-	outVert.vEyeToScreen = float3(inVert.pos.x*viewAspect, inVert.pos.y, g_invTanHalfFOV);
+	outVert.vEyeToScreen = float3(inVert.pos.x*g_viewAspect, inVert.pos.y, g_invTanHalfFOV);
 	return outVert;
 }
 
