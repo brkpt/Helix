@@ -1302,17 +1302,6 @@ void RenderPointLight(Light &light)
 	
 	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	// Setup a world matrix for the light position and size
-	Helix::Matrix4x4 scaleMat, transMat, worldMat;
-	scaleMat.SetScale(5.0f, 5.0f, 5.0f);
-	transMat.SetTranslation(lightPos.x, lightPos.y, lightPos.z);
-	worldMat = transMat * scaleMat ;
-	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-	Helix::Matrix4x4 worldView = worldMat * viewMat; // viewMat * worldMat;
-
-	// Set the world*view matrix for the point light
-	objConst->m_worldViewMatrix = worldView;	
-
 	// Set the view aspect
 	objConst->m_viewAspect = m_viewAspect;
 
@@ -1397,7 +1386,7 @@ void RenderLights()
 
 	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
 
-	// Configure sun color
+	// Configure ambient color
 	Helix::Vector4 vecData;
 	vecData.x = m_ambientColor.Red;
 	vecData.y = m_ambientColor.Green;

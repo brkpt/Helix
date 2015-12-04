@@ -10,6 +10,7 @@ cbuffer VSPerFrameConstants : register(b0)
 	matrix		g_mView3x3		; // c12
 	matrix		g_mInvViewProj	; // c16
 	matrix		g_mInvProj		; // c20
+	float		viewAspect		; // c24
 }
 
 cbuffer VSPerObjectConstants : register(b1)
@@ -17,7 +18,6 @@ cbuffer VSPerObjectConstants : register(b1)
 	matrix		g_mWorldView		; // c0
 	matrix		g_mViewWorldIT		; // c4
 	matrix		g_mInvWorldViewProj	; // c8
-	float		viewAspect			; // c12
 };
 
 cbuffer PSPerFrameConstants : register(b2)
