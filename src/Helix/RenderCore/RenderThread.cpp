@@ -40,6 +40,7 @@ HXMaterial *				m_dirLightMat = NULL;
 HXMaterial *				m_pointLightMat = NULL;
 HXMaterial *				m_showNormalMat = NULL;
 HXMaterial *				m_showLightLocMat = NULL;
+HXMaterial *				m_lightingMat = NULL;
 ID3D11Texture2D *			m_depthStencilTexture = NULL;
 ID3D11DepthStencilView *	m_depthStencilDSView = NULL;
 ID3D11ShaderResourceView *	m_depthStencilSRView = NULL;
@@ -51,6 +52,7 @@ ID3D11DepthStencilState *	m_GBufferDSState = NULL;
 ID3D11BlendState *			m_ambientBlendState = NULL;
 ID3D11BlendState *			m_dirLightBlendState = NULL;
 ID3D11BlendState *			m_pointLightBlendState = NULL;
+ID3D11BlendState *			m_lightingBlendState = NULL;
 ID3D11DepthStencilState *	m_lightingDSState = NULL;
 
 Helix::Vector3				m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
@@ -127,6 +129,7 @@ ID3D11Buffer	*m_VSFrameConstants = NULL;
 ID3D11Buffer	*m_VSObjectConstants = NULL;
 ID3D11Buffer	*m_PSFrameConstants = NULL;
 ID3D11Buffer	*m_PointLightConstants = NULL;
+ID3D11Buffer	*m_lightingConstants = NULL;
 
 ID3D11SamplerState	*m_basicSampler;
 
@@ -493,6 +496,9 @@ void LoadLightShaders()
 	m_pointLightMat = HXLoadMaterial("pointlight");
 	_ASSERT( m_pointLightMat != NULL);
 
+	m_lightingMat = HXLoadMaterial("lighting");
+	_ASSERT( m_lightingMat != NULL);
+
 	m_showNormalMat = HXLoadMaterial("shownormals");
 	_ASSERT(m_showNormalMat != NULL);
 
@@ -756,6 +762,37 @@ void CreateRenderStates()
 	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_pointLightBlendState);
 	_ASSERT( SUCCEEDED( hr ) );
 
+	// Create a blend state for lighting
+	memset(&blendStateDesc,0,sizeof(blendStateDesc));
+	blendStateDesc.AlphaToCoverageEnable = false;
+
+	// Only use the first target state.
+	blendStateDesc.IndependentBlendEnable = TRUE;
+	
+	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+
+	for(int i=1;i<8;i++)
+	{
+		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
+		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
+		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
+	}
+
+	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_lightingBlendState);
+	_ASSERT( SUCCEEDED( hr ) );
+
 	// Create a SamplerState
 	//{
 	//	Filter = MIN_MAG_MIP_LINEAR;
@@ -807,6 +844,9 @@ void CreateConstantBuffers()
 
 	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PointLightConstants );
+
+	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_lightingConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
 }
@@ -1289,7 +1329,7 @@ void RenderAmbientLight()
 void RenderPointLight(Light &light)
 {
 	FLOAT blendFactor[4] = {0,0,0,0};
-	m_context->OMSetBlendState(m_pointLightBlendState,blendFactor,0xffffffff);
+	m_context->OMSetBlendState(m_lightingBlendState,blendFactor,0xffffffff);
 
 	Helix::Vector4 lightPos(light.point.m_position);
 
@@ -1306,7 +1346,7 @@ void RenderPointLight(Light &light)
 	m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
 
 	// Set pixel shader point light constants
-	hr = m_context->Map(m_PointLightConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	hr = m_context->Map(m_lightingConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 
 	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
@@ -1326,11 +1366,11 @@ void RenderPointLight(Light &light)
 	// Light radius
 	plConstants->m_lightRadius = 5.0f;
 
-	m_context->Unmap(m_PointLightConstants,0);
-	m_context->PSSetConstantBuffers(3,1,&m_PointLightConstants);
+	m_context->Unmap(m_lightingConstants,0);
+	m_context->PSSetConstantBuffers(3,1,&m_lightingConstants);
 
 	// Get the mesh/material/shader/effect
-	HXShader *shader = HXGetShaderByName(m_pointLightMat->m_shaderName);
+	HXShader *shader = HXGetShaderByName(m_lightingMat->m_shaderName);
 
 	// Set the input layout 
 	m_context->IASetInputLayout(shader->m_decl->m_layout);
@@ -1356,83 +1396,6 @@ void RenderPointLight(Light &light)
 
 	// Draw
 	m_context->DrawIndexed(4, 0, 0);
-}
-
-// ****************************************************************************
-// ****************************************************************************
-void RenderLights()
-{
-	// Reset our view
-	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
-	m_context->PSSetShaderResources( 0, 3, pSRV );
-
-	// Set our textures as inputs
-	// Albedo texture
-	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
-
-	// Normal texture
-	m_context->PSSetShaderResources(1, 1, &m_SRView[NORMAL]);
-
-	// Depth texture
-	m_context->PSSetShaderResources(2, 1, &m_SRView[DEPTH]);
-
-	// Configure the per-frame constants used by the point lights
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// Configure ambient color
-	Helix::Vector4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 1.0f;
-	PSFrameConstants->m_ambientColor = vecData;
-
-	// Configure sun direction
-	vecData.x = -m_sunlightDir.x;
-	vecData.y = -m_sunlightDir.y;
-	vecData.z = -m_sunlightDir.z;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunDirection = vecData;
-
-	// Configure sun color
-	vecData.x = m_sunlightColor.Red;
-	vecData.y = m_sunlightColor.Green;
-	vecData.z = m_sunlightColor.Blue;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunColor = vecData;
-
-	// Camera information
-	PSFrameConstants->m_cameraNear = m_cameraNear;
-	PSFrameConstants->m_cameraFar = m_cameraFar;
-	PSFrameConstants->m_imageWidth = m_imageWidth;
-	PSFrameConstants->m_imageHeight = m_imageHeight;
-//	PSFrameConstants->m_fovY = m_fovY;
-	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-
-	// Send it to the hardware in slot 2
-	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
-
-	// Go render all lights
-	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
-	{
-		Light &light = m_renderLights[iLightIndex];
-
-		switch(light.m_type)
-		{
-			case Light::POINT: 
-				RenderPointLight(light);
-				break;
-		}
-
-	}
-
-	// Reset our view
-	m_context->PSSetShaderResources( 0, 3, pSRV );
 }
 
 // ****************************************************************************
@@ -1660,15 +1623,77 @@ void DoLighting()
 	context->OMSetRenderTargets(1,&m_backBufferView, m_depthStencilDSView/*m_backDepthStencilView*/);
 	context->OMSetDepthStencilState(m_lightingDSState,0);
 
-	// Render the scene with ambient into the backbuffer
-//	RenderAmbientLight();
+	// Reset our view
+	ID3D11ShaderResourceView*const pSRV[3] = { NULL,NULL,NULL };
+	m_context->PSSetShaderResources( 0, 3, pSRV );
 
-	// Render with a directional sunlight vector
-//	RenderSunlight();
-//	device->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	// Set our textures as inputs
+	// Albedo texture
+	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
 
-	// Render our lights
-	RenderLights();
+	// Normal texture
+	m_context->PSSetShaderResources(1, 1, &m_SRView[NORMAL]);
+
+	// Depth texture
+	m_context->PSSetShaderResources(2, 1, &m_SRView[DEPTH]);
+
+	// Configure the per-frame constants used by the point lights
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	_ASSERT( SUCCEEDED( hr ) );
+
+	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+
+	// Configure ambient color
+	Helix::Vector4 vecData;
+	vecData.x = m_ambientColor.Red;
+	vecData.y = m_ambientColor.Green;
+	vecData.z = m_ambientColor.Blue;
+	vecData.w = 1.0f;
+	PSFrameConstants->m_ambientColor = vecData;
+
+	// Configure sun direction
+	vecData.x = -m_sunlightDir.x;
+	vecData.y = -m_sunlightDir.y;
+	vecData.z = -m_sunlightDir.z;
+	vecData.w = 0.0f;
+	PSFrameConstants->m_sunDirection = vecData;
+
+	// Configure sun color
+	vecData.x = m_sunlightColor.Red;
+	vecData.y = m_sunlightColor.Green;
+	vecData.z = m_sunlightColor.Blue;
+	vecData.w = 0.0f;
+	PSFrameConstants->m_sunColor = vecData;
+
+	// Camera information
+	PSFrameConstants->m_cameraNear = m_cameraNear;
+	PSFrameConstants->m_cameraFar = m_cameraFar;
+	PSFrameConstants->m_imageWidth = m_imageWidth;
+	PSFrameConstants->m_imageHeight = m_imageHeight;
+//	PSFrameConstants->m_fovY = m_fovY;
+	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+
+	// Send it to the hardware in slot 2
+	m_context->Unmap(m_PSFrameConstants, 0);
+	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
+
+	// Go render all lights
+	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
+	{
+		Light &light = m_renderLights[iLightIndex];
+
+		switch(light.m_type)
+		{
+			case Light::POINT: 
+				RenderPointLight(light);
+				break;
+		}
+
+	}
+
+	// Reset our view
+	m_context->PSSetShaderResources( 0, 3, pSRV );
 	if(m_showLightLocs)
 	{
 		ShowLightLocations();

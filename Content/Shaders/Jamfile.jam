@@ -4,6 +4,8 @@ IncludeModule CopyFile ;
 
 SHADER_FILES =
 	shared.hlsl
+	lighting.lua
+	lighting.hlsl
 	ambient.lua
 	ambient.hlsl
 	diffuse.lua

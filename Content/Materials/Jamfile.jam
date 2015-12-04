@@ -4,6 +4,7 @@ IncludeModule CopyFile ;
 
 MATERIAL_FILES =
 	ambient.lua
+	lighting.lua
 	Carsen.lua
 	Triangle.lua
 	FunnyFace.lua

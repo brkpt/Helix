@@ -137,15 +137,15 @@ void TheGame::LoadScene(const std::string &levelName)
 	float aspectRatio = (float)m_windowWidth/(float)m_windowHeight;
 	m_camera->BuildProjectionMatrix((float)Helix::PI/4.0f,aspectRatio,1.0f,200.0f);
 
-	Helix::Vector3 sunDir(-1.0f, -1.0f, 0.0f);
+	Helix::Vector3 sunDir(0.0f, -1.0f, 0.0f);
 	Helix::SetSunlightDir( sunDir );
 
-	DXGI_RGB tempColor = { 1.0f, 0.0f, 0.0f};
+	DXGI_RGB tempColor = { 1.0f, 1.0f, 1.0f};
 	Helix::SetSunlightColor( tempColor );
 
 	tempColor.Red = 0.2f;
-	tempColor.Green = 0.2f;
-	tempColor.Blue = 0.2f;
+	tempColor.Green = 0.0f;
+	tempColor.Blue = 0.0f;
 	Helix::SetAmbientColor( tempColor );
 
 	Helix::LoadScene(levelName.c_str());
