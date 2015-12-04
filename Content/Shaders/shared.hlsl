@@ -37,7 +37,7 @@ cbuffer PSPerFrameConstants : register(b2)
 
 cbuffer PSPointLight : register(b3)
 {
-	float4	pointLoc		;
-	float4	pointColor		;
-	float	lightRadius		;
+	float4	g_pointLoc		;
+	float4	g_pointColor		;
+	float	g_lightRadius		;
 };

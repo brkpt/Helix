@@ -85,7 +85,7 @@ struct PS_POINTLIGHT_CONSTANTS
 {
 	Helix::Vector4	m_pointLoc;
 	Helix::Vector4	m_pointColor;
-	float		m_lightRadius;
+	float			m_lightRadius;
 };
 
 struct RenderData
