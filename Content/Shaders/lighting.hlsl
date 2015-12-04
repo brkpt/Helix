@@ -37,15 +37,10 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 	return outVert;
 }
 
-float4 ShowGBuffer(QuadPS_in inVert)
+float4 ShowGBuffer(float2 clip, QuadPS_in inVert)
 {
-	// Incoming x/y is in screen space of width x height
-	// Convert to clip space coordinates
-	float clipX = inVert.pos.x / g_imageWidth;
-	float clipY = inVert.pos.y / g_imageHeight;
-
 	// Sample albedo texture
-	float3 color = albedoTexture.Sample(colorSampler, float2(clipX, clipY)).xyz;
+	float3 color = albedoTexture.Sample(colorSampler, clip).xyz;
 	float4 outColor;
 	outColor = float4(color,1.0f);
 	return outColor;
@@ -64,24 +59,21 @@ float4 ShowDepth(QuadPS_in inVert)
 	return outColor;
 }
 
-float4 Ambient(QuadPS_in inVert)
+float4 Ambient(float2 clip, QuadPS_in inVert)
 {
 	// Get our depth value
-	float3 albedoColor = (float3)(albedoTexture.Sample(colorSampler,inVert.texuv));
+	float3 albedoColor = (float3)(albedoTexture.Sample(colorSampler, clip));
 	
 	float4 outColor = float4(albedoColor * g_ambientColor.xyz,1.0);
 	return outColor;
 }
 
 // lighting due to directional sunlight only
-float4 Sunlight(QuadPS_in inVert)
+float4 Sunlight(float2 clip, QuadPS_in inVert)
 {
-	// Convert screen coords back into clip space coords
-	float clipX = inVert.pos.x / g_imageWidth;
-	float clipY = inVert.pos.y / g_imageHeight;
 
 	// Get our albedo color
-	float3 color = (float3)(albedoTexture.Sample(colorSampler,float2(clipX, clipY)));
+	float3 color = (float3)(albedoTexture.Sample(colorSampler,clip));
 
 	// Default to albedo color if no normal exists
 	float3 outColor = color;
@@ -90,7 +82,7 @@ float4 Sunlight(QuadPS_in inVert)
 //	float3 outColor = color*g_ambientColor.xyz;
 	
 	// Get our pixel normal
-	float3 normal = (float3)(normalTexture.Sample(normalSampler,float2(clipX, clipY)));
+	float3 normal = (float3)(normalTexture.Sample(normalSampler,clip));
 	float normLen = length(normal);
 
 	// If we have a normal (ie: something was rendered at this pixel)
@@ -115,7 +107,7 @@ float4 Sunlight(QuadPS_in inVert)
 	return float4(outColor,1);	
 }
 
-float4 PointLighting(QuadPS_in inVert)
+float4 PointLighting(float2 clip, QuadPS_in inVert)
 {
 //	float4 outColor;
 //	
@@ -150,33 +142,45 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 	// GBuffer only = 0
 	// Ambient only lighting = 1
 	// Sunlight only lighting = 2
-	// Pointligh only lighting = 3
+	// Sunlight + Ambient lighting = 3
 	//
 	// Debugging 
 	// Normal buffer = 100
 	// Depth buffer = 101
-	int lightingType = 2;
+	int lightingType = 3;
 
 	// Default to a purple for debugging purposes
 	float4 outColor = float4(0.5f, 0.0f, 0.5f, 1.0f);
+
+	// Convert screen coords back into clip space coords
+	float clipX = inVert.pos.x / g_imageWidth;
+	float clipY = inVert.pos.y / g_imageHeight;
+	float2 clip = float2(clipX, clipY);
 
 	switch(lightingType)
 	{
 		case 0:
 		{
-			outColor = ShowGBuffer(inVert);
+			outColor = ShowGBuffer(clip, inVert);
 		}
 		break;
 
 		case 1:
 		{
-			outColor = Ambient(inVert);
+			outColor = Ambient(clip, inVert);
 		}
 		break;
 
 		case 2:
 		{
-			outColor = Sunlight(inVert);
+			outColor = Sunlight(clip, inVert);
+		}
+		break;
+		
+		case 3:
+		{
+			outColor = Ambient(clip, inVert);
+			outColor += Sunlight(clip, inVert);
 		}
 		break;
 
