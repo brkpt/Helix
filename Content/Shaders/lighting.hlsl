@@ -3,8 +3,53 @@
 // To compile offline:
 //  fxc /T fx_5_0 /Vi /Zi /Fo texture.fxo texture.fx
 
-#include "shared.hlsl"
+// ****************************************************************************
+// Constant buffers
+//
+// Pixel Shader model 5:
+// 15 buffers
+// 1024 constants of 4 elements apiece
+// ****************************************************************************
+cbuffer VSPerFrameConstants : register(b0)
+{
+	matrix		g_mView			; // c0
+	matrix		g_mProjection	; // c4
+	matrix		g_mInvView		; // c8
+	matrix		g_mView3x3		; // c12
+	matrix		g_mInvViewProj	; // c16
+	matrix		g_mInvProj		; // c20
+	float		viewAspect		; // c24
+}
 
+cbuffer VSPerObjectConstants : register(b1)
+{
+	matrix		g_mWorldView		; // c0
+	matrix		g_mViewWorldIT		; // c4
+	matrix		g_mInvWorldViewProj	; // c8
+};
+
+cbuffer PSPerFrameConstants : register(b2)
+{
+	float4	g_sunColor		; // c0
+	float4	g_sunDir		; // c1
+	float4	g_ambientColor	; // c2;
+	float	g_cameraNear	; // c3;
+	float	g_cameraFar		; // c3;
+	float	g_imageWidth	; // c3;
+	float	g_imageHeight	; // c3;
+	float	g_invTanHalfFOV	; // c4;
+};
+
+cbuffer PSPointLight : register(b3)
+{
+	float4	pointLoc		;
+	float4	pointColor		;
+	float	lightRadius		;
+};
+
+// ****************************************************************************
+// Vertex/pixel definitions
+// ****************************************************************************
 struct QuadVS_in
 {
 	float3 pos : POSITION;
@@ -18,6 +63,9 @@ struct QuadPS_in
 	float3 vEyeToScreen: TEXCOORD1;
 };
 
+// ****************************************************************************
+// Textures/samplers
+// ****************************************************************************
 Texture2D	albedoTexture : register(t0) ;
 Texture2D	normalTexture :	register(t1);
 Texture2D	depthTexture : register(t2) ;
@@ -26,6 +74,9 @@ SamplerState colorSampler : register(s0) ;
 SamplerState depthSampler : register(s1) ;
 SamplerState normalSampler : register(s2) ;
 
+// ****************************************************************************
+// Vertex shader
+// ****************************************************************************
 QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 {
 	QuadPS_in outVert;
@@ -37,28 +88,10 @@ QuadPS_in FullScreenQuadVS(QuadVS_in inVert)
 	return outVert;
 }
 
-float4 ShowGBuffer(float2 clip, QuadPS_in inVert)
-{
-	// Sample albedo texture
-	float3 color = albedoTexture.Sample(colorSampler, clip).xyz;
-	float4 outColor;
-	outColor = float4(color,1.0f);
-	return outColor;
-}
 
-float4 ShowNormal(QuadPS_in inVert)
-{
-	// Get our pixel normal
-	float3 normal = (float3)(normalTexture.Sample(colorSampler,inVert.texuv));
-	float normLen = length(normal);
-}
-
-float4 ShowDepth(QuadPS_in inVert)
-{
-	float4 outColor = float4(0.5f, 0.0f, 0.5f, 1.0f);
-	return outColor;
-}
-
+// ****************************************************************************
+// Computes the ambient layer
+// ****************************************************************************
 float4 Ambient(float2 clip, QuadPS_in inVert)
 {
 	// Get our depth value
@@ -68,7 +101,9 @@ float4 Ambient(float2 clip, QuadPS_in inVert)
 	return outColor;
 }
 
+// ****************************************************************************
 // lighting due to directional sunlight only
+// ****************************************************************************
 float4 Sunlight(float2 clip, QuadPS_in inVert)
 {
 
@@ -107,7 +142,10 @@ float4 Sunlight(float2 clip, QuadPS_in inVert)
 	return float4(outColor,1);	
 }
 
-float4 PointLighting(float2 clip, QuadPS_in inVert)
+// ****************************************************************************
+// Renders a single point light
+// ****************************************************************************
+float4 Pointlight(float2 clip, QuadPS_in inVert)
 {
 //	float4 outColor;
 //	
@@ -136,17 +174,32 @@ float4 PointLighting(float2 clip, QuadPS_in inVert)
 	return outColor;
 }
 
+// ****************************************************************************
+// ****************************************************************************
+float4 ShowGBuffer(float2 clip, QuadPS_in inVert)
+{
+	float3 albedoColor = (float3)(albedoTexture.Sample(colorSampler, clip));
+	return float4(albedoColor,1);
+}
+
+// ****************************************************************************
+// Deferred pixel shader
+//
+// Renders a single quad to the screen using the GBuffer, normal buffer, and
+// depth buffer to calculate lighting at each screen position.
+//
+// The pixel position input should use the SV_Position semantic to denote that
+// the value should be in screen space. This causes the hardware to call the
+// pixel shader with x/y values that range between 0..image width/height.
+// ****************************************************************************
 float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 {
 	// Output type
-	// GBuffer only = 0
-	// Ambient only lighting = 1
-	// Sunlight only lighting = 2
-	// Sunlight + Ambient lighting = 3
-	//
-	// Debugging 
-	// Normal buffer = 100
-	// Depth buffer = 101
+	// GBuffer only					= 0
+	// Ambient only lighting		= 1
+	// Sunlight only lighting		= 2
+	// Sunlight + Ambient lighting	= 3
+	// Pointlight					= 4
 	int lightingType = 3;
 
 	// Default to a purple for debugging purposes
@@ -184,9 +237,9 @@ float4 FullScreenQuadPS(QuadPS_in inVert) : SV_Target
 		}
 		break;
 
-		case 100:
+		case 4:
 		{
-			outColor = ShowNormal(inVert);
+			outColor = Pointlight(clip, inVert);
 		}
 		break;
 	}
