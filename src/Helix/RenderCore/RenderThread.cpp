@@ -35,7 +35,6 @@ ID3D11Texture2D *			m_Texture[MAX_TARGETS];
 ID3D11RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D11ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-HXMaterial *				m_dirLightMat = NULL;
 HXMaterial *				m_pointLightMat = NULL;
 HXMaterial *				m_showNormalMat = NULL;
 HXMaterial *				m_showLightLocMat = NULL;
@@ -484,10 +483,6 @@ void CreateViews()
 // ****************************************************************************
 void LoadLightShaders()
 {
-	// Load our directional light 
-	m_dirLightMat = HXLoadMaterial("dirlight");
-	_ASSERT( m_dirLightMat != NULL);
-
 	m_pointLightMat = HXLoadMaterial("pointlight");
 	_ASSERT( m_pointLightMat != NULL);
 
@@ -1151,97 +1146,6 @@ void ShowNormals()
 	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
 	//}
 
-}
-// ****************************************************************************
-// ****************************************************************************
-void RenderSunlight()
-{
-	ID3D11Device *device = m_D3DDevice;
-	ID3D11DeviceContext *context = m_context;
-
-	FLOAT blendFactor[4] = {0,0,0,0};
-	m_context->OMSetBlendState(m_dirLightBlendState,blendFactor,0xffffffff);
-
-	// Configure the constants used by the directional lighting
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// Configure sun color
-	Helix::Vector4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 1.0f;
-	PSFrameConstants->m_ambientColor = vecData;
-
-	// Configure sun direction
-	vecData.x = -m_sunlightDir.x;
-	vecData.y = -m_sunlightDir.y;
-	vecData.z = -m_sunlightDir.z;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunDirection = vecData;
-
-	// Configure sun color
-	vecData.x = m_sunlightColor.Red;
-	vecData.y = m_sunlightColor.Green;
-	vecData.z = m_sunlightColor.Blue;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunColor = vecData;
-
-	// Camera information
-	PSFrameConstants->m_cameraNear = m_cameraNear;
-	PSFrameConstants->m_cameraFar = m_cameraFar;
-	PSFrameConstants->m_imageWidth = m_imageWidth;
-	PSFrameConstants->m_imageHeight = m_imageHeight;
-//	PSFrameConstants->m_fovY = m_fovY;
-	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-
-	// Send it to the hardware in slot 2
-	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
-
-	// Set our textures as inputs
-	HXShader *shader = HXGetShaderByName(m_dirLightMat->m_shaderName);
-
-	// Set albedo and normal textures as input
-	m_context->PSSetShaderResources(0, 1, &m_SRView[ALBEDO]);
-	m_context->PSSetShaderResources(1, 1, &m_SRView[NORMAL]);
-
-	// Set the input layout
-	m_context->IASetInputLayout(shader->m_decl->m_layout);
-
-	// Set our IB/VB
-	unsigned int stride = shader->m_decl->m_vertexSize;
-	unsigned int offset = 0;
-	m_context->IASetVertexBuffers(0, 1, &m_quadVB, &stride, &offset);
-	m_context->IASetIndexBuffer(m_quadIB, DXGI_FORMAT_R16_UINT, 0);
-
-	// Set our prim type
-	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	// Set our states
-	m_context->RSSetState(m_RState);
-
-
-	m_context->VSSetShader(shader->m_vshader,NULL, 0);
-	m_context->PSSetShader(shader->m_pshader,NULL, 0);
-	m_context->GSSetShader(NULL, NULL, 0);
-	m_context->DSSetShader(NULL, NULL, 0);
-	m_context->HSSetShader(NULL, NULL, 0);
-
-	m_context->DrawIndexed( 4, 0, 0 );
-
-	// Clear the inputs on the shader
-	//m_context->PSSetShaderResources(0, 1, NULL);
-
-	m_context->VSSetShader(NULL,NULL, 0);
-	m_context->GSSetShader(NULL,NULL, 0);
-	m_context->PSSetShader(NULL,NULL, 0);
-	m_context->DSSetShader(NULL, NULL, 0);
-	m_context->HSSetShader(NULL, NULL, 0);
 }
 
 // ****************************************************************************
