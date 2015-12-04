@@ -46,7 +46,6 @@ ID3D11Buffer *				m_quadIB = NULL;
 ID3D11RasterizerState *		m_RState = NULL;
 ID3D11BlendState *			m_GBufferBlendState = NULL;
 ID3D11DepthStencilState *	m_GBufferDSState = NULL;
-ID3D11BlendState *			m_ambientBlendState = NULL;
 ID3D11BlendState *			m_dirLightBlendState = NULL;
 ID3D11BlendState *			m_pointLightBlendState = NULL;
 ID3D11BlendState *			m_lightingBlendState = NULL;
@@ -655,36 +654,6 @@ void CreateRenderStates()
 
 	depthStencilState = NULL;
 	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	// Create a blend state for ambient light blending
-	memset(&blendStateDesc,0,sizeof(blendStateDesc));
-	blendStateDesc.AlphaToCoverageEnable = false;
-
-	// Only use the first target state.
-	blendStateDesc.IndependentBlendEnable = TRUE;
-	
-	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
-	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-
-	for(int i=1;i<8;i++)
-	{
-		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
-		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
-		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-	}
-	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_ambientBlendState);
 	_ASSERT( SUCCEEDED( hr ) );
 
 	// Create a blend state for directional light blending
