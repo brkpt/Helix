@@ -35,7 +35,6 @@ ID3D11Texture2D *			m_Texture[MAX_TARGETS];
 ID3D11RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D11ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-HXMaterial *				m_pointLightMat = NULL;
 HXMaterial *				m_showNormalMat = NULL;
 HXMaterial *				m_showLightLocMat = NULL;
 HXMaterial *				m_lightingMat = NULL;
@@ -483,9 +482,6 @@ void CreateViews()
 // ****************************************************************************
 void LoadLightShaders()
 {
-	m_pointLightMat = HXLoadMaterial("pointlight");
-	_ASSERT( m_pointLightMat != NULL);
-
 	m_lightingMat = HXLoadMaterial("lighting");
 	_ASSERT( m_lightingMat != NULL);
 
