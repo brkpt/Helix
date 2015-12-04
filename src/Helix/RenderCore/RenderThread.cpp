@@ -35,8 +35,6 @@ ID3D11Texture2D *			m_Texture[MAX_TARGETS];
 ID3D11RenderTargetView *	m_RTView[MAX_TARGETS];
 ID3D11ShaderResourceView *	m_SRView[MAX_TARGETS];
 
-HXMaterial *				m_showNormalMat = NULL;
-HXMaterial *				m_showLightLocMat = NULL;
 HXMaterial *				m_lightingMat = NULL;
 ID3D11Texture2D *			m_depthStencilTexture = NULL;
 ID3D11DepthStencilView *	m_depthStencilDSView = NULL;
@@ -46,8 +44,6 @@ ID3D11Buffer *				m_quadIB = NULL;
 ID3D11RasterizerState *		m_RState = NULL;
 ID3D11BlendState *			m_GBufferBlendState = NULL;
 ID3D11DepthStencilState *	m_GBufferDSState = NULL;
-ID3D11BlendState *			m_dirLightBlendState = NULL;
-ID3D11BlendState *			m_pointLightBlendState = NULL;
 ID3D11BlendState *			m_lightingBlendState = NULL;
 ID3D11DepthStencilState *	m_lightingDSState = NULL;
 
@@ -118,13 +114,9 @@ float			m_fov = 0;
 float			m_viewAspect;
 float			m_invTanHalfFOV = 0;
 
-bool			m_showNormals = false;
-bool			m_showLightLocs = false;
-
 ID3D11Buffer	*m_VSFrameConstants = NULL;
 ID3D11Buffer	*m_VSObjectConstants = NULL;
 ID3D11Buffer	*m_PSFrameConstants = NULL;
-ID3D11Buffer	*m_PointLightConstants = NULL;
 ID3D11Buffer	*m_lightingConstants = NULL;
 
 ID3D11SamplerState	*m_basicSampler;
@@ -483,12 +475,6 @@ void LoadLightShaders()
 {
 	m_lightingMat = HXLoadMaterial("lighting");
 	_ASSERT( m_lightingMat != NULL);
-
-	m_showNormalMat = HXLoadMaterial("shownormals");
-	_ASSERT(m_showNormalMat != NULL);
-
-	m_showLightLocMat = HXLoadMaterial("showlightloc");
-	_ASSERT(m_showLightLocMat != NULL);
 }
 
 // ****************************************************************************
@@ -656,68 +642,7 @@ void CreateRenderStates()
 	hr = m_D3DDevice->CreateDepthStencilState(&depthStencilStateDesc,&m_lightingDSState);
 	_ASSERT( SUCCEEDED( hr ) );
 
-	// Create a blend state for directional light blending
-	memset(&blendStateDesc,0,sizeof(blendStateDesc));
-	blendStateDesc.AlphaToCoverageEnable = false;
-
-	// Only use the first target state.
-	blendStateDesc.IndependentBlendEnable = TRUE;
-	
-	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
-	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-
-	for(int i=1;i<8;i++)
-	{
-		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
-		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
-		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-	}
-	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_dirLightBlendState);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	// Create a blend state for point light blending
-	memset(&blendStateDesc,0,sizeof(blendStateDesc));
-	blendStateDesc.AlphaToCoverageEnable = false;
-
-	// Only use the first target state.
-	blendStateDesc.IndependentBlendEnable = TRUE;
-	
-	blendStateDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
-	blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-
-	for(int i=1;i<8;i++)
-	{
-		blendStateDesc.RenderTarget[i].BlendEnable = FALSE;
-		blendStateDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_COLOR;
-		blendStateDesc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendStateDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL ;
-	}
-
-	hr = m_D3DDevice->CreateBlendState(&blendStateDesc,&m_pointLightBlendState);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	// Create a blend state for lighting
+	// Create a blend state for deferred lighting
 	memset(&blendStateDesc,0,sizeof(blendStateDesc));
 	blendStateDesc.AlphaToCoverageEnable = false;
 
@@ -796,9 +721,6 @@ void CreateConstantBuffers()
 	bufferDesc.ByteWidth = Align<16>(sizeof( PS_CONSTANT_BUFFER_FRAME ));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PSFrameConstants );
 	_ASSERT( SUCCEEDED( hr ) );
-
-	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
-	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PointLightConstants );
 
 	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_lightingConstants );
@@ -996,121 +918,6 @@ void SubmitProjMatrix(Helix::Matrix4x4 &mat)
 	AcquireMutex();
 	m_projMatrix[m_submissionIndex] = mat;
 	ReleaseMutex();
-}
-
-// ****************************************************************************
-// ****************************************************************************
-void ShowLightLocations()
-{
-	//ID3D11Device *device = m_D3DDevice;
-
-	//// Set our textures as inputs
-	//Mesh *lightSphere = MeshManager::GetInstance().GetMesh("[lightsphere]");
-	//Shader *shader = ShaderManager::GetInstance().GetShader(m_showLightLocMat->GetShaderName());
-	//ID3DX11Effect *effect = shader->GetEffect();
-
-	//// Set the world*view matrix for the point light
-	//Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-
-	//// TODO: Get the world matrix from the object.  
-	//// Use I for now
-	//Helix::Matrix4x4 scaleMat;
-	//Helix::Matrix4x4Scaling(&scaleMat,1.0f, 1.0f, 1.0f);
-	//Helix::Matrix4x4 transMat;
-	//Helix::Matrix4x4Translation(&transMat,m_pointLightLoc.x, m_pointLightLoc.y, m_pointLightLoc.z);
-
-	//Helix::Matrix4x4 worldMat;
-	//Helix::Matrix4x4Multiply(&worldMat,&scaleMat,&transMat);
-
-	//// Calculate the WorldView matrix
-	//Helix::Matrix4x4 worldView;
-	//Helix::Matrix4x4Multiply(&worldView,&worldMat,&viewMat);
-	//Helix::ShaderManager::GetInstance().SetSharedParameter("WorldView",worldView);
-
-	//// Position
-	//ID3DX11EffectVectorVariable *vecVar = effect->GetVariableByName("pointLoc")->AsVector();
-	//_ASSERT( vecVar != NULL);
-	//vecVar->SetFloatVector(m_pointLightLoc);
-
-	//// Set our IB/VB
-	//unsigned int stride = shader->GetDecl().VertexSize();
-	//unsigned int offset = 0;
-	//ID3D11Buffer *vb = lightSphere->GetVertexBuffer();
-	//ID3D11Buffer *ib = lightSphere->GetIndexBuffer();
-	//device->IASetVertexBuffers(0,1,&vb,&stride,&offset);
-	//device->IASetIndexBuffer(ib,DXGI_FORMAT_R16_UINT,0);
-
-	//// Set our prim type
-	//device->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-	//// Set our states
-	//device->RSSetState(m_RState);
-
-	//D3D11_TECHNIQUE_DESC techDesc;
-	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//technique->GetDesc(&techDesc);
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//	device->DrawIndexed( lightSphere->NumIndices(), 0, 0 );
-	//}
-}
-
-// ****************************************************************************
-// ****************************************************************************
-void ShowNormals()
-{
-	//ID3D11Device *device = m_D3DDevice;
-	//ID3D11DeviceContext *context = m_context;
-
-	//// Clear the backbuffer/depth/stencil
-	//float ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // red, green, blue, alpha
-	//context->ClearRenderTargetView( m_backBufferView, ClearColor );
-	//context->ClearDepthStencilView( m_backDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	//// Switch to final backbuffer/depth/stencil
-	//context->OMSetRenderTargets(1,&m_backBufferView, m_backDepthStencilView);
-
-	//// Set our textures as inputs
-	//HXShader *shader = HXGetShaderByName("shownormals");
-	//ID3DX11Effect *effect = shader->m_pEffect;
-
-	//// Normal texture
-	//ID3DX11EffectShaderResourceVariable *shaderResource = effect->GetVariableByName("normalTexture")->AsShaderResource();
-	//_ASSERT(shaderResource != NULL);
-	//HRESULT hr = shaderResource->SetResource(m_SRView[NORMAL]);
-	//_ASSERT( SUCCEEDED(hr) );
-
-	//// Set our IB/VB
-	//unsigned int stride = shader->m_decl->m_vertexSize;
-	//unsigned int offset = 0;
-	//context->IASetVertexBuffers(0,1,&m_quadVB,&stride,&offset);
-	//context->IASetIndexBuffer(m_quadIB,DXGI_FORMAT_R16_UINT,0);
-
-	//// Set our prim type
-	//context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
-
-	//// Set our states
-	//context->RSSetState(m_RState);
-
-	//D3D11_TECHNIQUE_DESC techDesc;
-	//ID3DX11EffectTechnique *technique = effect->GetTechniqueByIndex(0);
-	//technique->GetDesc(&techDesc);
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//	context->DrawIndexed( 4, 0, 0 );
-	//}
-
-	//// Clear the inputs on the shader
-	//hr = shaderResource->SetResource(NULL);
-	//_ASSERT(SUCCEEDED(hr));
-
-	//for( unsigned int passIndex = 0; passIndex < techDesc.Passes; passIndex++ )
-	//{
-	//	technique->GetPassByIndex( passIndex )->Apply( 0 );
-	//}
-
 }
 
 // ****************************************************************************
@@ -1483,11 +1290,6 @@ void DoLighting()
 
 	// Reset our view
 	m_context->PSSetShaderResources( 0, 3, pSRV );
-	if(m_showLightLocs)
-	{
-		ShowLightLocations();
-	}
-
 }
 // ****************************************************************************
 // ****************************************************************************
@@ -1507,16 +1309,7 @@ void RenderThreadFunc(void *data)
 		m_context->PSSetSamplers(2, 1, &m_basicSampler);
 
 		FillGBuffer();
-
-		if(m_showNormals)
-		{
-			ShowNormals();
-		}
-		else
-		{
-			DoLighting();
-		}
-
+		DoLighting();
 
 		m_swapChain->Present(0,0);
 
