@@ -1048,9 +1048,7 @@ void FillGBuffer()
 
 	// Setup camera parameters
 	Helix::Matrix4x4 projMat = m_projMatrix[m_renderIndex];
-	Helix::Matrix4x4 projMatTr = projMat;
-	projMatTr.Transpose();
-	memcpy(&vsFrameConstants->m_projMatrix, &projMatTr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_projMatrix, &projMat.e, sizeof(Helix::Matrix4x4));
 
 	// Get the view matrix
 	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
