@@ -1052,43 +1052,31 @@ void FillGBuffer()
 
 	// Get the view matrix
 	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-	Helix::Matrix4x4 viewMatTr = viewMat;
-	viewMatTr.Transpose();
-	memcpy(&vsFrameConstants->m_viewMatrix, &viewMatTr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_viewMatrix, &viewMat.e, sizeof(Helix::Matrix4x4));
 
 	// View inverse
 	Helix::Matrix4x4 invView = viewMat;
 	invView.Invert();
-//	_ASSERT(invRet = &invView);
-	Helix::Matrix4x4 invViewTr = invView;
-	invViewTr.Transpose();
-	memcpy(&vsFrameConstants->m_invViewMatrix, &invViewTr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_invViewMatrix, &invView.e, sizeof(Helix::Matrix4x4));
 
 	// Inverse view/proj
 	Helix::Matrix4x4 viewProj = viewMat * projMat;
 	Helix::Matrix4x4 invViewProj = viewProj;
 	invViewProj.Invert();
-//	_ASSERT(invRet == &invViewProj);
-	Helix::Matrix4x4 invViewProjTr = invViewProj;
-	invViewProjTr.Transpose();
-	memcpy(&vsFrameConstants->m_invViewProj, &invViewProjTr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_invViewProj, &invViewProj.e, sizeof(Helix::Matrix4x4));
 
 	// Inverse projection
 	Helix::Matrix4x4 invProj = projMat;
 	invProj.Invert();
-//	_ASSERT(invRet = &invProj);
-	Helix::Matrix4x4 invProjTr = invProj;
-	invProjTr.Transpose();
-	memcpy(&vsFrameConstants->m_invProj, &invProjTr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_invProj, &invProj.e, sizeof(Helix::Matrix4x4));
 
 	// The upper 3x3 of the view matrx
 	// Used to transform directional lights
+	// NOTE (MRS): Not used
 	Helix::Matrix4x4 view3x3 = viewMat;
 	view3x3.r[0][3] = view3x3.r[1][3] = view3x3.r[2][3] = view3x3.r[3][0] = view3x3.r[3][1] = view3x3.r[3][2] = 0.f;
 	view3x3.r[3][3] = 1.f;
-	Helix::Matrix4x4 view3x3Tr = viewMat;
-	view3x3Tr.Transpose();
-	memcpy(&vsFrameConstants->m_view3x3, &view3x3Tr.e, sizeof(Helix::Matrix4x4));
+	memcpy(&vsFrameConstants->m_view3x3, &view3x3.e, sizeof(Helix::Matrix4x4));
 
 	// Set the view aspect
 	vsFrameConstants->m_viewAspect = m_viewAspect;
@@ -1128,7 +1116,6 @@ void FillGBuffer()
 		Helix::Matrix4x4 worldViewProj = worldView * projMat;
 		Helix::Matrix4x4 invWorldViewProj = worldViewProj;
 		invWorldViewProj.Invert();
-
 		vsObjectConstants->m_invWorldViewProj = invWorldViewProj;
 
 		// Generate the inverse transpose of the WorldView matrix
@@ -1137,13 +1124,6 @@ void FillGBuffer()
 		Helix::Matrix4x4 worldViewIT = worldView;
 		worldViewIT.r[0][3] = worldViewIT.r[1][3]= worldViewIT.r[2][3] = worldViewIT.r[3][0] = worldViewIT.r[3][1] = worldViewIT.r[3][2] = 0;
 		worldViewIT.r[3][3] = 1;
-		Helix::Matrix4x4 worldViewITTr = worldViewIT;
-		worldViewITTr.Transpose();
-		worldViewITTr.Invert();
-//		Helix::Matrix4x4Transpose(&worldViewIT,&worldViewIT);
-//		invRet = Helix::Matrix4x4Inverse(&worldViewIT,NULL,&worldViewIT);
-//		_ASSERT(invRet == &worldViewIT);
-
 		vsObjectConstants->m_worldViewIT = worldViewIT;
 
 		// Done with per-object VS constants
