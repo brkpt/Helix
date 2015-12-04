@@ -65,6 +65,7 @@ struct VS_CONSTANT_BUFFER_FRAME
 	Helix::Matrix4x4		m_view3x3;
 	Helix::Matrix4x4		m_invViewProj;
 	Helix::Matrix4x4		m_invProj;
+	float					m_viewAspect;
 };
 
 struct VS_CONSTANT_BUFFER_OBJECT
@@ -72,7 +73,6 @@ struct VS_CONSTANT_BUFFER_OBJECT
 	Helix::Matrix4x4		m_worldViewMatrix;
 	Helix::Matrix4x4		m_worldViewIT;
 	Helix::Matrix4x4		m_invWorldViewProj;
-	float					m_viewAspect;
 };
 
 struct PS_CONSTANT_BUFFER_FRAME
@@ -1302,9 +1302,6 @@ void RenderPointLight(Light &light)
 	
 	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	// Set the view aspect
-	objConst->m_viewAspect = m_viewAspect;
-
 	m_context->Unmap(m_VSObjectConstants, 0);
 	m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
 
@@ -1535,6 +1532,9 @@ void FillGBuffer()
 	Helix::Matrix4x4 view3x3Tr = viewMat;
 	view3x3Tr.Transpose();
 	memcpy(&vsFrameConstants->m_view3x3, &view3x3Tr.e, sizeof(Helix::Matrix4x4));
+
+	// Set the view aspect
+	vsFrameConstants->m_viewAspect = m_viewAspect;
 
 	// Done with per-frame VS constants
 	m_context->Unmap(m_VSFrameConstants, NULL);
