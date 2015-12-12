@@ -51,7 +51,8 @@ Helix::Vector3				m_sunlightDir(0.0f, -1.0f, 0.0f);		// Sunlight vector
 DXGI_RGB					m_sunlightColor = {1.0f, 0.0f, 0.0f};	// Sunlight color
 DXGI_RGB					m_ambientColor = {1.0f, 1.0f, 1.0f};	// Ambient color
 
-struct VS_CONSTANT_BUFFER_FRAME
+ID3D11Buffer	*m_frameConstants = NULL;
+struct CONSTANT_BUFFER_FRAME
 {
 	Helix::Matrix4x4		m_viewMatrix;
 	Helix::Matrix4x4		m_projMatrix;
@@ -59,29 +60,27 @@ struct VS_CONSTANT_BUFFER_FRAME
 	Helix::Matrix4x4		m_view3x3;
 	Helix::Matrix4x4		m_invViewProj;
 	Helix::Matrix4x4		m_invProj;
+	Helix::Vector4			m_sunColor;
+	Helix::Vector4			m_sunDirection;
+	Helix::Vector4			m_ambientColor;
+	float					m_cameraNear;
+	float					m_cameraFar;
+	float					m_imageWidth;
+	float					m_imageHeight;
+	float					m_invTanHalfFOV;
 	float					m_viewAspect;
 };
 
-struct VS_CONSTANT_BUFFER_OBJECT
+ID3D11Buffer	*m_objectConstants = NULL;
+struct CONSTANT_BUFFER_OBJECT
 {
 	Helix::Matrix4x4		m_worldViewMatrix;
 	Helix::Matrix4x4		m_worldViewIT;
 	Helix::Matrix4x4		m_invWorldViewProj;
 };
 
-struct PS_CONSTANT_BUFFER_FRAME
-{
-	Helix::Vector4		m_sunColor;
-	Helix::Vector4		m_sunDirection;
-	Helix::Vector4		m_ambientColor;
-	float				m_cameraNear;
-	float				m_cameraFar;
-	float				m_imageWidth;
-	float				m_imageHeight;
-	float				m_invTanHalfFOV;
-};
-
-struct PS_POINTLIGHT_CONSTANTS
+ID3D11Buffer	*m_lightingConstants = NULL;
+struct POINTLIGHT_CONSTANTS
 {
 	Helix::Vector4	m_pointLoc;
 	Helix::Vector4	m_pointColor;
@@ -113,11 +112,6 @@ float			m_fovY = 0;
 float			m_fov = 0;
 float			m_viewAspect;
 float			m_invTanHalfFOV = 0;
-
-ID3D11Buffer	*m_VSFrameConstants = NULL;
-ID3D11Buffer	*m_VSObjectConstants = NULL;
-ID3D11Buffer	*m_PSFrameConstants = NULL;
-ID3D11Buffer	*m_lightingConstants = NULL;
 
 ID3D11SamplerState	*m_basicSampler;
 
@@ -710,19 +704,15 @@ void CreateConstantBuffers()
 	bufferDesc.MiscFlags = 0;
 	//bufferDesc.StructureByteStride = 0;
 
-	bufferDesc.ByteWidth = Align<16>(sizeof( VS_CONSTANT_BUFFER_FRAME ));
-	HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSFrameConstants );
+	bufferDesc.ByteWidth = Align<16>(sizeof( CONSTANT_BUFFER_FRAME ));
+	HRESULT hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_frameConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-	bufferDesc.ByteWidth = Align<16>(sizeof( VS_CONSTANT_BUFFER_OBJECT ));
-	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_VSObjectConstants );
+	bufferDesc.ByteWidth = Align<16>(sizeof( CONSTANT_BUFFER_OBJECT ));
+	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_objectConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
-	bufferDesc.ByteWidth = Align<16>(sizeof( PS_CONSTANT_BUFFER_FRAME ));
-	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_PSFrameConstants );
-	_ASSERT( SUCCEEDED( hr ) );
-
-	bufferDesc.ByteWidth = Align<16>(sizeof(PS_POINTLIGHT_CONSTANTS));
+	bufferDesc.ByteWidth = Align<16>(sizeof(POINTLIGHT_CONSTANTS));
 	hr = m_D3DDevice->CreateBuffer( &bufferDesc, NULL, &m_lightingConstants );
 	_ASSERT( SUCCEEDED( hr ) );
 
@@ -933,19 +923,19 @@ void RenderPointLight(Light &light)
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 	// Set vertex shader point light constants
-	HRESULT hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	HRESULT hr = m_context->Map(m_objectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 	
-	VS_CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
+	CONSTANT_BUFFER_OBJECT *objConst = reinterpret_cast<CONSTANT_BUFFER_OBJECT *>(mappedResource.pData);
 
-	m_context->Unmap(m_VSObjectConstants, 0);
-	m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
+	m_context->Unmap(m_objectConstants, 0);
+	m_context->VSSetConstantBuffers(1, 1, &m_objectConstants);
 
 	// Set pixel shader point light constants
 	hr = m_context->Map(m_lightingConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	_ASSERT(SUCCEEDED(hr)) ;
 
-	PS_POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<PS_POINTLIGHT_CONSTANTS *>(mappedResource.pData);
+	POINTLIGHT_CONSTANTS *plConstants = reinterpret_cast<POINTLIGHT_CONSTANTS *>(mappedResource.pData);
 
 	// Position
 	plConstants->m_pointLoc.x = lightPos.x;
@@ -1039,57 +1029,6 @@ void FillGBuffer()
 	m_context->OMSetRenderTargets(3, m_RTView, m_depthStencilDSView);
 	//device->OMSetRenderTargets(1,&m_backBufferView,NULL);
 
-	// Set our per frame VS constants
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_VSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	VS_CONSTANT_BUFFER_FRAME *vsFrameConstants = reinterpret_cast<VS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// Setup camera parameters
-	Helix::Matrix4x4 projMat = m_projMatrix[m_renderIndex];
-	memcpy(&vsFrameConstants->m_projMatrix, &projMat.e, sizeof(Helix::Matrix4x4));
-
-	// Get the view matrix
-	Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
-	memcpy(&vsFrameConstants->m_viewMatrix, &viewMat.e, sizeof(Helix::Matrix4x4));
-
-	// View inverse
-	Helix::Matrix4x4 invView = viewMat;
-	invView.Invert();
-	memcpy(&vsFrameConstants->m_invViewMatrix, &invView.e, sizeof(Helix::Matrix4x4));
-
-	// Inverse view/proj
-	Helix::Matrix4x4 viewProj = viewMat * projMat;
-	Helix::Matrix4x4 invViewProj = viewProj;
-	invViewProj.Invert();
-	memcpy(&vsFrameConstants->m_invViewProj, &invViewProj.e, sizeof(Helix::Matrix4x4));
-
-	// Inverse projection
-	Helix::Matrix4x4 invProj = projMat;
-	invProj.Invert();
-	memcpy(&vsFrameConstants->m_invProj, &invProj.e, sizeof(Helix::Matrix4x4));
-
-	// The upper 3x3 of the view matrx
-	// Used to transform directional lights
-	// NOTE (MRS): Not used
-	Helix::Matrix4x4 view3x3 = viewMat;
-	view3x3.r[0][3] = view3x3.r[1][3] = view3x3.r[2][3] = view3x3.r[3][0] = view3x3.r[3][1] = view3x3.r[3][2] = 0.f;
-	view3x3.r[3][3] = 1.f;
-	memcpy(&vsFrameConstants->m_view3x3, &view3x3.e, sizeof(Helix::Matrix4x4));
-
-	// Set the view aspect
-	vsFrameConstants->m_viewAspect = m_viewAspect;
-
-	// Done with per-frame VS constants
-	m_context->Unmap(m_VSFrameConstants, NULL);
-
-	// Set the per frame constants in slot 0 of the vertex shader
-	m_context->VSSetConstantBuffers(0, 1, &m_VSFrameConstants);
-
-	// Set the per frame constants in slot 0 of the pixel shader
-	m_context->PSSetConstantBuffers(0, 1, &m_VSFrameConstants);
-
 	// Go through all of our render objects
 	RenderData *obj = m_submissionBuffers[m_renderIndex];
 
@@ -1101,13 +1040,17 @@ void FillGBuffer()
 		// slots.  This uses one constant buffer per object, however each constant buffer can hold up to 4096 
 		// constants.  Ideally, you'd pack a number of object constants enough to fill one constant buffer.
 		_ASSERT(objectConstantSlot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT);
-		hr = m_context->Map(m_VSObjectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		HRESULT hr = m_context->Map(m_objectConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		_ASSERT( SUCCEEDED( hr ) );
-		VS_CONSTANT_BUFFER_OBJECT *vsObjectConstants = reinterpret_cast<VS_CONSTANT_BUFFER_OBJECT*>(mappedResource.pData);
+		CONSTANT_BUFFER_OBJECT *vsObjectConstants = reinterpret_cast<CONSTANT_BUFFER_OBJECT*>(mappedResource.pData);
 
 		// TODO: Get the world matrix from the object.  
 		// Use I for now
 		Helix::Matrix4x4 worldMat;
+
+		Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
+		Helix::Matrix4x4 projMat = m_projMatrix[m_renderIndex];
 
 		// Calculate the WorldView matrix
 		Helix::Matrix4x4 worldView = worldMat * viewMat;
@@ -1127,10 +1070,11 @@ void FillGBuffer()
 		vsObjectConstants->m_worldViewIT = worldViewIT;
 
 		// Done with per-object VS constants
-		m_context->Unmap(m_VSObjectConstants, NULL);
+		m_context->Unmap(m_objectConstants, NULL);
 
-		// Set the per frame VS constants in slot 0
-		m_context->VSSetConstantBuffers(1, 1, &m_VSObjectConstants);
+		// Set the per object constants in slot 1
+		m_context->VSSetConstantBuffers(1, 1, &m_objectConstants);
+		m_context->PSSetConstantBuffers(1, 1, &m_objectConstants);
 
 		// Set the parameters
 		HXMaterial *mat = HXGetMaterial(obj->materialName);
@@ -1211,47 +1155,6 @@ void DoLighting()
 	// Depth texture
 	m_context->PSSetShaderResources(2, 1, &m_SRView[DEPTH]);
 
-	// Configure the per-frame constants used by the point lights
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	HRESULT hr = m_context->Map(m_PSFrameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	_ASSERT( SUCCEEDED( hr ) );
-
-	PS_CONSTANT_BUFFER_FRAME *PSFrameConstants = reinterpret_cast<PS_CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
-
-	// Configure ambient color
-	Helix::Vector4 vecData;
-	vecData.x = m_ambientColor.Red;
-	vecData.y = m_ambientColor.Green;
-	vecData.z = m_ambientColor.Blue;
-	vecData.w = 1.0f;
-	PSFrameConstants->m_ambientColor = vecData;
-
-	// Configure sun direction
-	vecData.x = -m_sunlightDir.x;
-	vecData.y = -m_sunlightDir.y;
-	vecData.z = -m_sunlightDir.z;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunDirection = vecData;
-
-	// Configure sun color
-	vecData.x = m_sunlightColor.Red;
-	vecData.y = m_sunlightColor.Green;
-	vecData.z = m_sunlightColor.Blue;
-	vecData.w = 0.0f;
-	PSFrameConstants->m_sunColor = vecData;
-
-	// Camera information
-	PSFrameConstants->m_cameraNear = m_cameraNear;
-	PSFrameConstants->m_cameraFar = m_cameraFar;
-	PSFrameConstants->m_imageWidth = m_imageWidth;
-	PSFrameConstants->m_imageHeight = m_imageHeight;
-//	PSFrameConstants->m_fovY = m_fovY;
-	PSFrameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
-
-	// Send it to the hardware in slot 2
-	m_context->Unmap(m_PSFrameConstants, 0);
-	m_context->PSSetConstantBuffers(2, 1, &m_PSFrameConstants);
-
 	// Go render all lights
 	for(int iLightIndex=0;iLightIndex < m_numRenderLights; iLightIndex++)
 	{
@@ -1285,6 +1188,85 @@ void RenderThreadFunc(void *data)
 		m_context->PSSetSamplers(0, 1, &m_basicSampler);
 		m_context->PSSetSamplers(1, 1, &m_basicSampler);
 		m_context->PSSetSamplers(2, 1, &m_basicSampler);
+
+		// Set our per frame VS constants
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		HRESULT hr = m_context->Map(m_frameConstants, NULL, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		_ASSERT( SUCCEEDED( hr ) );
+
+		CONSTANT_BUFFER_FRAME *frameConstants = reinterpret_cast<CONSTANT_BUFFER_FRAME*>(mappedResource.pData);
+
+		// Get the view matrix
+		Helix::Matrix4x4 viewMat = m_viewMatrix[m_renderIndex];
+		memcpy(&frameConstants->m_viewMatrix, &viewMat.e, sizeof(Helix::Matrix4x4));
+
+		// Setup camera parameters
+		Helix::Matrix4x4 projMat = m_projMatrix[m_renderIndex];
+		memcpy(&frameConstants->m_projMatrix, &projMat.e, sizeof(Helix::Matrix4x4));
+
+		// View inverse
+		Helix::Matrix4x4 invView = viewMat;
+		invView.Invert();
+		memcpy(&frameConstants->m_invViewMatrix, &invView.e, sizeof(Helix::Matrix4x4));
+
+		// Inverse view/proj
+		Helix::Matrix4x4 viewProj = viewMat * projMat;
+		Helix::Matrix4x4 invViewProj = viewProj;
+		invViewProj.Invert();
+		memcpy(&frameConstants->m_invViewProj, &invViewProj.e, sizeof(Helix::Matrix4x4));
+
+		// Inverse projection
+		Helix::Matrix4x4 invProj = projMat;
+		invProj.Invert();
+		memcpy(&frameConstants->m_invProj, &invProj.e, sizeof(Helix::Matrix4x4));
+
+		// The upper 3x3 of the view matrx
+		// Used to transform directional lights
+		// NOTE (MRS): Not used
+		Helix::Matrix4x4 view3x3 = viewMat;
+		view3x3.r[0][3] = view3x3.r[1][3] = view3x3.r[2][3] = view3x3.r[3][0] = view3x3.r[3][1] = view3x3.r[3][2] = 0.f;
+		view3x3.r[3][3] = 1.f;
+		memcpy(&frameConstants->m_view3x3, &view3x3.e, sizeof(Helix::Matrix4x4));
+
+		// Configure ambient color
+		Helix::Vector4 vecData;
+		vecData.x = m_ambientColor.Red;
+		vecData.y = m_ambientColor.Green;
+		vecData.z = m_ambientColor.Blue;
+		vecData.w = 1.0f;
+		frameConstants->m_ambientColor = vecData;
+
+		// Configure sun direction
+		vecData.x = -m_sunlightDir.x;
+		vecData.y = -m_sunlightDir.y;
+		vecData.z = -m_sunlightDir.z;
+		vecData.w = 0.0f;
+		frameConstants->m_sunDirection = vecData;
+
+		// Configure sun color
+		vecData.x = m_sunlightColor.Red;
+		vecData.y = m_sunlightColor.Green;
+		vecData.z = m_sunlightColor.Blue;
+		vecData.w = 0.0f;
+		frameConstants->m_sunColor = vecData;
+
+		// Camera information
+		frameConstants->m_cameraNear = m_cameraNear;
+		frameConstants->m_cameraFar = m_cameraFar;
+		frameConstants->m_imageWidth = m_imageWidth;
+		frameConstants->m_imageHeight = m_imageHeight;
+	//	frameConstants->m_fovY = m_fovY;
+		frameConstants->m_invTanHalfFOV = m_invTanHalfFOV;
+
+		// Set the view aspect
+		frameConstants->m_viewAspect = m_viewAspect;
+
+		// Done with per-frame VS constants
+		m_context->Unmap(m_frameConstants, NULL);
+
+		// Set the per frame constants in slot 0 
+		m_context->VSSetConstantBuffers(0, 1, &m_frameConstants);
+		m_context->PSSetConstantBuffers(0, 1, &m_frameConstants);
 
 		FillGBuffer();
 		DoLighting();
