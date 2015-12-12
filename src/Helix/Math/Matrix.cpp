@@ -430,7 +430,7 @@ Matrix4x4 & Matrix4x4::SetProjectionFOV(float fovY, float aspect, float nearZ, f
 	r[0][0] = xScale;
 	r[1][1] = yScale;
 	r[2][2] = farZ / (farZ - nearZ);
-	r[2][3] = (-1.0f * farZ) / (farZ - nearZ);
+	r[2][3] = -1.0f * (nearZ * farZ) / (farZ - nearZ);
 	r[3][2] = 1.0f;
 	r[3][3] = 0.0f;
 
