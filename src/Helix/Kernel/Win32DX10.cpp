@@ -75,7 +75,9 @@ bool WinApp::InitializeDirectX(void)
 #endif
 	IDXGISwapChain *swapChain;
 	ID3D11DeviceContext *context;
-	D3D_FEATURE_LEVEL featureLevel; // foo
+	D3D_FEATURE_LEVEL featureLevel;
+
+	// Passing NULL for a feature level request defaults to "best available first"
 	HRESULT hr = D3D11CreateDeviceAndSwapChain( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, NULL, 0,
 											 D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &m_pD3DDevice, &featureLevel, &context );
 
