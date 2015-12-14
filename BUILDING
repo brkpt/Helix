@@ -1,0 +1,21 @@
+Requirements:
+- JamPlus 3 : git@github.com:brkpt/jamplus.git
+- LuaPlus   : git@github.com:brkpt/luaplus51-all.git
+
+JamPlus is required in order to build LuaPlus and the DeferredShader project.  
+
+Building JamPlus:
+- Run the bootstrapping script for your platform (probably bootstrap-win32.bat or 
+  bootstrap-win64.bat)
+- This will generate a jam.exe in the bin folder.  Make sure that folder is on your path
+  in order to build LuaPlus.
+
+Buildling LuaPlus:
+- Run the CreateWorkspaceVS2015.bat 
+- Select either Lua 5.2 
+- Load the solution in build2015/_workspaces_/vs2015 into Visual Studio 2015.
+- Build the lua52-static project.
+- Copy the libraries into a known location inside of a lib folder
+- Edit the root Jamfile.jam and change the LUAPLUS variable to point to the known location (expects the 
+  .lib files to be in $LUAPLUS/lib).
+
